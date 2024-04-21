@@ -1,4 +1,4 @@
-package frc.robot.subsystems.flywheelExample;
+package frc.robot.subsystems.examples.flywheel;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;

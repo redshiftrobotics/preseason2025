@@ -6,13 +6,16 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
 import org.littletonrobotics.junction.Logger;
 
+/**
+ * An individual swerve module in a drivetrain. This class is above the IO layer and contains
+ * functionality for using each module regardless of hardware specifics.
+ */
 public class Module {
-  private static final double WHEEL_RADIUS = Units.inchesToMeters(2.0);
-  static final double ODOMETRY_FREQUENCY = 250.0;
+  private static final double WHEEL_RADIUS = DriveConstants.driveConfig.wheelRadius();
+  static final double ODOMETRY_FREQUENCY = DriveConstants.ODOMETRY_FREQUENCY;
 
   private final ModuleIO io;
   private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();

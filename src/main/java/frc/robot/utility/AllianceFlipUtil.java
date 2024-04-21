@@ -1,4 +1,4 @@
-package frc.robot.util;
+package frc.robot.utility;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -10,6 +10,8 @@ import frc.robot.FieldConstants;
 
 /** Utility functions for flipping from the blue to red alliance. */
 public class AllianceFlipUtil {
+
+  private AllianceFlipUtil() {}
 
   /** Flips an x coordinate to the correct side of the field based on the current alliance color. */
   public static double apply(double xCoordinate) {
@@ -36,6 +38,7 @@ public class AllianceFlipUtil {
     return pose;
   }
 
+  /** Flips a translation3d to the correct side of the field based on the current alliance color. */
   public static Translation3d apply(Translation3d translation3d) {
     if (shouldFlip())
       translation3d =
@@ -44,6 +47,9 @@ public class AllianceFlipUtil {
     return translation3d;
   }
 
+  /**
+   * @return True if
+   */
   public static boolean shouldFlip() {
     return Constants.getAlliance() == Alliance.Red;
   }

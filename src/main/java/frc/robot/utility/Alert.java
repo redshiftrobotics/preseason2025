@@ -1,4 +1,4 @@
-package frc.robot.util;
+package frc.robot.utility;
 
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 
 /** Class for managing persistent alerts to be sent over NetworkTables. */
 public class Alert {
-  private static Map<String, SendableAlerts> groups = new HashMap<String, SendableAlerts>();
+  private static Map<String, SendableAlerts> groups = new HashMap<>();
 
   private final AlertType type;
   private boolean active = false;
@@ -41,10 +41,13 @@ public class Alert {
    * @param type Alert level specifying urgency.
    */
   public Alert(String group, String text, AlertType type) {
-    if (!groups.containsKey(group)) {
-      groups.put(group, new SendableAlerts());
-      SmartDashboard.putData(group, groups.get(group));
-    }
+    groups.computeIfAbsent(
+        group,
+        key -> {
+          var value = new SendableAlerts();
+          SmartDashboard.putData(key, value);
+          return value;
+        });
 
     this.text = text;
     this.type = type;
@@ -58,37 +61,31 @@ public class Alert {
   public void set(boolean active) {
     if (active && !this.active) {
       activeStartTime = Timer.getFPGATimestamp();
-      switch (type) {
-        case ERROR:
-          DriverStation.reportError(text, false);
-          break;
-        case WARNING:
-          DriverStation.reportWarning(text, false);
-          break;
-        case INFO:
-          System.out.println(text);
-          break;
-      }
+      reportAlert();
     }
     this.active = active;
   }
 
   /** Updates current alert text. */
   public void setText(String text) {
-    if (active && !text.equals(this.text)) {
-      switch (type) {
-        case ERROR:
-          DriverStation.reportError(text, false);
-          break;
-        case WARNING:
-          DriverStation.reportWarning(text, false);
-          break;
-        case INFO:
-          System.out.println(text);
-          break;
-      }
+    if (!text.equals(this.text)) {
+      this.text = text;
+      if (active) reportAlert();
     }
-    this.text = text;
+  }
+
+  private void reportAlert() {
+    switch (type) {
+      case ERROR:
+        DriverStation.reportError(text, false);
+        break;
+      case WARNING:
+        DriverStation.reportWarning(text, false);
+        break;
+      case INFO:
+        System.out.println(text);
+        break;
+    }
   }
 
   private static class SendableAlerts implements Sendable {
@@ -115,7 +112,7 @@ public class Alert {
   }
 
   /** Represents an alert's level of urgency. */
-  public static enum AlertType {
+  public enum AlertType {
     /**
      * High priority alert - displayed first on the dashboard with a red "X" symbol. Use this type
      * for problems which will seriously affect the robot's functionality and thus require immediate

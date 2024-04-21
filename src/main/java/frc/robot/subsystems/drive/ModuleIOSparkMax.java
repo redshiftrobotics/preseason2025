@@ -40,7 +40,7 @@ public class ModuleIOSparkMax implements ModuleIO {
   private final Queue<Double> drivePositionQueue;
   private final Queue<Double> turnPositionQueue;
 
-  private final boolean isTurnMotorInverted = true;
+  private final boolean isTurnMotorInverted;
   private final Rotation2d absoluteEncoderOffset;
 
   public ModuleIOSparkMax(int index) {
@@ -72,6 +72,7 @@ public class ModuleIOSparkMax implements ModuleIO {
       default:
         throw new RuntimeException("Invalid module index");
     }
+    isTurnMotorInverted = false;
 
     driveSparkMax.restoreFactoryDefaults();
     turnSparkMax.restoreFactoryDefaults();
@@ -133,6 +134,7 @@ public class ModuleIOSparkMax implements ModuleIO {
 
   @Override
   public void updateInputs(ModuleIOInputs inputs) {
+    // --- Drive ---
     inputs.drivePositionRad =
         Units.rotationsToRadians(driveEncoder.getPosition()) / DRIVE_GEAR_RATIO;
     inputs.driveVelocityRadPerSec =
@@ -140,6 +142,7 @@ public class ModuleIOSparkMax implements ModuleIO {
     inputs.driveAppliedVolts = driveSparkMax.getAppliedOutput() * driveSparkMax.getBusVoltage();
     inputs.driveCurrentAmps = new double[] {driveSparkMax.getOutputCurrent()};
 
+    // --- Turn ---
     inputs.turnAbsolutePosition =
         new Rotation2d(
                 turnAbsoluteEncoder.getVoltage() / RobotController.getVoltage5V() * 2.0 * Math.PI)
@@ -152,6 +155,7 @@ public class ModuleIOSparkMax implements ModuleIO {
     inputs.turnAppliedVolts = turnSparkMax.getAppliedOutput() * turnSparkMax.getBusVoltage();
     inputs.turnCurrentAmps = new double[] {turnSparkMax.getOutputCurrent()};
 
+    // --- Odometry ---
     inputs.odometryTimestamps =
         timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
     inputs.odometryDrivePositionsRad =
@@ -162,6 +166,7 @@ public class ModuleIOSparkMax implements ModuleIO {
         turnPositionQueue.stream()
             .map((Double value) -> Rotation2d.fromRotations(value / TURN_GEAR_RATIO))
             .toArray(Rotation2d[]::new);
+
     timestampQueue.clear();
     drivePositionQueue.clear();
     turnPositionQueue.clear();

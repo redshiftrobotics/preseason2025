@@ -1,4 +1,4 @@
-package frc.robot.subsystems.flywheelExample;
+package frc.robot.subsystems.examples.flywheel;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;

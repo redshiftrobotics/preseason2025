@@ -43,8 +43,8 @@ public class PhoenixOdometryThread extends Thread {
   }
 
   @Override
-  public void start() {
-    if (timestampQueues.size() > 0) {
+  public synchronized void start() {
+    if (!timestampQueues.isEmpty()) {
       super.start();
     }
   }
@@ -78,48 +78,76 @@ public class PhoenixOdometryThread extends Thread {
     return queue;
   }
 
+  /** Wait (sleep) until we the next odometry update) */
+  private void waitForAllSignals() {
+    // Wait for updates from all signals
+    signalsLock.lock();
+    try {
+      final double odometryPeriodSeconds = 1 / Module.ODOMETRY_FREQUENCY;
+      if (isCANFD) {
+        BaseStatusSignal.waitForAll(2 * odometryPeriodSeconds, signals);
+      } else {
+        // "waitForAll" does not support blocking on multiple
+        // signals with a bus that is not CAN FD, regardless
+        // of Pro licensing. No reasoning for this behavior
+        // is provided by the documentation.
+        Thread.sleep((long) odometryPeriodSeconds * 1000);
+        if (signals.length > 0) BaseStatusSignal.refreshAll(signals);
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      e.printStackTrace();
+    } finally {
+      signalsLock.unlock();
+    }
+  }
+
+  /**
+   * @return timestamp in seconds minus the average latency
+   */
+  private double getTimestampWithoutLatency() {
+
+    // Get time in seconds
+    double timeStampMicroseconds = Logger.getRealTimestamp();
+    double timestampSeconds = timeStampMicroseconds / 1e6;
+
+    if (signals.length == 0) {
+      return timestampSeconds;
+    }
+
+    double totalLatencySeconds = 0.0;
+    for (BaseStatusSignal signal : signals) {
+      totalLatencySeconds += signal.getTimestamp().getLatency();
+    }
+    double averageLatency = totalLatencySeconds / signals.length;
+
+    return timestampSeconds - averageLatency;
+  }
+
+  /** Locks odometry, updates queues with new values and timestamps */
+  private void saveDataFromSignals() {
+    // Save new data to queues
+    Drive.odometryLock.lock();
+    try {
+      double timestamp = getTimestampWithoutLatency();
+
+      for (int i = 0; i < signals.length; i++) {
+        queues.get(i).offer(signals[i].getValueAsDouble());
+      }
+      for (int i = 0; i < timestampQueues.size(); i++) {
+        timestampQueues.get(i).offer(timestamp);
+      }
+    } finally {
+      Drive.odometryLock.unlock();
+    }
+  }
+
   @Override
   public void run() {
     while (true) {
-      // Wait for updates from all signals
-      signalsLock.lock();
-      try {
-        if (isCANFD) {
-          BaseStatusSignal.waitForAll(2.0 / Module.ODOMETRY_FREQUENCY, signals);
-        } else {
-          // "waitForAll" does not support blocking on multiple
-          // signals with a bus that is not CAN FD, regardless
-          // of Pro licensing. No reasoning for this behavior
-          // is provided by the documentation.
-          Thread.sleep((long) (1000.0 / Module.ODOMETRY_FREQUENCY));
-          if (signals.length > 0) BaseStatusSignal.refreshAll(signals);
-        }
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      } finally {
-        signalsLock.unlock();
-      }
 
-      // Save new data to queues
-      Drive.odometryLock.lock();
-      try {
-        double timestamp = Logger.getRealTimestamp() / 1e6;
-        double totalLatency = 0.0;
-        for (BaseStatusSignal signal : signals) {
-          totalLatency += signal.getTimestamp().getLatency();
-        }
-        if (signals.length > 0) {
-          timestamp -= totalLatency / signals.length;
-        }
-        for (int i = 0; i < signals.length; i++) {
-          queues.get(i).offer(signals[i].getValueAsDouble());
-        }
-        for (int i = 0; i < timestampQueues.size(); i++) {
-          timestampQueues.get(i).offer(timestamp);
-        }
-      } finally {
-        Drive.odometryLock.unlock();
-      }
+      waitForAllSignals();
+      saveDataFromSignals();
     }
   }
 }

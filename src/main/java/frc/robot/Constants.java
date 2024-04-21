@@ -3,7 +3,9 @@ package frc.robot;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
-import frc.robot.util.Alert;
+import frc.robot.utility.Alert;
+import java.util.Optional;
+import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -15,16 +17,21 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-  private static RobotType robotType = RobotType.SIM_BOT;
+  private static final RobotType robotType = RobotType.SIM_BOT;
 
-  public static final boolean tuningMode = false;
+  public static final double LOOP_PERIOD_SECONDS = LoggedRobot.defaultPeriodSecs; // 0.02
+
+  public static final boolean TUNING_MODE = false;
+
+  private static boolean invalidRobot = false;
 
   public static RobotType getRobot() {
     if (!disableHAL && RobotBase.isReal() && robotType == RobotType.SIM_BOT) {
       new Alert(
               "Invalid robot selected, using competition robot as default.", Alert.AlertType.ERROR)
-          .set(true);
-      robotType = RobotType.COMP_BOT;
+          .set(!invalidRobot);
+      invalidRobot = true;
+      return RobotType.COMP_BOT;
     }
     return robotType;
   }
@@ -48,13 +55,16 @@ public final class Constants {
     }
   }
 
+  /**
+   * @return current alliance based on driver station, default to Blue
+   */
   public static Alliance getAlliance() {
     if (allianceChooser != null) {
       return allianceChooser.get();
     }
-    return DriverStation.getAlliance().isPresent()
-        ? DriverStation.getAlliance().get()
-        : Alliance.Blue;
+
+    final Optional<Alliance> alliance = DriverStation.getAlliance();
+    return alliance.isPresent() ? alliance.get() : Alliance.Blue;
   }
 
   public enum Mode {
@@ -74,7 +84,7 @@ public final class Constants {
     COMP_BOT
   }
 
-  public static boolean disableHAL = false;
+  private static boolean disableHAL = false;
 
   public static void disableHAL() {
     disableHAL = true;

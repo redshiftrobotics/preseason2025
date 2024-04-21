@@ -1,4 +1,4 @@
-package frc.robot.subsystems.flywheelExample;
+package frc.robot.subsystems.examples.flywheel;
 
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;

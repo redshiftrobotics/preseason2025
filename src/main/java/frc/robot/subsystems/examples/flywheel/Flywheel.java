@@ -1,4 +1,4 @@
-package frc.robot.subsystems.flywheelExample;
+package frc.robot.subsystems.examples.flywheel;
 
 import static edu.wpi.first.units.Units.*;
 
@@ -47,8 +47,8 @@ public class Flywheel extends SubsystemBase {
                 null,
                 null,
                 null,
-                (state) -> Logger.recordOutput("Flywheel/SysIdState", state.toString())),
-            new SysIdRoutine.Mechanism((voltage) -> runVolts(voltage.in(Volts)), null, this));
+                state -> Logger.recordOutput("Flywheel/SysIdState", state.toString())),
+            new SysIdRoutine.Mechanism(voltage -> runVolts(voltage.in(Volts)), null, this));
   }
 
   @Override
