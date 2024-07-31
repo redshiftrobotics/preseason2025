@@ -1,63 +1,75 @@
 {
-  "java.configuration.updateBuildConfiguration": "automatic",
-  "java.server.launchMode": "Standard",
-  "files.exclude": {
-    "**/.git": true,
-    "**/.svn": true,
-    "**/.hg": true,
-    "**/CVS": true,
-    "**/.DS_Store": true,
-    "bin/": true,
-    "**/.classpath": true,
-    "**/.project": true,
-    "**/.settings": true,
-    "**/.factorypath": true,
-    "**/*~": true
-  },
-  "java.test.config": [
-    {
-      "name": "WPIlibUnitTests",
-      "workingDirectory": "${workspaceFolder}/build/jni/release",
-      "vmargs": [
-        "-Djava.library.path=${workspaceFolder}/build/jni/release"
-      ],
-      "env": {
-        "LD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release",
-        "DYLD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release"
-      }
+	// Java 
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.server.launchMode": "Standard",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "bin/": true,
+        "**/.classpath": true,
+        "**/.project": true,
+        "**/.settings": true,
+        "**/.factorypath": true,
+        "**/*~": true
     },
-    {}
-  ],
-  "java.test.defaultConfig": "WPIlibUnitTests",
-  "spotlessGradle.format.enable": true,
-  "spotlessGradle.diagnostics.enable": false,
-  "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle",
-  "[json]": {
-    "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle"
-  },
-  "[java]": {
-    "editor.defaultFormatter": "redhat.java"
-  },
-  "editor.tabSize": 2,
-  "editor.detectIndentation": false,
-  "editor.insertSpaces": true,
-  "cSpell.words": [
-    "AHRS",
-    "Arducam",
-    "Brushless",
-    "cancoder",
-    "deadband",
-    "Feedforward",
-    "Holonomic",
-    "Lightstrip",
-    "Pathfinding",
-    "photonvision",
-    "Quasistatic",
-    "Ramsete",
-    "Robo",
-    "teleop",
-    "teleoperated",
-    "wpilibj"
-  ],
-  "wpilib.selectDefaultSimulateExtension": true
+    "java.test.config": [
+        {
+            "name": "WPIlibUnitTests",
+            "workingDirectory": "${workspaceFolder}/build/jni/release",
+            "vmargs": [
+                "-Djava.library.path=${workspaceFolder}/build/jni/release"
+            ],
+            "env": {
+                "LD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release",
+                "DYLD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release"
+            }
+        },
+        {}
+    ],
+    "java.test.defaultConfig": "WPIlibUnitTests",
+
+	// Formatter
+    "spotlessGradle.format.enable": true,
+    "spotlessGradle.diagnostics.enable": false,
+    "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle",
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[java]": {
+        "editor.defaultFormatter": "redhat.java"
+    },
+
+
+	// Line length and indentation
+	"java.settings.url": ".vscode/settings.prefs",
+    "editor.tabSize": 4,
+    "editor.indentSize": "tabSize",
+    "editor.insertSpaces": false,
+    "editor.detectIndentation": false,
+
+	// Spell check
+    "cSpell.words": [
+        "AHRS",
+        "Arducam",
+        "Brushless",
+        "cancoder",
+        "deadband",
+        "Feedforward",
+        "Holonomic",
+        "Lightstrip",
+        "Pathfinding",
+        "photonvision",
+        "Quasistatic",
+        "Ramsete",
+        "Robo",
+        "teleop",
+        "teleoperated",
+        "wpilibj"
+    ],
+
+	// WPILib
+    "wpilib.selectDefaultSimulateExtension": true,
 }

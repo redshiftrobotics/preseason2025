@@ -105,7 +105,8 @@ Temporary Items
 
 ### VisualStudioCode ###
 .vscode/*
-!.vscode/settings.json
+!.vscode/settings.
+!.vscode/settings.prefs
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json

@@ -7,64 +7,64 @@ import java.util.function.BooleanSupplier;
 
 /** Class for switching on and off features, implements BooleanSupplier */
 public class OverrideSwitch implements BooleanSupplier {
-  private final Subsystem requirement;
+    private final Subsystem requirement;
 
-  private final boolean defaultValue;
-  private boolean value;
+    private final boolean defaultValue;
+    private boolean value;
 
-  /**
-   * Creates new Override switch
-   *
-   * @param trigger Trigger to toggle state
-   * @param defaultValue Starting state
-   * @param requirement Will clear command on this subsystem on state change
-   */
-  public OverrideSwitch(Trigger trigger, boolean defaultValue, Subsystem requirement) {
-    this.defaultValue = value = defaultValue;
+    /**
+     * Creates new Override switch
+     *
+     * @param trigger      Trigger to toggle state
+     * @param defaultValue Starting state
+     * @param requirement  Will clear command on this subsystem on state change
+     */
+    public OverrideSwitch(Trigger trigger, boolean defaultValue, Subsystem requirement) {
+        this.defaultValue = value = defaultValue;
 
-    this.requirement = requirement;
+        this.requirement = requirement;
 
-    trigger.onTrue(Commands.runOnce(this::toggle));
-  }
-
-  public OverrideSwitch(Trigger trigger, boolean defaultValue) {
-    this(trigger, defaultValue, null);
-  }
-
-  public OverrideSwitch(Trigger trigger) {
-    this(trigger, false);
-  }
-
-  private void set(boolean value) {
-    this.value = value;
-
-    if (requirement != null && requirement.getCurrentCommand() != null) {
-      requirement.getCurrentCommand().cancel();
+        trigger.onTrue(Commands.runOnce(this::toggle));
     }
-  }
 
-  public void toggle() {
-    set(!value);
-  }
+    public OverrideSwitch(Trigger trigger, boolean defaultValue) {
+        this(trigger, defaultValue, null);
+    }
 
-  public void reset() {
-    set(defaultValue);
-  }
+    public OverrideSwitch(Trigger trigger) {
+        this(trigger, false);
+    }
 
-  public void toggleOn() {
-    set(true);
-  }
+    private void set(boolean value) {
+        this.value = value;
 
-  public void toggleOff() {
-    set(false);
-  }
+        if (requirement != null && requirement.getCurrentCommand() != null) {
+            requirement.getCurrentCommand().cancel();
+        }
+    }
 
-  public boolean get() {
-    return value;
-  }
+    public void toggle() {
+        set(!value);
+    }
 
-  @Override
-  public boolean getAsBoolean() {
-    return get();
-  }
+    public void reset() {
+        set(defaultValue);
+    }
+
+    public void toggleOn() {
+        set(true);
+    }
+
+    public void toggleOff() {
+        set(false);
+    }
+
+    public boolean get() {
+        return value;
+    }
+
+    @Override
+    public boolean getAsBoolean() {
+        return get();
+    }
 }
