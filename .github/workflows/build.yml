@@ -1,5 +1,7 @@
 name: Build
 
+# TODO: test to se if Robot.java can run in sim, basically null pointer check
+
 on:
   push:
   pull_request:
