@@ -18,10 +18,13 @@ import frc.robot.commands.teleop.DriveForwardAtHeading;
 import frc.robot.commands.teleop.TeleopAngleDrive;
 import frc.robot.commands.teleop.TeleopDrive;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
+import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
+import frc.robot.subsystems.drive.ModuleIOSparkMaxCANCoder;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.examples.flywheel.Flywheel;
 import frc.robot.subsystems.examples.flywheel.FlywheelIO;
@@ -53,20 +56,32 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    switch (Constants.getMode()) {
-      case REAL:
+    switch (Constants.getRobot()) {
+      case COMP_BOT:
         // Real robot, instantiate hardware IO implementations
         drive =
             new Drive(
                 new GyroIOPigeon2(true),
-                new ModuleIOTalonFX(0),
-                new ModuleIOTalonFX(1),
-                new ModuleIOTalonFX(2),
-                new ModuleIOTalonFX(3));
+                new ModuleIOTalonFX(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
+                new ModuleIOTalonFX(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
+                new ModuleIOTalonFX(DriveConstants.BACK_LEFT_MODULE_CONFIG),
+                new ModuleIOTalonFX(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
         flywheel = new Flywheel(new FlywheelIOTalonFX());
         break;
 
-      case SIM:
+      case DEV_BOT:
+        // Real robot, instantiate hardware IO implementations
+        drive =
+            new Drive(
+                new GyroIONavX(),
+                new ModuleIOSparkMaxCANCoder(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
+                new ModuleIOSparkMaxCANCoder(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
+                new ModuleIOSparkMaxCANCoder(DriveConstants.BACK_LEFT_MODULE_CONFIG),
+                new ModuleIOSparkMaxCANCoder(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
+        flywheel = new Flywheel(new FlywheelIOTalonFX());
+        break;
+
+      case SIM_BOT:
         // Sim robot, instantiate physics sim IO implementations
         drive =
             new Drive(
@@ -141,22 +156,18 @@ public class RobotContainer {
     if (driverController instanceof CommandXboxController) {
       CommandXboxController xbox = (CommandXboxController) driverController;
 
-      final BooleanSupplier fieldRelativeSwitch = () -> true;
+      final BooleanSupplier useFieldRelative = () -> true;
 
       /**
-       * DEFAULT CONTROL MODE:
-       * Left stick controls translation (forward, backward, left, right),
-       * while right stick controls rotation (counter clockwise, clockwise spin).
-       * POV allows for field relative heading control using PID
-       * 
-       * ANGLE CONTROL MODE:
-       * Left stick still controls translation (forward, backward, left, right),
-       * while right stick controls field relative heading using PID.
-       * POV acts like mini tank drive controller
+       * DEFAULT CONTROL MODE: Left stick controls translation (forward, backward, left, right),
+       * while right stick controls rotation (counter clockwise, clockwise spin). POV allows for
+       * field relative heading control using PID
+       *
+       * <p>ANGLE CONTROL MODE: Left stick still controls translation (forward, backward, left,
+       * right), while right stick controls field relative heading using PID. POV acts like mini
+       * tank drive controller
        */
-
-      final BooleanSupplier angleControlMode = new OverrideSwitch(xbox.y(), true);
-      xbox.y().onTrue(Commands.runOnce(drive::stopUsingBrakeArrangement, drive));
+      final BooleanSupplier useAngleControlMode = new OverrideSwitch(xbox.y(), false, drive);
 
       drive.setDefaultCommand(
           Commands.either(
@@ -165,42 +176,42 @@ public class RobotContainer {
                   () -> -xbox.getLeftY(),
                   () -> -xbox.getLeftX(),
                   () -> -xbox.getRightX(),
-                  fieldRelativeSwitch),
+                  useFieldRelative),
               new TeleopAngleDrive(
                   drive,
                   () -> -xbox.getLeftY(),
                   () -> -xbox.getLeftX(),
                   () -> -xbox.getRightY(),
                   () -> -xbox.getRightX(),
-                  fieldRelativeSwitch),
-              angleControlMode));
+                  useFieldRelative),
+              useAngleControlMode));
 
       xbox.pov(0)
           .whileTrue(
               Commands.either(
                   new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(+0)),
                   new DriveAtSpeeds(drive, new ChassisSpeeds(1, 0, 0)),
-                  angleControlMode));
+                  useAngleControlMode));
       xbox.pov(180)
           .whileTrue(
               Commands.either(
                   new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(+180)),
                   new DriveAtSpeeds(drive, new ChassisSpeeds(-1, 0, 0)),
-                  angleControlMode));
+                  useAngleControlMode));
       xbox.pov(90)
           .whileTrue(
               Commands.either(
                   new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(-90)),
                   new DriveAtSpeeds(drive, new ChassisSpeeds(0, 0, Units.degreesToRadians(-90))),
-                  angleControlMode));
+                  useAngleControlMode));
       xbox.pov(270)
           .whileTrue(
               Commands.either(
                   new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(-270)),
                   new DriveAtSpeeds(drive, new ChassisSpeeds(0, 0, Units.degreesToRadians(+90))),
-                  angleControlMode));
+                  useAngleControlMode));
 
-      xbox.x().onTrue(Commands.runOnce(drive::stopUsingBrakeArrangement, drive));
+      xbox.x().onTrue(Commands.runOnce(drive::brakeArrangementStop, drive));
 
     } else if (driverController instanceof CommandJoystick) {
       CommandJoystick joystick = (CommandJoystick) driverController;

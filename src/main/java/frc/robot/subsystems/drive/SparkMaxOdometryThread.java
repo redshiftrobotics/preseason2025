@@ -37,7 +37,7 @@ public class SparkMaxOdometryThread {
 
   public void start() {
     if (!timestampQueues.isEmpty()) {
-      notifier.startPeriodic(1.0 / Module.ODOMETRY_FREQUENCY);
+      notifier.startPeriodic(1.0 / DriveConstants.ODOMETRY_FREQUENCY);
     }
   }
 

@@ -31,17 +31,13 @@ public class Robot extends LoggedRobot {
     Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
     Logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
     Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
-    switch (BuildConstants.DIRTY) {
-      case 0:
-        Logger.recordMetadata("GitDirty", "All changes committed");
-        break;
-      case 1:
-        Logger.recordMetadata("GitDirty", "Uncomitted changes");
-        break;
-      default:
-        Logger.recordMetadata("GitDirty", "Unknown");
-        break;
-    }
+    Logger.recordMetadata(
+        "GitDirty",
+        switch (BuildConstants.DIRTY) {
+          case 0 -> "All changes committed";
+          case 1 -> "Uncommitted changes";
+          default -> "Unknown";
+        });
 
     // Set up data receivers & replay source
     switch (Constants.getMode()) {
@@ -59,7 +55,7 @@ public class Robot extends LoggedRobot {
       case REPLAY:
         // Replaying a log, set up replay source
         setUseTiming(false); // Run as fast as possible
-        String logPath = LogFileUtil.findReplayLog();
+        final String logPath = LogFileUtil.findReplayLog();
         Logger.setReplaySource(new WPILOGReader(logPath));
         Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
         break;

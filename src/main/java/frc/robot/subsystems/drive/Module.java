@@ -1,12 +1,15 @@
 package frc.robot.subsystems.drive;
 
+import static frc.robot.subsystems.drive.DriveConstants.DRIVE_CONFIG;
+import static frc.robot.subsystems.drive.DriveConstants.MODULE_CONSTANTS;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.robot.Constants;
+import frc.robot.utility.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
 /**
@@ -14,45 +17,45 @@ import org.littletonrobotics.junction.Logger;
  * functionality for using each module regardless of hardware specifics.
  */
 public class Module {
-  private static final double WHEEL_RADIUS = DriveConstants.driveConfig.wheelRadius();
-  static final double ODOMETRY_FREQUENCY = DriveConstants.ODOMETRY_FREQUENCY;
+
+  private static final LoggedTunableNumber driveFeedForwardKs =
+      new LoggedTunableNumber("Drive/Module/DriveKs", MODULE_CONSTANTS.feedForwardKs());
+  private static final LoggedTunableNumber driveFeedForwardKv =
+      new LoggedTunableNumber("Drive/Module/DriveKv", MODULE_CONSTANTS.feedForwardKv());
+
+  private static final LoggedTunableNumber driveKp =
+      new LoggedTunableNumber("Drive/Module/DriveKp", MODULE_CONSTANTS.driveKp());
+  private static final LoggedTunableNumber driveKd =
+      new LoggedTunableNumber("Drive/Module/DriveKd", MODULE_CONSTANTS.driveKd());
+
+  private static final LoggedTunableNumber turnKp =
+      new LoggedTunableNumber("Drive/Module/TurnKp", MODULE_CONSTANTS.turnKp());
+  private static final LoggedTunableNumber turnKd =
+      new LoggedTunableNumber("Drive/Module/TurnKd", MODULE_CONSTANTS.turnKd());
 
   private final ModuleIO io;
   private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
   private final Translation2d distanceFromCenter;
 
-  private final SimpleMotorFeedforward driveFeedforward;
+  private SimpleMotorFeedforward driveFeedforward;
   private final PIDController driveFeedback;
   private final PIDController turnFeedback;
+
   private Rotation2d angleSetpoint = null; // Setpoint for closed loop control, null for open loop
   private Double speedSetpoint = null; // Setpoint for closed loop control, null for open loop
   private Rotation2d turnRelativeOffset = null; // Relative + Offset = Absolute
+
   private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
 
   public Module(ModuleIO io, Translation2d distanceFromCenter) {
     this.io = io;
     this.distanceFromCenter = distanceFromCenter;
 
-    // Switch constants based on mode (the physics simulator is treated as a
-    // separate robot with different tuning)
-    switch (Constants.getMode()) {
-      case REAL:
-      case REPLAY:
-        driveFeedforward = new SimpleMotorFeedforward(0.1, 0.13);
-        driveFeedback = new PIDController(0.05, 0.0, 0.0);
-        turnFeedback = new PIDController(7.0, 0.0, 0.0);
-        break;
-      case SIM:
-        driveFeedforward = new SimpleMotorFeedforward(0.0, 0.13);
-        driveFeedback = new PIDController(0.1, 0.0, 0.0);
-        turnFeedback = new PIDController(10.0, 0.0, 0.0);
-        break;
-      default:
-        driveFeedforward = new SimpleMotorFeedforward(0.0, 0.0);
-        driveFeedback = new PIDController(0.0, 0.0, 0.0);
-        turnFeedback = new PIDController(0.0, 0.0, 0.0);
-        break;
-    }
+    driveFeedforward =
+        new SimpleMotorFeedforward(driveFeedForwardKs.get(), driveFeedForwardKv.get(), 0);
+
+    driveFeedback = new PIDController(driveKp.get(), 0, driveKd.get());
+    turnFeedback = new PIDController(turnKp.get(), 0, turnKd.get());
 
     turnFeedback.enableContinuousInput(-Math.PI, Math.PI);
     setBrakeMode(true);
@@ -63,6 +66,19 @@ public class Module {
    * updates need to be properly thread-locked.
    */
   public void updateInputs() {
+
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        () ->
+            driveFeedforward =
+                new SimpleMotorFeedforward(driveFeedForwardKs.get(), driveFeedForwardKv.get(), 0),
+        driveFeedForwardKs,
+        driveFeedForwardKv);
+    LoggedTunableNumber.ifChanged(
+        hashCode(), () -> driveFeedback.setPID(driveKp.get(), 0, driveKd.get()), driveKp, driveKd);
+    LoggedTunableNumber.ifChanged(
+        hashCode(), () -> turnFeedback.setPID(turnKp.get(), 0, turnKd.get()), turnKp, turnKd);
+
     io.updateInputs(inputs);
   }
 
@@ -84,14 +100,16 @@ public class Module {
       // Only allowed if closed loop turn control is running
       if (speedSetpoint != null) {
         // Scale velocity based on turn error
-        //
+
         // When the error is 90°, the velocity setpoint should be 0. As the wheel turns
         // towards the setpoint, its velocity should increase. This is achieved by
         // taking the component of the velocity in the direction of the setpoint.
+
+        // https://www.softschools.com/math/trigonometry/images/graphing_the_cosine_function_1.png
         double adjustSpeedSetpoint = speedSetpoint * Math.cos(turnFeedback.getPositionError());
 
         // Run drive controller
-        double velocityRadPerSec = adjustSpeedSetpoint / WHEEL_RADIUS;
+        double velocityRadPerSec = adjustSpeedSetpoint / DRIVE_CONFIG.wheelRadius();
         io.setDriveVoltage(
             driveFeedforward.calculate(velocityRadPerSec)
                 + driveFeedback.calculate(inputs.driveVelocityRadPerSec, velocityRadPerSec));
@@ -102,7 +120,7 @@ public class Module {
     int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
     odometryPositions = new SwerveModulePosition[sampleCount];
     for (int i = 0; i < sampleCount; i++) {
-      double positionMeters = inputs.odometryDrivePositionsRad[i] * WHEEL_RADIUS;
+      double positionMeters = inputs.odometryDrivePositionsRad[i] * DRIVE_CONFIG.wheelRadius();
       Rotation2d angle =
           inputs.odometryTurnPositions[i].plus(
               turnRelativeOffset != null ? turnRelativeOffset : new Rotation2d());
@@ -160,12 +178,12 @@ public class Module {
 
   /** Returns the current drive position of the module in meters. */
   private double getPositionMeters() {
-    return inputs.drivePositionRad * WHEEL_RADIUS;
+    return inputs.drivePositionRad * DRIVE_CONFIG.wheelRadius();
   }
 
   /** Returns the current drive velocity of the module in meters per second. */
   private double getVelocityMetersPerSec() {
-    return inputs.driveVelocityRadPerSec * WHEEL_RADIUS;
+    return inputs.driveVelocityRadPerSec * DRIVE_CONFIG.wheelRadius();
   }
 
   /** Returns the module position (turn angle and drive position). */

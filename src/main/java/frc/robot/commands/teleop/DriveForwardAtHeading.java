@@ -2,18 +2,24 @@ package frc.robot.commands.teleop;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.controllers.HeadingController;
-import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
+import frc.robot.utility.LoggedTunableNumber;
 
 /** First rotates to specified angle, then starts slowing driving in that direction */
 public class DriveForwardAtHeading extends Command {
-  private static final LoggedDashboardNumber driveSpeed =
-      new LoggedDashboardNumber("TeleopDrive/POV/driveSpeed", 1);
+
+  private static final LoggedTunableNumber driveSpeed =
+      new LoggedTunableNumber("TeleopDrive/POV/driveSpeed", 1);
+
+  private static final LoggedTunableNumber delaySecondsTillForward =
+      new LoggedTunableNumber("TeleopDrive/POV/delaySecondsTillForward", 0.5);
 
   private final Drive drive;
   private final HeadingController headingController;
+  private final Timer timer;
 
   /**
    * Creates new DriveForwardAtAngle Command
@@ -27,12 +33,15 @@ public class DriveForwardAtHeading extends Command {
     headingController = new HeadingController(drive);
     headingController.setGoal(heading);
 
+    timer = new Timer();
+
     addRequirements(drive);
   }
 
   @Override
   public void initialize() {
     headingController.reset();
+    timer.restart();
   }
 
   @Override
@@ -42,7 +51,11 @@ public class DriveForwardAtHeading extends Command {
 
   private ChassisSpeeds getDesiredSpeeds() {
     return new ChassisSpeeds(
-        headingController.atGoal() ? driveSpeed.get() : 0, 0, headingController.calculate());
+        headingController.atGoal() && timer.hasElapsed(delaySecondsTillForward.get())
+            ? driveSpeed.get()
+            : 0,
+        0,
+        headingController.calculate());
   }
 
   @Override

@@ -26,7 +26,7 @@ public class AllianceFlipUtil {
     return translation;
   }
 
-  /** Flips a rotation 180° based on the current alliance color. */
+  /** Flips a rotation 180 degrees based on the current alliance color. */
   public static Rotation2d apply(Rotation2d rotation) {
     if (shouldFlip()) rotation = new Rotation2d(-rotation.getCos(), rotation.getSin());
     return rotation;
@@ -48,7 +48,7 @@ public class AllianceFlipUtil {
   }
 
   /**
-   * @return True if
+   * @return True if we should flip alliance (If)
    */
   public static boolean shouldFlip() {
     return Constants.getAlliance() == Alliance.Red;

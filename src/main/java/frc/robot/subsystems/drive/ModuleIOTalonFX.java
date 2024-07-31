@@ -12,6 +12,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import frc.robot.subsystems.drive.DriveConstants.ModuleConfig;
 import java.util.Queue;
 
 /**
@@ -53,36 +54,12 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final boolean isTurnMotorInverted;
   private final Rotation2d absoluteEncoderOffset;
 
-  public ModuleIOTalonFX(int index) {
-    switch (index) {
-      case 0:
-        driveTalon = new TalonFX(0);
-        turnTalon = new TalonFX(1);
-        cancoder = new CANcoder(2);
-        absoluteEncoderOffset = new Rotation2d(0.0);
-        break;
-      case 1:
-        driveTalon = new TalonFX(3);
-        turnTalon = new TalonFX(4);
-        cancoder = new CANcoder(5);
-        absoluteEncoderOffset = new Rotation2d(0.0);
-        break;
-      case 2:
-        driveTalon = new TalonFX(6);
-        turnTalon = new TalonFX(7);
-        cancoder = new CANcoder(8);
-        absoluteEncoderOffset = new Rotation2d(0.0);
-        break;
-      case 3:
-        driveTalon = new TalonFX(9);
-        turnTalon = new TalonFX(10);
-        cancoder = new CANcoder(11);
-        absoluteEncoderOffset = new Rotation2d(0.0);
-        break;
-      default:
-        throw new RuntimeException("Invalid module index");
-    }
-    isTurnMotorInverted = false;
+  public ModuleIOTalonFX(ModuleConfig config) {
+    driveTalon = new TalonFX(config.driveID());
+    turnTalon = new TalonFX(config.turnID());
+    cancoder = new CANcoder(config.absoluteEncoderChannel());
+    absoluteEncoderOffset = config.absoluteEncoderOffset();
+    isTurnMotorInverted = config.turnMotorInverted();
 
     var driveConfig = new TalonFXConfiguration();
     driveConfig.CurrentLimits.SupplyCurrentLimit = 40.0;
@@ -116,7 +93,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     turnCurrent = turnTalon.getSupplyCurrent();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
-        Module.ODOMETRY_FREQUENCY, drivePosition, turnPosition);
+        DriveConstants.ODOMETRY_FREQUENCY, drivePosition, turnPosition);
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0,
         driveVelocity,

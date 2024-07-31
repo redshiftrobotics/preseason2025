@@ -1,6 +1,6 @@
 package frc.robot.subsystems.drive.controllers;
 
-import static frc.robot.subsystems.drive.DriveConstants.headingControllerConstants;
+import static frc.robot.subsystems.drive.DriveConstants.HEADING_CONTROLLER_CONSTANTS;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -18,9 +18,9 @@ public class HeadingController {
 
   // Tunable parameters
   private static final LoggedTunableNumber kP =
-      new LoggedTunableNumber("HeadingController/kP", headingControllerConstants.kP());
+      new LoggedTunableNumber("HeadingController/kP", HEADING_CONTROLLER_CONSTANTS.kP());
   private static final LoggedTunableNumber kD =
-      new LoggedTunableNumber("HeadingController/kD", headingControllerConstants.kD());
+      new LoggedTunableNumber("HeadingController/kD", HEADING_CONTROLLER_CONSTANTS.kD());
   private static final LoggedTunableNumber maxVelocityMultiplier =
       new LoggedTunableNumber("HeadingController/MaxVelocityMultipler", 0.8);
   private static final LoggedTunableNumber maxAccelerationMultiplier =
@@ -80,13 +80,13 @@ public class HeadingController {
 
     // Update constraints for profiled PID controller
     double maxAngularAcceleration =
-        DriveConstants.moduleLimitsFree.maxDriveAcceleration()
-            / DriveConstants.driveConfig.driveBaseRadius()
+        DriveConstants.MODULE_LIMITS_FREE.maxDriveAcceleration()
+            / DriveConstants.DRIVE_CONFIG.driveBaseRadius()
             * maxAccelerationMultiplier.get();
 
     double maxAngularVelocity =
-        DriveConstants.moduleLimitsFree.maxDriveAcceleration()
-            / DriveConstants.driveConfig.driveBaseRadius()
+        DriveConstants.MODULE_LIMITS_FREE.maxDriveAcceleration()
+            / DriveConstants.DRIVE_CONFIG.driveBaseRadius()
             * maxVelocityMultiplier.get();
 
     headingControllerRadians.setConstraints(

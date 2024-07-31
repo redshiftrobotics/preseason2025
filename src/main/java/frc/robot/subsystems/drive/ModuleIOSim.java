@@ -15,8 +15,6 @@ import frc.robot.Constants;
  * approximation for the behavior of the module.
  */
 public class ModuleIOSim implements ModuleIO {
-  private static final double LOOP_PERIOD_SECS = Constants.LOOP_PERIOD_SECONDS;
-
   private DCMotorSim driveSim = new DCMotorSim(DCMotor.getNEO(1), 6.75, 0.025);
   private DCMotorSim turnSim = new DCMotorSim(DCMotor.getNEO(1), 150.0 / 7.0, 0.004);
 
@@ -26,8 +24,8 @@ public class ModuleIOSim implements ModuleIO {
 
   @Override
   public void updateInputs(ModuleIOInputs inputs) {
-    driveSim.update(LOOP_PERIOD_SECS);
-    turnSim.update(LOOP_PERIOD_SECS);
+    driveSim.update(Constants.LOOP_PERIOD_SECONDS);
+    turnSim.update(Constants.LOOP_PERIOD_SECONDS);
 
     // --- Drive ---
     inputs.drivePositionRad = driveSim.getAngularPositionRad();

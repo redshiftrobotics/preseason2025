@@ -1,5 +1,8 @@
 package frc.robot.subsystems.drive;
 
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
@@ -8,8 +11,6 @@ import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.subsystems.drive.DriveConstants.ModuleConfig;
 import java.util.OptionalDouble;
 import java.util.Queue;
@@ -26,7 +27,7 @@ import java.util.Queue;
  * absolute encoders using AdvantageScope. These values are logged under
  * "/Drive/ModuleX/TurnAbsolutePositionRad"
  */
-public class ModuleIOSparkMax implements ModuleIO {
+public class ModuleIOSparkMaxCANCoder implements ModuleIO {
   // Gear ratios for SDS MK4i L2, adjust as necessary
   private static final double DRIVE_GEAR_RATIO = (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0);
   private static final double TURN_GEAR_RATIO = 150.0 / 7.0;
@@ -36,7 +37,9 @@ public class ModuleIOSparkMax implements ModuleIO {
 
   private final RelativeEncoder driveEncoder;
   private final RelativeEncoder turnRelativeEncoder;
-  private final AnalogInput turnAbsoluteEncoder;
+
+  private final CANcoder turnAbsoluteEncoder;
+  private final StatusSignal<Double> turnAbsoluteEncoderPosition;
 
   private final Queue<Double> timestampQueue;
   private final Queue<Double> drivePositionQueue;
@@ -45,12 +48,16 @@ public class ModuleIOSparkMax implements ModuleIO {
   private final boolean isTurnMotorInverted;
   private final Rotation2d absoluteEncoderOffset;
 
-  public ModuleIOSparkMax(ModuleConfig config) {
+  public ModuleIOSparkMaxCANCoder(ModuleConfig config) {
     driveSparkMax = new CANSparkMax(config.driveID(), MotorType.kBrushless);
     turnSparkMax = new CANSparkMax(config.turnID(), MotorType.kBrushless);
-    turnAbsoluteEncoder = new AnalogInput(config.absoluteEncoderChannel());
+    turnAbsoluteEncoder = new CANcoder(config.absoluteEncoderChannel());
     absoluteEncoderOffset = config.absoluteEncoderOffset();
     isTurnMotorInverted = config.turnMotorInverted();
+
+    turnAbsoluteEncoder.getConfigurator().apply(new CANcoderConfiguration());
+    turnAbsoluteEncoderPosition = turnAbsoluteEncoder.getAbsolutePosition();
+    turnAbsoluteEncoderPosition.setUpdateFrequency(50);
 
     driveSparkMax.restoreFactoryDefaults();
     turnSparkMax.restoreFactoryDefaults();
@@ -112,6 +119,8 @@ public class ModuleIOSparkMax implements ModuleIO {
 
   @Override
   public void updateInputs(ModuleIOInputs inputs) {
+    turnAbsoluteEncoderPosition.refresh();
+
     // --- Drive ---
     inputs.drivePositionRad =
         Units.rotationsToRadians(driveEncoder.getPosition()) / DRIVE_GEAR_RATIO;
@@ -122,9 +131,7 @@ public class ModuleIOSparkMax implements ModuleIO {
 
     // --- Turn ---
     inputs.turnAbsolutePosition =
-        new Rotation2d(
-                turnAbsoluteEncoder.getVoltage() / RobotController.getVoltage5V() * 2.0 * Math.PI)
-            .minus(absoluteEncoderOffset);
+        new Rotation2d(turnAbsoluteEncoderPosition.getValueAsDouble()).minus(absoluteEncoderOffset);
     inputs.turnPosition =
         Rotation2d.fromRotations(turnRelativeEncoder.getPosition() / TURN_GEAR_RATIO);
     inputs.turnVelocityRadPerSec =

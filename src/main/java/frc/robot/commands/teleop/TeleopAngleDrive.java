@@ -10,16 +10,16 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.controllers.HeadingController;
 import frc.robot.utility.AllianceFlipUtil;
+import frc.robot.utility.LoggedTunableNumber;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
-import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 
 /** Drive control command for driving robot with x, y control and absolute angle control */
 public class TeleopAngleDrive extends Command {
-  private static final LoggedDashboardNumber controllerDeadband =
-      new LoggedDashboardNumber("TeleopDrive/Angle/Deadband", 0.1);
-  private static final LoggedDashboardNumber controllerAngleDeadband =
-      new LoggedDashboardNumber("TeleopDrive/Angle/AngleDeadband", 0.5);
+  private static final LoggedTunableNumber controllerDeadband =
+      new LoggedTunableNumber("TeleopDrive/Angle/Deadband", 0.2);
+  private static final LoggedTunableNumber controllerAngleDeadband =
+      new LoggedTunableNumber("TeleopDrive/Angle/AngleDeadband", 0.75);
 
   private final Drive drive;
   private final DoubleSupplier xSupplier, ySupplier, xAngleSupplier, yAngleSupplier;

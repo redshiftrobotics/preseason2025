@@ -8,17 +8,17 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.utility.LoggedTunableNumber;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
-import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 
 /** Drive control command for driving robot with x, y and omega control */
 public class TeleopDrive extends Command {
-  private static final LoggedDashboardNumber controllerDeadband =
-      new LoggedDashboardNumber("TeleopDrive/Default/Deadband", 0.1);
+  private static final LoggedTunableNumber controllerDeadband =
+      new LoggedTunableNumber("TeleopDrive/Default/Deadband", 0.2);
 
-  private static final LoggedDashboardNumber maxAngularVelocityScalar =
-      new LoggedDashboardNumber("TeleopDrive/Default/maxAngularVelocityScalar", 0.65);
+  private static final LoggedTunableNumber maxAngularVelocityScalar =
+      new LoggedTunableNumber("TeleopDrive/Default/maxAngularVelocityScalar", 0.65);
 
   private final Drive drive;
   private final DoubleSupplier xSupplier, ySupplier, omegaSupplier;
@@ -85,7 +85,7 @@ public class TeleopDrive extends Command {
     // Get rotation speed, and apply deadband
     final double omega =
         MathUtil.applyDeadband(omegaSupplier.getAsDouble(), controllerDeadband.get());
-    // Square the omega value, make sure to copy the sign over
+    // Square the omega value, make sure to copy the sign over for direction
     final double omegaSquared = Math.copySign(omega * omega, omega);
 
     // convert percentage speeds to actual meters per sec speeds

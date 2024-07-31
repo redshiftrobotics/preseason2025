@@ -1,7 +1,7 @@
 package frc.robot.subsystems.drive;
 
 import static edu.wpi.first.units.Units.Volts;
-import static frc.robot.subsystems.drive.DriveConstants.driveConfig;
+import static frc.robot.subsystems.drive.DriveConstants.DRIVE_CONFIG;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.pathfinding.Pathfinding;
@@ -38,14 +38,14 @@ import org.littletonrobotics.junction.Logger;
 
 /** Drivetrain / chassis of robot */
 public class Drive extends SubsystemBase {
-  private static final double TRACK_WIDTH_X = driveConfig.trackWidthX();
-  private static final double TRACK_WIDTH_Y = driveConfig.trackWidthY();
+  private static final double TRACK_WIDTH_X = DRIVE_CONFIG.trackWidthX();
+  private static final double TRACK_WIDTH_Y = DRIVE_CONFIG.trackWidthY();
 
-  private static final double DRIVE_BASE_RADIUS = driveConfig.driveBaseRadius();
+  private static final double DRIVE_BASE_RADIUS = DRIVE_CONFIG.driveBaseRadius();
 
-  private static final double MAX_LINEAR_SPEED = driveConfig.maxLinearVelocity();
+  private static final double MAX_LINEAR_SPEED = DRIVE_CONFIG.maxLinearVelocity();
   private static final double MAX_ANGULAR_SPEED =
-      driveConfig.maxAngularVelocity(); // max_linear_speed / drive_base_radius
+      DRIVE_CONFIG.maxAngularVelocity(); // max_linear_speed / drive_base_radius
 
   static final Lock odometryLock = new ReentrantLock();
 
@@ -362,7 +362,7 @@ public class Drive extends SubsystemBase {
    * Stops the drive and turns the modules to an X arrangement to resist movement. The modules will
    * return to their normal orientations the next time a nonzero velocity is requested.
    */
-  public void stopUsingBrakeArrangement() {
+  public void brakeArrangementStop() {
     Rotation2d[] headings =
         modulesMap(module -> module.getDistanceFromCenter().getAngle(), Rotation2d[]::new);
     kinematics.resetHeadings(headings);
@@ -411,8 +411,8 @@ public class Drive extends SubsystemBase {
    * @param func function to run on each swerve module, takes one argument and returns nothing,
    *     operates via side effects.
    */
-  private void modulesMap(Consumer<Module> func) {
-    Arrays.stream(modules).forEach(func);
+  private void modulesMap(Consumer<? super Module> action) {
+    Arrays.stream(modules).forEach(action);
   }
 
   /**

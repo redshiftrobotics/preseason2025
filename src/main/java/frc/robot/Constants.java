@@ -21,7 +21,7 @@ public final class Constants {
 
   public static final double LOOP_PERIOD_SECONDS = LoggedRobot.defaultPeriodSecs; // 0.02
 
-  public static final boolean TUNING_MODE = false;
+  public static final boolean TUNING_MODE = true;
 
   private static boolean invalidRobot = false;
 
@@ -48,7 +48,8 @@ public final class Constants {
   static {
     if (getMode() == Mode.SIM) {
       allianceChooser = new LoggedDashboardChooser<>("Alliance");
-      allianceChooser.addDefaultOption("Blue", Alliance.Blue);
+      allianceChooser.addDefaultOption("Auto", null);
+      allianceChooser.addOption("Blue", Alliance.Blue);
       allianceChooser.addOption("Red", Alliance.Red);
     } else {
       allianceChooser = null;
@@ -56,11 +57,19 @@ public final class Constants {
   }
 
   /**
-   * @return current alliance based on driver station, default to Blue
+   * Get the current alliance based on driver station If {@code allianceChooser} is defined and has
+   * a value then use that instead.
+   *
+   * <p>Default to blue
+   *
+   * @return Current alliance
    */
   public static Alliance getAlliance() {
     if (allianceChooser != null) {
-      return allianceChooser.get();
+      final Alliance chosenAlliance = allianceChooser.get();
+      if (chosenAlliance != null) {
+        return chosenAlliance;
+      }
     }
 
     final Optional<Alliance> alliance = DriverStation.getAlliance();
