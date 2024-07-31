@@ -146,9 +146,10 @@ gversion {
 // Spotless formatting
 
 // project.compileJava.dependsOn(spotlessApply) // require spotless style to compile
+// TODO: find a masochist to get this working nicly, for now RedHat language support
 spotless {
     java {
-		// https://github.com/diffplug/spotless/tree/main/plugin-gradle#java
+        // Read the docs (they seem good) https://github.com/diffplug/spotless/tree/main/plugin-gradle#java
 
         target fileTree(".") {
             include "**/*.java"
@@ -159,7 +160,7 @@ spotless {
         // googleJavaFormat() // 2 space ident, default
         // googleJavaFormat('1.11.0').aosp().reflowLongStrings() // 4 space indent with Android Open Source Project style guide
 
-		// eclipse().configFile('custom-config.xml') // uncommet if you want to create 
+        // eclipse().configFile('custom-config.xml') // uncommet if you want to create
 
         removeUnusedImports()
         trimTrailingWhitespace()
@@ -177,7 +178,7 @@ spotless {
     }
     // json {
     //     // This crashes if there are commets or trailing commas in your JSON, breaking build if compile java depends on spotless
-	//
+    //
     //     target fileTree(".") {
     //         include "**/*.json"
     //         exclude "**/build/**", "**/build-*/**"
