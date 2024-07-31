@@ -144,15 +144,23 @@ gversion {
 }
 
 // Spotless formatting
-project.compileJava.dependsOn(spotlessApply)
+
+// project.compileJava.dependsOn(spotlessApply) // require spotless style to compile
 spotless {
     java {
+		// https://github.com/diffplug/spotless/tree/main/plugin-gradle#java
+
         target fileTree(".") {
             include "**/*.java"
             exclude "**/build/**", "**/build-*/**"
         }
         toggleOffOn()
-        googleJavaFormat()
+
+        // googleJavaFormat() // 2 space ident, default
+        // googleJavaFormat('1.11.0').aosp().reflowLongStrings() // 4 space indent with Android Open Source Project style guide
+
+		// eclipse().configFile('custom-config.xml') // uncommet if you want to create 
+
         removeUnusedImports()
         trimTrailingWhitespace()
         endWithNewline()
@@ -167,20 +175,24 @@ spotless {
         trimTrailingWhitespace()
         endWithNewline()
     }
-    json {
-        target fileTree(".") {
-            include "**/*.json"
-            exclude "**/build/**", "**/build-*/**"
-        }
-        gson().indentWithSpaces(2)
-    }
+    // json {
+    //     // This crashes if there are commets or trailing commas in your JSON, breaking build if compile java depends on spotless
+	//
+    //     target fileTree(".") {
+    //         include "**/*.json"
+    //         exclude "**/build/**", "**/build-*/**"
+    //     }
+    //     // gson().indentWithSpaces(2)
+    //     gson().indentWithSpaces(4)
+    // }
     format "misc", {
         target fileTree(".") {
             include "**/*.md", "**/.gitignore"
             exclude "**/build/**", "**/build-*/**"
         }
         trimTrailingWhitespace()
-        indentWithSpaces(2)
+        // indentWithSpaces(2)
+        indentWithSpaces(4)
         endWithNewline()
     }
 }

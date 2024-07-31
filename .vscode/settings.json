@@ -34,6 +34,8 @@
 	// Formatter
     "spotlessGradle.format.enable": true,
     "spotlessGradle.diagnostics.enable": false,
+
+	"editor.formatOnSave": true,
     "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle",
     "[json]": {
         "editor.defaultFormatter": "vscode.json-language-features"
@@ -41,7 +43,6 @@
     "[java]": {
         "editor.defaultFormatter": "redhat.java"
     },
-
 
 	// Line length and indentation
 	"java.settings.url": ".vscode/settings.prefs",

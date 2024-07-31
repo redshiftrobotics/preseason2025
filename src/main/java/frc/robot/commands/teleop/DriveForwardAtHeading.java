@@ -24,8 +24,7 @@ public class DriveForwardAtHeading extends Command {
 	 * Creates new DriveForwardAtAngle Command
 	 *
 	 * @param drive   drivetrain of robot
-	 * @param heading field relative rotation to drive to aim at before driving
-	 *                forward
+	 * @param heading field relative rotation to drive to aim at before driving forward
 	 */
 	public DriveForwardAtHeading(Drive drive, Rotation2d heading) {
 		this.drive = drive;
