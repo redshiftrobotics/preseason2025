@@ -17,7 +17,9 @@ import edu.wpi.first.math.util.Units;
  * direction (as described by wpilib)
  */
 public class FieldConstants {
-	public static final double fieldLength = Units.inchesToMeters(651.223);
+
+	public static final double fieldLength = Units.inchesToMeters(651.25);
+	public static final double fieldWidth = Units.inchesToMeters(315.5);
 
 	public static final double aprilTagWidth = Units.inchesToMeters(6.50);
 	public final AprilTagFieldLayout layout = AprilTagFieldLayout.loadField(AprilTagFields.k2024Crescendo);

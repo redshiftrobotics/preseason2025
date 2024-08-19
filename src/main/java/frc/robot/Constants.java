@@ -5,7 +5,6 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.utility.Alert;
 import java.util.Optional;
-import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -20,18 +19,18 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public final class Constants {
 	private static final RobotType robotType = RobotType.SIM_BOT;
 
-	public static final double LOOP_PERIOD_SECONDS = LoggedRobot.defaultPeriodSecs; // 0.02
+	public static final double LOOP_PERIOD_SECONDS = Robot.defaultPeriodSecs; // 0.02
 
 	public static final boolean TUNING_MODE = true;
 
 	private static boolean invalidRobot = false;
 
 	public static RobotType getRobot() {
-		if (!disableHAL && RobotBase.isReal() && robotType == RobotType.SIM_BOT) {
+		if (RobotBase.isReal() && robotType == RobotType.SIM_BOT) {
+			invalidRobot = true;
 			new Alert(
 					"Invalid robot selected, using competition robot as default.", Alert.AlertType.ERROR)
-					.set(!invalidRobot);
-			invalidRobot = true;
+					.set(invalidRobot);
 			return RobotType.COMP_BOT;
 		}
 		return robotType;
@@ -93,12 +92,6 @@ public final class Constants {
 		SIM_BOT,
 		DEV_BOT,
 		COMP_BOT
-	}
-
-	private static boolean disableHAL = false;
-
-	public static void disableHAL() {
-		disableHAL = true;
 	}
 
 	/** Checks whether the correct robot is selected when deploying. */

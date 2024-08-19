@@ -32,9 +32,25 @@ public class DriveConstants {
 
 	public static final DriveConfig DRIVE_CONFIG = switch (Constants.getRobot()) {
 		case SIM_BOT, COMP_BOT -> new DriveConfig(
-				Units.inchesToMeters(2), 0.54, 0.54, 0.61, 0.61, 6, 25, 10, 6);
+				Units.inchesToMeters(2),
+				0.54,
+				0.54,
+				0.61,
+				0.61,
+				6,
+				25,
+				10,
+				6);
 		case DEV_BOT -> new DriveConfig(
-				Units.inchesToMeters(2), 0.54, 0.54, 0.61, 0.61, 4.57, 22.86, 10, 6);
+				Units.inchesToMeters(2),
+				0.54,
+				0.54,
+				0.61,
+				0.61,
+				4.57,
+				22.86,
+				10,
+				6);
 	};
 
 	// --- Module Config ---

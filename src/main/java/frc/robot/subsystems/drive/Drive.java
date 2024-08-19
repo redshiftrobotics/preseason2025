@@ -113,7 +113,7 @@ public class Drive extends SubsystemBase {
 		// Configure AutoBuilder for PathPlanner
 		AutoBuilder.configureHolonomic(
 				this::getPose,
-				this::setPose,
+				this::resetPose,
 				() -> kinematics.toChassisSpeeds(getWheelSpeeds()),
 				this::setRobotSpeeds,
 				new HolonomicPathFollowerConfig(
@@ -217,7 +217,7 @@ public class Drive extends SubsystemBase {
 	 *
 	 * @param pose new position robot believes it is located at
 	 */
-	public void setPose(Pose2d pose) {
+	public void resetPose(Pose2d pose) {
 		poseEstimator.resetPosition(rawGyroRotation, getWheelPositions(), pose);
 	}
 

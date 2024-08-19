@@ -17,8 +17,11 @@ public class TeleopDrive extends Command {
 	private static final LoggedTunableNumber controllerDeadband = new LoggedTunableNumber(
 			"TeleopDrive/Default/Deadband", 0.2);
 
-	private static final LoggedTunableNumber maxAngularVelocityScalar = new LoggedTunableNumber(
-			"TeleopDrive/Default/maxAngularVelocityScalar", 0.65);
+	private static final LoggedTunableNumber maxLinearVelocityCoefficient = new LoggedTunableNumber(
+			"TeleopDrive/Default/maxLinearVelocityCoefficient", 1);
+
+	private static final LoggedTunableNumber maxAngularVelocityCoefficient = new LoggedTunableNumber(
+			"TeleopDrive/Default/maxAngularVelocityCoefficient", 0.65);
 
 	private final Drive drive;
 	private final DoubleSupplier xSupplier, ySupplier, omegaSupplier;
@@ -86,8 +89,8 @@ public class TeleopDrive extends Command {
 
 		// convert percentage speeds to actual meters per sec speeds
 		return new ChassisSpeeds(
-				squaredLinearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
-				squaredLinearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
-				omegaSquared * drive.getMaxAngularSpeedRadPerSec() * maxAngularVelocityScalar.get());
+				squaredLinearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec() * maxLinearVelocityCoefficient.get(),
+				squaredLinearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec() * maxLinearVelocityCoefficient.get(),
+				omegaSquared * drive.getMaxAngularSpeedRadPerSec() * maxAngularVelocityCoefficient.get());
 	}
 }
