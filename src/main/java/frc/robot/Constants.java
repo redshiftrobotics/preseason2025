@@ -1,11 +1,7 @@
 package frc.robot;
 
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.utility.Alert;
-import java.util.Optional;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
  * The Constants class provides a convenient place to hold robot-wide numerical or boolean
@@ -17,64 +13,28 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-	private static final RobotType robotType = RobotType.SIM_BOT;
 
 	public static final double LOOP_PERIOD_SECONDS = Robot.defaultPeriodSecs; // 0.02
 
-	public static final boolean TUNING_MODE = true;
+	public static final boolean TUNING_MODE = false;
 
-	private static boolean invalidRobot = false;
+	private static RobotType robotType = RobotType.SIM_BOT;
 
 	public static RobotType getRobot() {
 		if (RobotBase.isReal() && robotType == RobotType.SIM_BOT) {
-			invalidRobot = true;
 			new Alert(
-					"Invalid robot selected, using competition robot as default.", Alert.AlertType.ERROR)
-					.set(invalidRobot);
-			return RobotType.COMP_BOT;
+				"Invalid robot selected, using competition robot as default.", Alert.AlertType.ERROR)
+				.set(true);
+			robotType = RobotType.COMP_BOT;
 		}
 		return robotType;
 	}
 
 	public static Mode getMode() {
-		return switch (robotType) {
+		return switch (getRobot()) {
 			case DEV_BOT, COMP_BOT -> RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;
 			case SIM_BOT -> Mode.SIM;
 		};
-	}
-
-	private static final LoggedDashboardChooser<Alliance> allianceChooser;
-
-	static {
-		if (getMode() == Mode.SIM) {
-			allianceChooser = new LoggedDashboardChooser<>("Alliance");
-			allianceChooser.addDefaultOption("Auto", null);
-			allianceChooser.addOption("Blue", Alliance.Blue);
-			allianceChooser.addOption("Red", Alliance.Red);
-		} else {
-			allianceChooser = null;
-		}
-	}
-
-	/**
-	 * Get the current alliance based on driver station If {@code allianceChooser} is defined and has
-	 * a value then use that instead.
-	 *
-	 * <p>
-	 * Default to blue
-	 *
-	 * @return Current alliance
-	 */
-	public static Alliance getAlliance() {
-		if (allianceChooser != null) {
-			final Alliance chosenAlliance = allianceChooser.get();
-			if (chosenAlliance != null) {
-				return chosenAlliance;
-			}
-		}
-
-		final Optional<Alliance> alliance = DriverStation.getAlliance();
-		return alliance.isPresent() ? alliance.get() : Alliance.Blue;
 	}
 
 	public enum Mode {

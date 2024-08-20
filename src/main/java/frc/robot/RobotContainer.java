@@ -1,12 +1,16 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
@@ -25,9 +29,12 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSparkMaxCANCoder;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.examples.flywheel.Flywheel;
+import frc.robot.subsystems.examples.flywheel.FlywheelIOSparkMax;
 import frc.robot.utility.Alert;
 import frc.robot.utility.OverrideSwitch;
 import frc.robot.utility.Alert.AlertType;
+
 import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -38,11 +45,15 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+	private final RobotState robotState = RobotState.getInstance();
+
 	// Subsystems
 	private final Drive drive;
+	private final Flywheel flywheelExample;
 
 	// Controller
 	private final CommandGenericHID driverController = new CommandXboxController(0);
+	private final CommandGenericHID operatorController = new CommandXboxController(1);
 
 	// Dashboard inputs
 	private final LoggedDashboardChooser<Command> autoChooser;
@@ -58,6 +69,7 @@ public class RobotContainer {
 						new ModuleIOTalonFX(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
 						new ModuleIOTalonFX(DriveConstants.BACK_LEFT_MODULE_CONFIG),
 						new ModuleIOTalonFX(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
+				flywheelExample = new Flywheel(new FlywheelIOSparkMax());
 				break;
 
 			case DEV_BOT:
@@ -68,6 +80,7 @@ public class RobotContainer {
 						new ModuleIOSparkMaxCANCoder(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
 						new ModuleIOSparkMaxCANCoder(DriveConstants.BACK_LEFT_MODULE_CONFIG),
 						new ModuleIOSparkMaxCANCoder(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
+				flywheelExample = new Flywheel(new FlywheelIOSparkMax());
 				break;
 
 			case SIM_BOT:
@@ -79,6 +92,7 @@ public class RobotContainer {
 						new ModuleIOSim(),
 						new ModuleIOSim(),
 						new ModuleIOSim());
+				flywheelExample = new Flywheel(new FlywheelIOSparkMax());
 				break;
 
 			default:
@@ -94,6 +108,7 @@ public class RobotContainer {
 						},
 						new ModuleIO() {
 						});
+				flywheelExample = new Flywheel(new FlywheelIOSparkMax());
 				break;
 		}
 
@@ -111,6 +126,9 @@ public class RobotContainer {
 		autoChooser.addOption(
 				"Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
+		// Set up named commands for path planner auto
+		NamedCommands.registerCommand("StopWithX", Commands.runOnce(drive::stopUsingBrakeArrangement, drive));
+
 		if (Constants.TUNING_MODE) {
 			new Alert("Tuning mode active, do not use in competition.", AlertType.INFO).set(true);
 		}
@@ -126,15 +144,16 @@ public class RobotContainer {
 	 * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
 	 */
 	private void configureControllerBindings() {
+		CommandScheduler.getInstance().getActiveButtonLoop().clear();
 		configureDriverControllerBindings();
 		configureOperatorControllerBindings();
 	}
 
 	private void configureDriverControllerBindings() {
 		if (driverController instanceof CommandXboxController) {
-			CommandXboxController driverXbox = (CommandXboxController) driverController;
+			final CommandXboxController driverXbox = (CommandXboxController) driverController;
 
-			final BooleanSupplier useFieldRelative = () -> true;
+			final BooleanSupplier useFieldRelative = new OverrideSwitch(driverXbox.x(), true, drive, "Field Relative");
 
 			/**
 			 * DEFAULT CONTROL MODE: Left stick controls translation (forward, backward, left, right),
@@ -146,67 +165,90 @@ public class RobotContainer {
 			 * right), while right stick controls field relative heading using PID. POV acts like mini
 			 * tank drive controller
 			 */
-			final BooleanSupplier useAngleControlMode = new OverrideSwitch(driverXbox.y(), false, drive);
+			final BooleanSupplier useAngleControlMode = new OverrideSwitch(driverXbox.y(), true, drive, "Angle Driven");
 
 			drive.setDefaultCommand(
 					Commands.either(
-							new TeleopDrive(
-									drive,
-									() -> -driverXbox.getLeftY(),
-									() -> -driverXbox.getLeftX(),
-									() -> -driverXbox.getRightX(),
-									useFieldRelative),
 							new TeleopAngleDrive(
 									drive,
-									() -> -driverXbox.getLeftY(),
-									() -> -driverXbox.getLeftX(),
-									() -> -driverXbox.getRightY(),
-									() -> -driverXbox.getRightX(),
+									() -> new Translation2d(driverXbox.getLeftY(), driverXbox.getLeftX()).unaryMinus(),
+									() -> new Translation2d(driverXbox.getRightY(), driverXbox.getRightX())
+											.unaryMinus(),
+									useFieldRelative),
+							new TeleopDrive(
+									drive,
+									() -> new Translation2d(driverXbox.getLeftY(), driverXbox.getLeftX()).unaryMinus(),
+									() -> new Translation2d(driverXbox.getRightY(), driverXbox.getRightX())
+											.unaryMinus(),
 									useFieldRelative),
 							useAngleControlMode));
 
 			driverXbox.pov(0)
 					.whileTrue(
 							Commands.either(
-									new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(+0)),
 									new DriveAtSpeeds(drive, new ChassisSpeeds(1, 0, 0)),
+									new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(+0)),
 									useAngleControlMode));
 			driverXbox.pov(180)
 					.whileTrue(
 							Commands.either(
-									new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(+180)),
 									new DriveAtSpeeds(drive, new ChassisSpeeds(-1, 0, 0)),
+									new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(+180)),
 									useAngleControlMode));
 			driverXbox.pov(90)
 					.whileTrue(
 							Commands.either(
-									new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(-90)),
 									new DriveAtSpeeds(drive, new ChassisSpeeds(0, 0, Units.degreesToRadians(-90))),
+									new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(-90)),
 									useAngleControlMode));
 			driverXbox.pov(270)
 					.whileTrue(
 							Commands.either(
-									new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(-270)),
 									new DriveAtSpeeds(drive, new ChassisSpeeds(0, 0, Units.degreesToRadians(+90))),
+									new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(-270)),
 									useAngleControlMode));
 
-			driverXbox.x().onTrue(Commands.runOnce(drive::brakeArrangementStop, drive));
+			driverXbox.x().onTrue(Commands.runOnce(drive::stopUsingBrakeArrangement, drive));
 
 		} else if (driverController instanceof CommandJoystick) {
-			CommandJoystick driverJoystick = (CommandJoystick) driverController;
+			final CommandJoystick driverJoystick = (CommandJoystick) driverController;
 
 			drive.setDefaultCommand(
 					new TeleopDrive(
 							drive,
-							() -> -driverJoystick.getY(),
-							() -> -driverJoystick.getX(),
-							() -> -driverJoystick.getTwist(),
+							() -> new Translation2d(driverJoystick.getY(), driverJoystick.getX()).unaryMinus(),
+							() -> new Translation2d(0, driverJoystick.getTwist()).unaryMinus(),
 							() -> true));
 		}
 	}
 
 	private void configureOperatorControllerBindings() {
-		/* Put operator control bindings here */
+		if (operatorController instanceof CommandXboxController) {
+			final CommandXboxController operatorXbox = (CommandXboxController) operatorController;
+
+			// Adjust shot compensation
+			operatorXbox
+					.povUp()
+					.whileTrue(
+							Commands.runOnce(() -> robotState.flywheelShootRPMCompensation += 0.1)
+									.andThen(Commands.waitSeconds(0.05))
+									.ignoringDisable(true)
+									.repeatedly());
+			operatorXbox
+					.povDown()
+					.whileTrue(
+							Commands.runOnce(() -> robotState.flywheelShootRPMCompensation -= 0.1)
+									.andThen(Commands.waitSeconds(0.05))
+									.ignoringDisable(true)
+									.repeatedly());
+
+			// Shoot
+			operatorXbox.leftTrigger().whileTrue(
+					Commands.startEnd(
+							() -> flywheelExample.runVelocity(3000 + robotState.flywheelShootRPMCompensation),
+							flywheelExample::stop,
+							flywheelExample));
+		}
 	}
 
 	/**

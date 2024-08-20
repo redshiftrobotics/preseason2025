@@ -20,7 +20,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveWheelPositions;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -28,13 +27,12 @@ import frc.robot.Constants;
 import frc.robot.utility.AllianceFlipUtil;
 import frc.robot.utility.LocalADStarAK;
 import java.util.Arrays;
+import java.util.stream.Stream;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.IntFunction;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+import java.util.Optional;
 
 /** Drivetrain / chassis of robot */
 public class Drive extends SubsystemBase {
@@ -44,9 +42,9 @@ public class Drive extends SubsystemBase {
 	private static final double DRIVE_BASE_RADIUS = DRIVE_CONFIG.driveBaseRadius();
 
 	private static final double MAX_LINEAR_SPEED = DRIVE_CONFIG.maxLinearVelocity();
-	private static final double MAX_ANGULAR_SPEED = DRIVE_CONFIG.maxAngularVelocity(); // max_linear_speed /
-																						// drive_base_radius
+	private static final double MAX_ANGULAR_SPEED = DRIVE_CONFIG.maxAngularVelocity();
 
+	// https://www.geeksforgeeks.org/reentrant-lock-java/
 	static final Lock odometryLock = new ReentrantLock();
 
 	private final GyroIO gyroIO;
@@ -57,7 +55,6 @@ public class Drive extends SubsystemBase {
 
 	private SwerveDriveKinematics kinematics;
 	private Rotation2d rawGyroRotation = new Rotation2d();
-
 	private SwerveModulePosition[] lastModulePositions;
 
 	private Pose2d pose = new Pose2d();
@@ -95,11 +92,12 @@ public class Drive extends SubsystemBase {
 
 		// --- Set up kinematics ---
 
-		kinematics = new SwerveDriveKinematics(modulesMap(Module::getDistanceFromCenter, Translation2d[]::new));
+		kinematics = new SwerveDriveKinematics(
+				modules().map(Module::getDistanceFromCenter).toArray(Translation2d[]::new));
 
 		// --- Set up odometry ---
 
-		lastModulePositions = modulesMap(module -> new SwerveModulePosition(), SwerveModulePosition[]::new);
+		lastModulePositions = modules().map(Module::getPosition).toArray(SwerveModulePosition[]::new);
 		poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, pose);
 
 		// --- Start odometry threads ---
@@ -111,15 +109,16 @@ public class Drive extends SubsystemBase {
 		// --- PathPlanner ---
 
 		// Configure AutoBuilder for PathPlanner
+		HolonomicPathFollowerConfig config = new HolonomicPathFollowerConfig(
+				MAX_LINEAR_SPEED, DRIVE_BASE_RADIUS, new ReplanningConfig());
+
 		AutoBuilder.configureHolonomic(
 				this::getPose,
 				this::resetPose,
-				() -> kinematics.toChassisSpeeds(getWheelSpeeds()),
+				this::getRobotSpeeds,
 				this::setRobotSpeeds,
-				new HolonomicPathFollowerConfig(
-						MAX_LINEAR_SPEED, DRIVE_BASE_RADIUS, new ReplanningConfig()),
-				() -> DriverStation.getAlliance().isPresent()
-						&& DriverStation.getAlliance().get() == Alliance.Red,
+				config,
+				AllianceFlipUtil::shouldFlip,
 				this);
 
 		Pathfinding.setPathfinder(new LocalADStarAK());
@@ -153,38 +152,44 @@ public class Drive extends SubsystemBase {
 
 		odometryLock.lock(); // Prevents odometry updates while reading data
 		gyroIO.updateInputs(gyroInputs);
-		modulesMap(Module::updateInputs);
+		modules().forEach(Module::updateInputs);
 		odometryLock.unlock();
 
 		Logger.processInputs("Drive/Gyro", gyroInputs);
-		modulesMap(Module::periodic);
+		modules().forEach(Module::periodic);
 
 		// Stop moving when disabled
 		if (DriverStation.isDisabled()) {
 			stop();
-			Logger.recordOutput(
-					"SwerveStates/Setpoints",
-					modulesMap(module -> new SwerveModuleState(), SwerveModuleState[]::new));
 		}
 
 		// Log current wheel speeds
-		Logger.recordOutput("SwerveStates/Measured", getWheelSpeeds().states);
+		Logger.recordOutput("SwerveStates/MeasuredWheelSpeeds", getWheelSpeeds().states);
+		getDesiredWheelSpeeds()
+				.ifPresent((wheelSpeeds) -> Logger.recordOutput("SwerveStates/DesiredWheelSpeeds", wheelSpeeds.states));
 
 		// Update odometry
-		double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
+		double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together, just use
+																		// first
 		int sampleCount = sampleTimestamps.length;
 
+		// for each new odometry sample
 		for (int i = 0; i < sampleCount; i++) {
-			// Read wheel positions and deltas from each module
 			SwerveModulePosition[] modulePositions = new SwerveModulePosition[modules.length];
 			SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[modules.length];
+
+			// Read wheel positions from each module, and calculate delta using
 			for (int moduleIndex = 0; moduleIndex < modules.length; moduleIndex++) {
-				modulePositions[moduleIndex] = modules[moduleIndex].getOdometryPositions()[i];
+
+				SwerveModulePosition modulePosition = modules[moduleIndex].getOdometryPositions()[i];
+
+				modulePositions[moduleIndex] = modulePosition;
+
 				moduleDeltas[moduleIndex] = new SwerveModulePosition(
-						modulePositions[moduleIndex].distanceMeters
-								- lastModulePositions[moduleIndex].distanceMeters,
-						modulePositions[moduleIndex].angle);
-				lastModulePositions[moduleIndex] = modulePositions[moduleIndex];
+						modulePosition.distanceMeters - lastModulePositions[moduleIndex].distanceMeters,
+						modulePosition.angle);
+
+				lastModulePositions[moduleIndex] = modulePosition;
 			}
 
 			// Update gyro angle
@@ -192,12 +197,12 @@ public class Drive extends SubsystemBase {
 				// Use the real gyro angle
 				rawGyroRotation = gyroInputs.odometryYawPositions[i];
 			} else {
-				// Use the angle delta from the kinematics and module deltas (backup)
+				// Use the delta of swerve module to create estimated amount twisted
 				Twist2d twist = kinematics.toTwist2d(moduleDeltas);
 				rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
 			}
 
-			// Apply update
+			// Apply update to pose estimator
 			pose = poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
 		}
 	}
@@ -243,9 +248,10 @@ public class Drive extends SubsystemBase {
 	}
 
 	/**
-	 * Get velocity of robot chassis
+	 * Get velocity of robot chassis, either robot or field relative.
 	 *
-	 * @param fieldRelative true if returned speeds are relative to field
+	 * @param fieldRelative whether velocity is relative to field
+	 *
 	 * @return speeds of robot in meters/sec, either relative to robot or field
 	 */
 	public ChassisSpeeds getRobotSpeeds(boolean fieldRelative) {
@@ -262,7 +268,7 @@ public class Drive extends SubsystemBase {
 	}
 
 	/**
-	 * Set desired velocity of robot chassis
+	 * Set desired velocity of robot chassis.
 	 *
 	 * @param speeds speeds in meters/sec
 	 */
@@ -271,10 +277,10 @@ public class Drive extends SubsystemBase {
 	}
 
 	/**
-	 * Runs the drive at the desired velocity.
+	 * Runs the drive at the desired velocity, either robot or field relative.
 	 *
-	 * @param speeds        Speeds in meters/sec
-	 * @param fieldRelative Whether velocity is relative to field
+	 * @param speeds        speeds in meters/sec
+	 * @param fieldRelative whether velocity is relative to field
 	 */
 	public void setRobotSpeeds(ChassisSpeeds speeds, boolean fieldRelative) {
 
@@ -300,7 +306,22 @@ public class Drive extends SubsystemBase {
 	 *         states
 	 */
 	public SwerveDriveWheelStates getWheelSpeeds() {
-		return new SwerveDriveWheelStates(modulesMap(Module::getSpeeds, SwerveModuleState[]::new));
+		return new SwerveDriveWheelStates(modules().map(Module::getSpeeds).toArray(SwerveModuleState[]::new));
+	}
+
+	/**
+	 * Get all individual the swerve module desired speeds. Each wheel state is a turn angle and drive
+	 * velocity in meters/second.
+	 *
+	 * @return {@link SwerveDriveWheelStates} object which contains an array of all desired swerve module
+	 *         states or null.
+	 */
+	public Optional<SwerveDriveWheelStates> getDesiredWheelSpeeds() {
+		if (modules().map(Module::getDesiredSpeeds).anyMatch(Optional::isEmpty)) {
+			return Optional.empty();
+		}
+		return Optional.of(new SwerveDriveWheelStates(
+				modules().map(Module::getDesiredSpeeds).map(Optional::get).toArray(SwerveModuleState[]::new)));
 	}
 
 	/**
@@ -317,9 +338,6 @@ public class Drive extends SubsystemBase {
 		for (int i = 0; i < modules.length; i++) {
 			modules[i].setSpeeds(speeds.states[i]);
 		}
-
-		// Log setpoint states
-		Logger.recordOutput("SwerveStates/Setpoints", speeds.states);
 	}
 
 	// --- Wheel Positions ---
@@ -333,26 +351,25 @@ public class Drive extends SubsystemBase {
 	 */
 	public SwerveDriveWheelPositions getWheelPositions() {
 		return new SwerveDriveWheelPositions(
-				modulesMap(Module::getPosition, SwerveModulePosition[]::new));
+				modules().map(Module::getPosition).toArray(SwerveModulePosition[]::new));
 	}
 
 	// --- Stops ---
 
 	/**
-	 * Stops the drive. Sets swerve voltage to 0 and clears setpoints. The modules will return to
-	 * their normal driving the next time a nonzero velocity is requested.
+	 * Stops the drive. The modules will return to their normal driving the next time a nonzero velocity is requested.
 	 */
 	public void stop() {
 		setRobotSpeeds(new ChassisSpeeds());
-		modulesMap(Module::stop);
 	}
 
 	/**
 	 * Stops the drive and turns the modules to an X arrangement to resist movement. The modules will
 	 * return to their normal orientations the next time a nonzero velocity is requested.
 	 */
-	public void brakeArrangementStop() {
-		Rotation2d[] headings = modulesMap(module -> module.getDistanceFromCenter().getAngle(), Rotation2d[]::new);
+	public void stopUsingBrakeArrangement() {
+		Rotation2d[] headings = modules().map(Module::getDistanceFromCenter).map(Translation2d::getAngle)
+				.toArray(Rotation2d[]::new);
 		kinematics.resetHeadings(headings);
 		setRobotSpeeds(new ChassisSpeeds());
 	}
@@ -362,7 +379,7 @@ public class Drive extends SubsystemBase {
 	 * their normal driving the next time a nonzero velocity is requested.
 	 */
 	public void stopUsingForwardArrangement() {
-		Rotation2d[] headings = modulesMap(module -> new Rotation2d(), Rotation2d[]::new);
+		Rotation2d[] headings = modules().map(module -> new Rotation2d()).toArray(Rotation2d[]::new);
 		kinematics.resetHeadings(headings);
 		setRobotSpeeds(new ChassisSpeeds());
 	}
@@ -394,33 +411,9 @@ public class Drive extends SubsystemBase {
 	// --- Module Util ---
 
 	/**
-	 * Utility method. Function to easily run a function on each swerve module
-	 *
-	 * @param func function to run on each swerve module, takes one argument and returns nothing,
-	 *             operates via side effects.
+	 * Utility method. Get stream of modules
 	 */
-	private void modulesMap(Consumer<? super Module> action) {
-		Arrays.stream(modules).forEach(action);
-	}
-
-	/**
-	 * Utility method. Function to easily run a function on each swerve module and collect results to
-	 * array. Insures that we don't mix up order of swerve modules, as this could lead to hard-to-spot
-	 * bugs.
-	 *
-	 * @param <T>              type that is returned by function and should be collected
-	 * @param func             function that gets some data off each swerve module
-	 * @param arrayInitializer constructor function for array to collect results in, use T[]::new
-	 * @return array of results from func.
-	 */
-	private <T> T[] modulesMap(
-			Function<? super Module, ? extends T> func, IntFunction<T[]> arrayInitializer) {
-		// Private method with template argument T. Returns array of type T.
-		// Takes in function that accepts a SwerveModule or something higher on the
-		// inheritance chain (For example: Object, SubsystemBase)
-		// and returns something of type T or something lower on the inheritance chain.
-		// (For example if T is Object: Integer)
-		// Also takes a T array initializer (T[]::new)
-		return Arrays.stream(modules).map(func).toArray(arrayInitializer);
+	private Stream<Module> modules() {
+		return Arrays.stream(modules);
 	}
 }

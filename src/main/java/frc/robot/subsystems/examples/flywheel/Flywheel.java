@@ -85,6 +85,8 @@ public class Flywheel extends SubsystemBase {
 		return sysId.dynamic(direction);
 	}
 
+
+
 	/** Returns the current velocity in RPM. */
 	@AutoLogOutput
 	public double getVelocityRPM() {

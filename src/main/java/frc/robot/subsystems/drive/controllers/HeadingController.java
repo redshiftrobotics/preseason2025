@@ -7,8 +7,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
+import frc.robot.RobotState;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.subsystems.drive.DriveConstants.ModuleLimits;
 import frc.robot.utility.LoggedTunableNumber;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -22,9 +24,9 @@ public class HeadingController {
 	private static final LoggedTunableNumber kD = new LoggedTunableNumber("HeadingController/kD",
 			HEADING_CONTROLLER_CONSTANTS.kD());
 	private static final LoggedTunableNumber maxVelocityMultiplier = new LoggedTunableNumber(
-			"HeadingController/MaxVelocityMultipler", 0.8);
+			"HeadingController/MaxVelocityMultiplier", 0.8);
 	private static final LoggedTunableNumber maxAccelerationMultiplier = new LoggedTunableNumber(
-			"HeadingController/MaxAccelerationMultipler", 0.8);
+			"HeadingController/MaxAccelerationMultiplier", 0.8);
 	private static final LoggedTunableNumber toleranceDegrees = new LoggedTunableNumber(
 			"HeadingController/ToleranceDegrees", 1.0);
 
@@ -77,12 +79,14 @@ public class HeadingController {
 			headingControllerRadians.setTolerance(Units.degreesToRadians(toleranceDegrees.get()));
 		}
 
+		ModuleLimits moduleLimits = RobotState.getInstance().getModuleLimits();
+
 		// Update constraints for profiled PID controller
-		double maxAngularAcceleration = DriveConstants.MODULE_LIMITS_FREE.maxDriveAcceleration()
+		double maxAngularAcceleration = moduleLimits.maxDriveAcceleration()
 				/ DriveConstants.DRIVE_CONFIG.driveBaseRadius()
 				* maxAccelerationMultiplier.get();
 
-		double maxAngularVelocity = DriveConstants.MODULE_LIMITS_FREE.maxDriveAcceleration()
+		double maxAngularVelocity = moduleLimits.maxDriveAcceleration()
 				/ DriveConstants.DRIVE_CONFIG.driveBaseRadius()
 				* maxVelocityMultiplier.get();
 

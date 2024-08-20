@@ -2,6 +2,7 @@ package frc.robot;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.math.util.Units;
 
 /**
@@ -18,9 +19,14 @@ import edu.wpi.first.math.util.Units;
  */
 public class FieldConstants {
 
-	public static final double fieldLength = Units.inchesToMeters(651.25);
-	public static final double fieldWidth = Units.inchesToMeters(315.5);
+	public static final double FIELD_LENGTH = Units.inchesToMeters(651.25);
+	public static final double FIELD_WIDTH = Units.inchesToMeters(315.5);
 
-	public static final double aprilTagWidth = Units.inchesToMeters(6.50);
-	public final AprilTagFieldLayout layout = AprilTagFieldLayout.loadField(AprilTagFields.k2024Crescendo);
+	public static final double APRIL_TAG_WIDTH = Units.inchesToMeters(6.50);
+	public static final AprilTagFieldLayout APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout
+			.loadField(AprilTagFields.k2024Crescendo);
+
+	static {
+		APRIL_TAG_FIELD_LAYOUT.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
+	}
 }

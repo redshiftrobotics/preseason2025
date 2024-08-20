@@ -18,7 +18,7 @@
       "options": {
         "field": "2024 Field",
         "alliance": "blue",
-        "robot": "2024 KitBot",
+        "robot": "KitBot",
         "unitDistance": "meters",
         "unitRotation": "radians",
         "cameraIndex": -1,
@@ -31,12 +31,12 @@
       "type": 9,
       "fields": [
         {
-          "key": "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured",
+          "key": "NT:/AdvantageKit/RealOutputs/SwerveStates/MeasuredWheelSpeeds",
           "sourceTypeIndex": 1,
           "sourceType": "SwerveModuleState[]"
         },
         {
-          "key": "NT:/AdvantageKit/RealOutputs/SwerveStates/Setpoints",
+          "key": "NT:/AdvantageKit/RealOutputs/SwerveStates/DesiredWheelSpeeds",
           "sourceTypeIndex": 1,
           "sourceType": "SwerveModuleState[]"
         },

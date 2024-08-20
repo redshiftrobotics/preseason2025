@@ -1,11 +1,13 @@
 package frc.robot.utility;
 
+import java.util.Optional;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import frc.robot.Constants;
 import frc.robot.FieldConstants;
 
 /** Utility functions for flipping from the blue to red alliance. */
@@ -17,7 +19,7 @@ public class AllianceFlipUtil {
 	/** Flips an x coordinate to the correct side of the field based on the current alliance color. */
 	public static double apply(double xCoordinate) {
 		if (shouldFlip())
-			xCoordinate = FieldConstants.fieldLength - xCoordinate;
+			xCoordinate = FieldConstants.FIELD_LENGTH - xCoordinate;
 		return xCoordinate;
 	}
 
@@ -51,9 +53,12 @@ public class AllianceFlipUtil {
 	}
 
 	/**
-	 * @return True if we should flip alliance (If)
+	 * Get whether to flip. If alliance is blue or unknown don't flip, if it is red then flip.
+	 *
+	 * @return True if we should flip alliance.
 	 */
 	public static boolean shouldFlip() {
-		return Constants.getAlliance() == Alliance.Red;
+		Optional<Alliance> alliance = DriverStation.getAlliance();
+		return alliance.isPresent() && alliance.get() == Alliance.Red;
 	}
 }

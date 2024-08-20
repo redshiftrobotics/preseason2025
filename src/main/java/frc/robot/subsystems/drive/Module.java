@@ -11,6 +11,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.utility.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
+import java.util.Optional;
 
 /**
  * An individual swerve module in a drivetrain. This class is above the IO layer and contains
@@ -99,7 +100,7 @@ public class Module {
 			if (speedSetpoint != null) {
 				// Scale velocity based on turn error
 
-				// When the error is 90°, the velocity setpoint should be 0. As the wheel turns
+				// When the error is 90 degrees, the velocity setpoint should be 0. As the wheel turns
 				// towards the setpoint, its velocity should increase. This is achieved by
 				// taking the component of the velocity in the direction of the setpoint.
 
@@ -125,6 +126,8 @@ public class Module {
 		}
 	}
 
+	// --- Speeds ---
+
 	/** Runs the module with the specified setpoint state. */
 	public void setSpeeds(SwerveModuleState state) {
 		// Optimize state based on current angle
@@ -134,9 +137,31 @@ public class Module {
 		state.speedMetersPerSecond *= state.angle.minus(getAngle()).getCos();
 
 		// Update setpoints, controllers run in "periodic"
-		angleSetpoint = state.angle;
 		speedSetpoint = state.speedMetersPerSecond;
+		angleSetpoint = state.angle;
 	}
+
+	/** Returns the module state (turn angle and drive velocity). */
+	public SwerveModuleState getSpeeds() {
+		return new SwerveModuleState(getVelocityMetersPerSec(), getAngle());
+	}
+
+	/** Returns the setpoint module state (turn angle and drive velocity) */
+	public Optional<SwerveModuleState> getDesiredSpeeds() {
+		if (speedSetpoint == null || angleSetpoint == null) {
+			return Optional.empty();
+		}
+		return Optional.of(new SwerveModuleState(speedSetpoint, angleSetpoint));
+	}
+
+	// --- Position ---
+
+	/** Returns the module position (turn angle and drive position). */
+	public SwerveModulePosition getPosition() {
+		return new SwerveModulePosition(getPositionMeters(), getAngle());
+	}
+
+	// --- Characterization ---
 
 	/** Runs the module with the specified voltage while controlling to zero degrees. */
 	public void runCharacterization(double volts) {
@@ -146,6 +171,28 @@ public class Module {
 		// Open loop drive control
 		io.setDriveVoltage(volts);
 		speedSetpoint = null;
+	}
+
+	/** Returns the drive velocity in radians/sec. */
+	public double getCharacterizationVelocity() {
+		return inputs.driveVelocityRadPerSec;
+	}
+
+	// --- Odometry ---
+
+	/** Returns the distance module is from center of robot */
+	public Translation2d getDistanceFromCenter() {
+		return distanceFromCenter;
+	}
+
+	/** Returns the module positions received this cycle. */
+	public SwerveModulePosition[] getOdometryPositions() {
+		return odometryPositions;
+	}
+
+	/** Returns the timestamps of the samples received this cycle. */
+	public double[] getOdometryTimestamps() {
+		return inputs.odometryTimestamps;
 	}
 
 	/** Disables all outputs to motors. */
@@ -163,6 +210,8 @@ public class Module {
 		io.setDriveBrakeMode(enabled);
 		io.setTurnBrakeMode(enabled);
 	}
+
+	// --- Position and Speed Component Getters ---
 
 	/** Returns the current turn angle of the module. */
 	private Rotation2d getAngle() {
@@ -183,35 +232,7 @@ public class Module {
 		return inputs.driveVelocityRadPerSec * DRIVE_CONFIG.wheelRadius();
 	}
 
-	/** Returns the module position (turn angle and drive position). */
-	public SwerveModulePosition getPosition() {
-		return new SwerveModulePosition(getPositionMeters(), getAngle());
-	}
-
-	/** Returns the module state (turn angle and drive velocity). */
-	public SwerveModuleState getSpeeds() {
-		return new SwerveModuleState(getVelocityMetersPerSec(), getAngle());
-	}
-
-	/** Returns the distance module is from center of robot */
-	public Translation2d getDistanceFromCenter() {
-		return distanceFromCenter;
-	}
-
-	/** Returns the module positions received this cycle. */
-	public SwerveModulePosition[] getOdometryPositions() {
-		return odometryPositions;
-	}
-
-	/** Returns the timestamps of the samples received this cycle. */
-	public double[] getOdometryTimestamps() {
-		return inputs.odometryTimestamps;
-	}
-
-	/** Returns the drive velocity in radians/sec. */
-	public double getCharacterizationVelocity() {
-		return inputs.driveVelocityRadPerSec;
-	}
+	// --- To String ---
 
 	@Override
 	public String toString() {
