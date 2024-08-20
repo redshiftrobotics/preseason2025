@@ -33,6 +33,7 @@ public class HeadingController {
 	private final Drive drive;
 
 	private final ProfiledPIDController headingControllerRadians;
+	private double output;
 
 	/**
 	 * Creates a new HeadingController object
@@ -94,7 +95,7 @@ public class HeadingController {
 				new TrapezoidProfile.Constraints(maxAngularVelocity, maxAngularAcceleration));
 
 		// Calculate output
-		double output = headingControllerRadians.calculate(drive.getPose().getRotation().getRadians());
+		output = headingControllerRadians.calculate(drive.getPose().getRotation().getRadians());
 
 		Logger.recordOutput(
 				"Drive/HeadingController/HeadingError", headingControllerRadians.getPositionError());
@@ -106,6 +107,6 @@ public class HeadingController {
 	 */
 	@AutoLogOutput(key = "Drive/HeadingController/AtGoal")
 	public boolean atGoal() {
-		return headingControllerRadians.atGoal();
+		return headingControllerRadians.atGoal() && Math.abs(output) < 1E-3;
 	}
 }

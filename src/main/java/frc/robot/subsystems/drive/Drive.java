@@ -386,12 +386,12 @@ public class Drive extends SubsystemBase {
 
 	// --- Chassis Max Speeds---
 
-	/** Returns the maximum linear speed in meters per sec. */
+	/** Returns the maximum linear speed in meters per second. */
 	public double getMaxLinearSpeedMetersPerSec() {
 		return MAX_LINEAR_SPEED;
 	}
 
-	/** Returns the maximum angular speed in radians per sec. */
+	/** Returns the maximum angular speed in radians per second. */
 	public double getMaxAngularSpeedRadPerSec() {
 		return MAX_ANGULAR_SPEED;
 	}

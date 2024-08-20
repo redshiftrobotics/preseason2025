@@ -1,12 +1,15 @@
 package frc.robot;
 
+import java.util.List;
+import java.util.function.BooleanSupplier;
+
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -16,9 +19,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.commands.teleop.DriveAtSpeeds;
-import frc.robot.commands.teleop.DriveForwardAtHeading;
-import frc.robot.commands.teleop.TeleopAngleDrive;
 import frc.robot.commands.teleop.TeleopDrive;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
@@ -32,11 +32,8 @@ import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.examples.flywheel.Flywheel;
 import frc.robot.subsystems.examples.flywheel.FlywheelIOSparkMax;
 import frc.robot.utility.Alert;
-import frc.robot.utility.OverrideSwitch;
 import frc.robot.utility.Alert.AlertType;
-
-import java.util.function.BooleanSupplier;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import frc.robot.utility.OverrideSwitch;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -155,58 +152,28 @@ public class RobotContainer {
 
 			final BooleanSupplier useFieldRelative = new OverrideSwitch(driverXbox.x(), true, drive, "Field Relative");
 
-			/**
-			 * DEFAULT CONTROL MODE: Left stick controls translation (forward, backward, left, right),
-			 * while right stick controls rotation (counter clockwise, clockwise spin). POV allows for
-			 * field relative heading control using PID
-			 *
-			 * <p>
-			 * ANGLE CONTROL MODE: Left stick still controls translation (forward, backward, left,
-			 * right), while right stick controls field relative heading using PID. POV acts like mini
-			 * tank drive controller
-			 */
 			final BooleanSupplier useAngleControlMode = new OverrideSwitch(driverXbox.y(), true, drive, "Angle Driven");
 
-			drive.setDefaultCommand(
-					Commands.either(
-							new TeleopAngleDrive(
-									drive,
-									() -> new Translation2d(driverXbox.getLeftY(), driverXbox.getLeftX()).unaryMinus(),
-									() -> new Translation2d(driverXbox.getRightY(), driverXbox.getRightX())
-											.unaryMinus(),
-									useFieldRelative),
-							new TeleopDrive(
-									drive,
-									() -> new Translation2d(driverXbox.getLeftY(), driverXbox.getLeftX()).unaryMinus(),
-									() -> new Translation2d(driverXbox.getRightY(), driverXbox.getRightX())
-											.unaryMinus(),
-									useFieldRelative),
-							useAngleControlMode));
+			final TeleopDrive teleop = new TeleopDrive(
+					drive,
+					() -> -driverXbox.getLeftY(),
+					() -> -driverXbox.getLeftX(),
+					() -> -driverXbox.getRightX(),
+					useFieldRelative);
 
-			driverXbox.pov(0)
-					.whileTrue(
-							Commands.either(
-									new DriveAtSpeeds(drive, new ChassisSpeeds(1, 0, 0)),
-									new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(+0)),
-									useAngleControlMode));
-			driverXbox.pov(180)
-					.whileTrue(
-							Commands.either(
-									new DriveAtSpeeds(drive, new ChassisSpeeds(-1, 0, 0)),
-									new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(+180)),
-									useAngleControlMode));
-			driverXbox.pov(90)
-					.whileTrue(
-							Commands.either(
-									new DriveAtSpeeds(drive, new ChassisSpeeds(0, 0, Units.degreesToRadians(-90))),
-									new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(-90)),
-									useAngleControlMode));
-			driverXbox.pov(270)
-					.whileTrue(
-							Commands.either(
-									new DriveAtSpeeds(drive, new ChassisSpeeds(0, 0, Units.degreesToRadians(+90))),
-									new DriveForwardAtHeading(drive, Rotation2d.fromDegrees(-270)),
-									useAngleControlMode));
+			drive.setDefaultCommand(teleop);
+
+			for (int pov : List.of(0, 90, 180, 270)) {
+				Rotation2d angle = Rotation2d.fromDegrees(-pov);
+				driverXbox.pov(pov).whileTrue(
+						Commands.either(
+								teleop.setRobotRelativeSpeedsCommands(
+										new ChassisSpeeds(angle.getCos(), 0, angle.getSin() * Math.PI)),
+								teleop.setHeadingCommand(angle).alongWith(Commands.waitSeconds(0.5))
+										.andThen(teleop.setRobotRelativeSpeedsCommands(new ChassisSpeeds(1, 0, 0)))
+										.andThen(teleop.setHeadingCommand(angle)),
+								useAngleControlMode));
+			}
 
 			driverXbox.x().onTrue(Commands.runOnce(drive::stopUsingBrakeArrangement, drive));
 
@@ -216,8 +183,9 @@ public class RobotContainer {
 			drive.setDefaultCommand(
 					new TeleopDrive(
 							drive,
-							() -> new Translation2d(driverJoystick.getY(), driverJoystick.getX()).unaryMinus(),
-							() -> new Translation2d(0, driverJoystick.getTwist()).unaryMinus(),
+							() -> -driverJoystick.getY(),
+							() -> -driverJoystick.getX(),
+							() -> -driverJoystick.getTwist(),
 							() -> true));
 		}
 	}
