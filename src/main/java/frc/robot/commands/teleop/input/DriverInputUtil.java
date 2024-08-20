@@ -1,4 +1,4 @@
-package frc.robot.commands.teleop;
+package frc.robot.commands.teleop.input;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -8,7 +8,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.utility.LoggedTunableNumber;
 
 /** Utils for converting joystick values to drive components */
-public class DriverInput {
+public class DriverInputUtil {
 
 	private static final LoggedTunableNumber stickDeadband = new LoggedTunableNumber(
 			"TeleopDrive/Deadband", 0.2);
@@ -21,7 +21,6 @@ public class DriverInput {
 
 	private static final LoggedTunableNumber maxAngularVelocityCoefficient = new LoggedTunableNumber(
 			"TeleopDrive/Default/maxAngularVelocityCoefficient", 0.65);
-
 
 	public static Translation2d getTranslationMetersPerSecond(double xInput, double yInput, double maxTranslationSpeedMetersPerSecond) {
 

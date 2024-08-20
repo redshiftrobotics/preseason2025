@@ -3,102 +3,28 @@ package frc.robot.commands.teleop;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.commands.teleop.input.DriverInput;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.drive.controllers.HeadingController;
-
-import java.util.function.BooleanSupplier;
-import java.util.function.DoubleSupplier;
 
 /** Drive control command for driving robot with x, y and omega control */
 public class TeleopDrive extends Command {
 	private final Drive drive;
-
-	// Modes
-
-	private static enum Mode {
-		DEFAULT,
-		HEADING_CONTROLLED,
-		HEADING_CONTROLLED_PASSIVE,
-		DRIVE_ROBOT_RELATIVE_SPEEDS,
-	}
-
-	private Mode mode = Mode.DEFAULT;
-
-	// Default
-	private final DoubleSupplier xSupplier, ySupplier, omegaSupplier;
-	private final BooleanSupplier fieldRelativeSupplier;
-
-	// Heading controlled
-	private final HeadingController headingController;
-
-	// drive robot speeds
-	private ChassisSpeeds robotRelativeSpeeds;
+	private final DriverInput input;
 
 	/**
-	 * Creates a new TeleopAngleDrive Command. Meant to be default command for drivetrain.
+	 * Creates a new TeleopDrive Command. Meant to be default command for drivetrain.
 	 *
-	 * @param drive                 drivetrain of robot
-	 * @param xSupplier             double from controller joystick for X (forward) velocity
-	 * @param ySupplier             double from controller joystick for Y (left) velocity
-	 * @param omegaSupplier         double from controller joystick for omega (rotation) velocity
-	 * @param fieldRelativeSupplier supply true for field relative, false for robot relative
+	 * @param drive drivetrain of robot
+	 * @param input inputs for drive
 	 */
-	public TeleopDrive(
-			Drive drive,
-			DoubleSupplier xSupplier,
-			DoubleSupplier ySupplier,
-			DoubleSupplier omegaSupplier,
-			BooleanSupplier fieldRelativeSupplier) {
+	public TeleopDrive(Drive drive, DriverInput input) {
 
 		this.drive = drive;
-
-		this.xSupplier = xSupplier;
-		this.ySupplier = ySupplier;
-		this.omegaSupplier = omegaSupplier;
-		this.fieldRelativeSupplier = fieldRelativeSupplier;
-
-		this.headingController = new HeadingController(drive);
+		this.input = input;
 
 		addRequirements(drive);
 	}
-
-	// --- HEADING CONTROLLED ---
-
-	public Command setHeadingCommand(Rotation2d heading) {
-		return Commands.startEnd(() -> setHeading(heading), this::clearHeading).until(headingController::atGoal);
-	}
-
-	private void setHeading(Rotation2d heading) {
-		headingController.reset();
-		headingController.setGoal(heading);
-		mode = Mode.HEADING_CONTROLLED;
-	}
-
-	private void clearHeading() {
-		mode = Mode.HEADING_CONTROLLED_PASSIVE;
-	}
-
-	// --- DRIVE ROBOT RELATIVE SPEEDS ---
-
-	public Command setRobotRelativeSpeedsCommands(ChassisSpeeds speeds) {
-		return Commands.startEnd(() -> setRobotRelativeSpeeds(speeds), this::clearRobotRelativeSpeeds);
-	}
-
-	private void setRobotRelativeSpeeds(ChassisSpeeds speeds) {
-		robotRelativeSpeeds = speeds;
-		mode = Mode.DRIVE_ROBOT_RELATIVE_SPEEDS;
-	}
-
-	private void clearRobotRelativeSpeeds() {
-		robotRelativeSpeeds = null;
-		drive.stop();
-		mode = Mode.DEFAULT;
-	}
-
-	// --- Command ---
 
 	@Override
 	public void initialize() {
@@ -108,35 +34,17 @@ public class TeleopDrive extends Command {
 	@Override
 	public void execute() {
 
-		Translation2d translation = DriverInput.getTranslationMetersPerSecond(
-				xSupplier.getAsDouble(),
-				ySupplier.getAsDouble(),
-				drive.getMaxLinearSpeedMetersPerSec());
+		Translation2d translation = input.getTranslationMetersPerSecond();
 
-		Rotation2d rotation = DriverInput.getOmegaRadiansPerSecond(
-				omegaSupplier.getAsDouble(),
-				drive.getMaxAngularSpeedRadPerSec());
+		Rotation2d rotation = input.getOmegaRadiansPerSecond();
 
-		boolean fieldRelative = fieldRelativeSupplier.getAsBoolean();
+		boolean fieldRelative = input.getFieldRelative();
 
 		ChassisSpeeds speeds = new ChassisSpeeds(
 				translation.getX(),
 				translation.getY(),
 				rotation.getRadians());
 
-		if (mode == Mode.DRIVE_ROBOT_RELATIVE_SPEEDS) {
-			speeds = robotRelativeSpeeds;
-			fieldRelative = false;
-		} else if (mode == Mode.HEADING_CONTROLLED || mode == Mode.HEADING_CONTROLLED_PASSIVE) {
-			if (mode == Mode.HEADING_CONTROLLED_PASSIVE && Math.abs(speeds.omegaRadiansPerSecond) > 1E-3) {
-				mode = Mode.DEFAULT;
-			}
-			else {
-				speeds.omegaRadiansPerSecond = headingController.calculate();
-			}
-		}
-
-		SmartDashboard.putString("Mode", mode.toString());
 		drive.setRobotSpeeds(speeds, fieldRelative);
 	}
 

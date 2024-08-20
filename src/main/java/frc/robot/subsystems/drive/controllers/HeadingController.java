@@ -23,12 +23,13 @@ public class HeadingController {
 			HEADING_CONTROLLER_CONSTANTS.kP());
 	private static final LoggedTunableNumber kD = new LoggedTunableNumber("HeadingController/kD",
 			HEADING_CONTROLLER_CONSTANTS.kD());
-	private static final LoggedTunableNumber maxVelocityMultiplier = new LoggedTunableNumber(
-			"HeadingController/MaxVelocityMultiplier", 0.8);
-	private static final LoggedTunableNumber maxAccelerationMultiplier = new LoggedTunableNumber(
-			"HeadingController/MaxAccelerationMultiplier", 0.8);
+
+	private static final LoggedTunableNumber maxVelocityCoefficient = new LoggedTunableNumber(
+			"HeadingController/MaxVelocityCoefficient", 0.8);
+	private static final LoggedTunableNumber maxAccelerationCoefficient = new LoggedTunableNumber(
+			"HeadingController/MaxAccelerationCoefficient", 0.8);
 	private static final LoggedTunableNumber toleranceDegrees = new LoggedTunableNumber(
-			"HeadingController/ToleranceDegrees", 1.0);
+			"HeadingController/ToleranceDegrees", 2.0);
 
 	private final Drive drive;
 
@@ -64,6 +65,10 @@ public class HeadingController {
 		headingControllerRadians.setGoal(heading.getRadians());
 	}
 
+	// public double getGoal(Rotation2d heading) {
+		// headingControllerRadians.getGoal().position;
+	// }
+
 	public double calculate(Rotation2d goalHeading) {
 		setGoal(goalHeading);
 		return calculate();
@@ -85,11 +90,11 @@ public class HeadingController {
 		// Update constraints for profiled PID controller
 		double maxAngularAcceleration = moduleLimits.maxDriveAcceleration()
 				/ DriveConstants.DRIVE_CONFIG.driveBaseRadius()
-				* maxAccelerationMultiplier.get();
+				* maxAccelerationCoefficient.get();
 
 		double maxAngularVelocity = moduleLimits.maxDriveAcceleration()
 				/ DriveConstants.DRIVE_CONFIG.driveBaseRadius()
-				* maxVelocityMultiplier.get();
+				* maxVelocityCoefficient.get();
 
 		headingControllerRadians.setConstraints(
 				new TrapezoidProfile.Constraints(maxAngularVelocity, maxAngularAcceleration));
@@ -99,6 +104,9 @@ public class HeadingController {
 
 		Logger.recordOutput(
 				"Drive/HeadingController/HeadingError", headingControllerRadians.getPositionError());
+		Logger.recordOutput(
+				"Drive/HeadingController/Output", output);
+
 		return output;
 	}
 
@@ -107,6 +115,6 @@ public class HeadingController {
 	 */
 	@AutoLogOutput(key = "Drive/HeadingController/AtGoal")
 	public boolean atGoal() {
-		return headingControllerRadians.atGoal() && Math.abs(output) < 1E-3;
+		return headingControllerRadians.atGoal();
 	}
 }

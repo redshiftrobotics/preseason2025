@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -19,7 +20,11 @@ import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.commands.teleop.DriveForwardAtHeading;
+import frc.robot.commands.teleop.DriveRobotRelativeSpeeds;
 import frc.robot.commands.teleop.TeleopDrive;
+import frc.robot.commands.teleop.TeleopHeadingControlledDrive;
+import frc.robot.commands.teleop.input.DriverInput;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
@@ -150,43 +155,53 @@ public class RobotContainer {
 		if (driverController instanceof CommandXboxController) {
 			final CommandXboxController driverXbox = (CommandXboxController) driverController;
 
-			final BooleanSupplier useFieldRelative = new OverrideSwitch(driverXbox.x(), true, drive, "Field Relative");
+			final BooleanSupplier useFieldRelative = new OverrideSwitch(driverXbox.y(), true, drive, "Field Relative");
 
-			final BooleanSupplier useAngleControlMode = new OverrideSwitch(driverXbox.y(), true, drive, "Angle Driven");
+			final BooleanSupplier useAngleControlMode = new OverrideSwitch(driverXbox.a(), true, drive, "Angle Driven");
 
-			final TeleopDrive teleop = new TeleopDrive(
+			final DriverInput input = new DriverInput(
 					drive,
 					() -> -driverXbox.getLeftY(),
 					() -> -driverXbox.getLeftX(),
+					() -> -driverXbox.getRightY(),
 					() -> -driverXbox.getRightX(),
 					useFieldRelative);
+
+			final TeleopDrive teleop = new TeleopDrive(drive, input);
 
 			drive.setDefaultCommand(teleop);
 
 			for (int pov : List.of(0, 90, 180, 270)) {
 				Rotation2d angle = Rotation2d.fromDegrees(-pov);
-				driverXbox.pov(pov).whileTrue(
-						Commands.either(
-								teleop.setRobotRelativeSpeedsCommands(
-										new ChassisSpeeds(angle.getCos(), 0, angle.getSin() * Math.PI)),
-								teleop.setHeadingCommand(angle).alongWith(Commands.waitSeconds(0.5))
-										.andThen(teleop.setRobotRelativeSpeedsCommands(new ChassisSpeeds(1, 0, 0)))
-										.andThen(teleop.setHeadingCommand(angle)),
-								useAngleControlMode));
+				driverXbox.pov(pov).and(useAngleControlMode).whileTrue(
+						new DriveRobotRelativeSpeeds(drive,
+								new ChassisSpeeds(angle.getCos(), 0, angle.getSin() * Math.PI)));
+
+				driverXbox.pov(pov).and(() -> !useAngleControlMode.getAsBoolean())
+						.whileTrue(new DriveForwardAtHeading(drive, angle));
+
+				driverXbox.pov(pov).and(() -> !useAngleControlMode.getAsBoolean())
+						.onFalse(new TeleopHeadingControlledDrive(drive, input, () -> angle));
 			}
 
-			driverXbox.x().onTrue(Commands.runOnce(drive::stopUsingBrakeArrangement, drive));
+			driverXbox.x().onTrue(
+					Commands.runOnce(drive::stopUsingBrakeArrangement, drive).withName("stopUsingBrakeArrangement"));
+
+			SmartDashboard.putData(drive);
 
 		} else if (driverController instanceof CommandJoystick) {
 			final CommandJoystick driverJoystick = (CommandJoystick) driverController;
 
+			DriverInput input = new DriverInput(
+					drive,
+					() -> -driverJoystick.getY(),
+					() -> -driverJoystick.getX(),
+					() -> -driverJoystick.getTwist(),
+					() -> 0,
+					() -> true);
+
 			drive.setDefaultCommand(
-					new TeleopDrive(
-							drive,
-							() -> -driverJoystick.getY(),
-							() -> -driverJoystick.getX(),
-							() -> -driverJoystick.getTwist(),
-							() -> true));
+					new TeleopDrive(drive, input));
 		}
 	}
 

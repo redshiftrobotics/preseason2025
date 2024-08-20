@@ -11,10 +11,10 @@ import frc.robot.utility.LoggedTunableNumber;
 /** First rotates to specified angle, then starts slowing driving in that direction */
 public class DriveForwardAtHeading extends Command {
 
-	private static final LoggedTunableNumber driveSpeed = new LoggedTunableNumber("TeleopDrive/POV/driveSpeed", 1);
+	private static final LoggedTunableNumber forwardMetersPerSecond = new LoggedTunableNumber("TeleopDrive/DriveForwardAtHeading/forwardMetersPerSecond", 1);
 
 	private static final LoggedTunableNumber delaySecondsTillForward = new LoggedTunableNumber(
-			"TeleopDrive/POV/delaySecondsTillForward", 0.5);
+			"TeleopDrive/DriveForwardAtHeading/delaySecondsTillForward", 0.5);
 
 	private final Drive drive;
 	private final HeadingController headingController;
@@ -51,7 +51,7 @@ public class DriveForwardAtHeading extends Command {
 	private ChassisSpeeds getDesiredSpeeds() {
 		return new ChassisSpeeds(
 				headingController.atGoal() && timer.hasElapsed(delaySecondsTillForward.get())
-						? driveSpeed.get()
+						? forwardMetersPerSecond.get()
 						: 0,
 				0,
 				headingController.calculate());
@@ -60,5 +60,10 @@ public class DriveForwardAtHeading extends Command {
 	@Override
 	public boolean isFinished() {
 		return false;
+	}
+
+	@Override
+	public String getName() {
+		return String.format("%s(%s)", this.getClass().getName(), this.headingController.get);
 	}
 }
