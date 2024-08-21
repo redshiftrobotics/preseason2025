@@ -9,7 +9,7 @@ import frc.robot.subsystems.drive.controllers.HeadingController;
 import frc.robot.utility.LoggedTunableNumber;
 
 /** First rotates to specified angle, then starts slowing driving in that direction */
-public class DriveForwardAtHeading extends Command {
+public class ForwardAtHeading extends Command {
 
 	private static final LoggedTunableNumber forwardMetersPerSecond = new LoggedTunableNumber("TeleopDrive/DriveForwardAtHeading/forwardMetersPerSecond", 1);
 
@@ -26,7 +26,7 @@ public class DriveForwardAtHeading extends Command {
 	 * @param drive   drivetrain of robot
 	 * @param heading field relative rotation to drive to aim at before driving forward
 	 */
-	public DriveForwardAtHeading(Drive drive, Rotation2d heading) {
+	public ForwardAtHeading(Drive drive, Rotation2d heading) {
 		this.drive = drive;
 
 		headingController = new HeadingController(drive);
@@ -64,6 +64,6 @@ public class DriveForwardAtHeading extends Command {
 
 	@Override
 	public String getName() {
-		return String.format("%s(%s)", this.getClass().getName(), this.headingController.get);
+		return String.format("%s[%d]", getClass().getSimpleName(), (int) headingController.getGoal().getDegrees());
 	}
 }

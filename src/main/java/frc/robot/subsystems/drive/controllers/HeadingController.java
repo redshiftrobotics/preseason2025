@@ -65,9 +65,9 @@ public class HeadingController {
 		headingControllerRadians.setGoal(heading.getRadians());
 	}
 
-	// public double getGoal(Rotation2d heading) {
-		// headingControllerRadians.getGoal().position;
-	// }
+	public Rotation2d getGoal() {
+		return new Rotation2d(headingControllerRadians.getGoal().position);
+	}
 
 	public double calculate(Rotation2d goalHeading) {
 		setGoal(goalHeading);

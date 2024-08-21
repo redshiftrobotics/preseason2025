@@ -11,7 +11,7 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.controllers.HeadingController;
 
 /** Drive control command for driving robot with x and y with heading locked */
-public class TeleopHeadingControlledDrive extends Command {
+public class TeleopLockedHeading extends Command {
 	private final Drive drive;
 	private final DriverInput input;
 	private final Supplier<Rotation2d> headingSupplier;
@@ -24,7 +24,7 @@ public class TeleopHeadingControlledDrive extends Command {
 	 * @param input           inputs for drive
 	 * @param headingSupplier supplier for angle
 	 */
-	public TeleopHeadingControlledDrive(Drive drive, DriverInput input, Supplier<Rotation2d> headingSupplier) {
+	public TeleopLockedHeading(Drive drive, DriverInput input, Supplier<Rotation2d> headingSupplier) {
 
 		this.drive = drive;
 		this.input = input;
@@ -65,5 +65,10 @@ public class TeleopHeadingControlledDrive extends Command {
 	@Override
 	public void end(boolean interrupted) {
 		drive.stop();
+	}
+
+	@Override
+	public String getName() {
+		return String.format("%s[%d]", getClass().getSimpleName(), (int) headingController.getGoal().getDegrees());
 	}
 }

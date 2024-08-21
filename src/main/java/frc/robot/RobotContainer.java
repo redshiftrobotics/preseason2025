@@ -12,7 +12,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -20,10 +19,10 @@ import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.commands.teleop.DriveForwardAtHeading;
-import frc.robot.commands.teleop.DriveRobotRelativeSpeeds;
+import frc.robot.commands.teleop.ForwardAtHeading;
+import frc.robot.commands.teleop.RelativeDrive;
 import frc.robot.commands.teleop.TeleopDrive;
-import frc.robot.commands.teleop.TeleopHeadingControlledDrive;
+import frc.robot.commands.teleop.TeleopLockedHeading;
 import frc.robot.commands.teleop.input.DriverInput;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
@@ -114,7 +113,7 @@ public class RobotContainer {
 				break;
 		}
 
-		autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+		autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 
 		// Set up SysId routines
 		autoChooser.addOption(
@@ -174,20 +173,18 @@ public class RobotContainer {
 			for (int pov : List.of(0, 90, 180, 270)) {
 				Rotation2d angle = Rotation2d.fromDegrees(-pov);
 				driverXbox.pov(pov).and(useAngleControlMode).whileTrue(
-						new DriveRobotRelativeSpeeds(drive,
+						new RelativeDrive(drive,
 								new ChassisSpeeds(angle.getCos(), 0, angle.getSin() * Math.PI)));
 
 				driverXbox.pov(pov).and(() -> !useAngleControlMode.getAsBoolean())
-						.whileTrue(new DriveForwardAtHeading(drive, angle));
+						.whileTrue(new ForwardAtHeading(drive, angle));
 
 				driverXbox.pov(pov).and(() -> !useAngleControlMode.getAsBoolean())
-						.onFalse(new TeleopHeadingControlledDrive(drive, input, () -> angle));
+						.onFalse(new TeleopLockedHeading(drive, input, () -> angle));
 			}
 
 			driverXbox.x().onTrue(
 					Commands.runOnce(drive::stopUsingBrakeArrangement, drive).withName("stopUsingBrakeArrangement"));
-
-			SmartDashboard.putData(drive);
 
 		} else if (driverController instanceof CommandJoystick) {
 			final CommandJoystick driverJoystick = (CommandJoystick) driverController;
