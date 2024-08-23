@@ -14,6 +14,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.drive.DriveConstants.ModuleConfig;
 import java.util.Queue;
+import static frc.robot.subsystems.drive.DriveConstants.MODULE_CONSTANTS;
 
 /**
  * Module IO implementation for Talon FX drive motor controller, Talon FX turn motor controller, and
@@ -48,10 +49,6 @@ public class ModuleIOTalonFX implements ModuleIO {
 	private final StatusSignal<Double> turnVelocity;
 	private final StatusSignal<Double> turnAppliedVolts;
 	private final StatusSignal<Double> turnCurrent;
-
-	// Gear ratios for SDS MK4i L2, adjust as necessary
-	private static final double DRIVE_GEAR_RATIO = (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0);
-	private static final double TURN_GEAR_RATIO = 150.0 / 7.0;
 
 	private final boolean isTurnMotorInverted;
 	private final Rotation2d absoluteEncoderOffset;
@@ -120,24 +117,24 @@ public class ModuleIOTalonFX implements ModuleIO {
 				turnAppliedVolts,
 				turnCurrent);
 
-		inputs.drivePositionRad = Units.rotationsToRadians(drivePosition.getValueAsDouble()) / DRIVE_GEAR_RATIO;
-		inputs.driveVelocityRadPerSec = Units.rotationsToRadians(driveVelocity.getValueAsDouble()) / DRIVE_GEAR_RATIO;
+		inputs.drivePositionRad = Units.rotationsToRadians(drivePosition.getValueAsDouble()) / MODULE_CONSTANTS.driveReduction();
+		inputs.driveVelocityRadPerSec = Units.rotationsToRadians(driveVelocity.getValueAsDouble()) / MODULE_CONSTANTS.driveReduction();
 		inputs.driveAppliedVolts = driveAppliedVolts.getValueAsDouble();
 		inputs.driveCurrentAmps = new double[] { driveCurrent.getValueAsDouble() };
 
 		inputs.turnAbsolutePosition = Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble())
 				.minus(absoluteEncoderOffset);
-		inputs.turnPosition = Rotation2d.fromRotations(turnPosition.getValueAsDouble() / TURN_GEAR_RATIO);
-		inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnVelocity.getValueAsDouble()) / TURN_GEAR_RATIO;
+		inputs.turnPosition = Rotation2d.fromRotations(turnPosition.getValueAsDouble() / MODULE_CONSTANTS.turnReduction());
+		inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnVelocity.getValueAsDouble()) / MODULE_CONSTANTS.turnReduction();
 		inputs.turnAppliedVolts = turnAppliedVolts.getValueAsDouble();
 		inputs.turnCurrentAmps = new double[] { turnCurrent.getValueAsDouble() };
 
 		inputs.odometryTimestamps = timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
 		inputs.odometryDrivePositionsRad = drivePositionQueue.stream()
-				.mapToDouble((Double value) -> Units.rotationsToRadians(value) / DRIVE_GEAR_RATIO)
+				.mapToDouble((Double value) -> Units.rotationsToRadians(value) / MODULE_CONSTANTS.driveReduction())
 				.toArray();
 		inputs.odometryTurnPositions = turnPositionQueue.stream()
-				.map((Double value) -> Rotation2d.fromRotations(value / TURN_GEAR_RATIO))
+				.map((Double value) -> Rotation2d.fromRotations(value / MODULE_CONSTANTS.turnReduction()))
 				.toArray(Rotation2d[]::new);
 		timestampQueue.clear();
 		drivePositionQueue.clear();

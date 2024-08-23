@@ -19,9 +19,9 @@ import java.util.Optional;
  */
 public class Module {
 
-	private static final LoggedTunableNumber driveFeedForwardKs = new LoggedTunableNumber("Drive/Module/DriveKs",
+	private static final LoggedTunableNumber driveFeedForwardKs = new LoggedTunableNumber("Drive/Module/DriveFfKs",
 			MODULE_CONSTANTS.feedForwardKs());
-	private static final LoggedTunableNumber driveFeedForwardKv = new LoggedTunableNumber("Drive/Module/DriveKv",
+	private static final LoggedTunableNumber driveFeedForwardKv = new LoggedTunableNumber("Drive/Module/DriveFfKv",
 			MODULE_CONSTANTS.feedForwardKv());
 
 	private static final LoggedTunableNumber driveKp = new LoggedTunableNumber("Drive/Module/DriveKp",
@@ -50,8 +50,8 @@ public class Module {
 
 	/**
 	 * Create an individual swerve module in a drivetrain.
-	 * 
-	 * @param io swerve module io implantation
+	 *
+	 * @param io                 swerve module io implantation
 	 * @param distanceFromCenter distance from center of drivetrain to physical center of swerve module
 	 */
 	public Module(ModuleIO io, Translation2d distanceFromCenter) {
@@ -87,6 +87,9 @@ public class Module {
 		io.updateInputs(inputs);
 	}
 
+	/**
+	 * Run periodic of module. This uses our PID controllers to try and reach our angle and speed setpoints.
+	 */
 	public void periodic() {
 		Logger.processInputs("Drive/" + toString(), inputs);
 
@@ -110,7 +113,7 @@ public class Module {
 				// towards the setpoint, its velocity should increase. This is achieved by
 				// taking the component of the velocity in the direction of the setpoint.
 
-				// https://www.softschools.com/math/trigonometry/images/graphing_the_cosine_function_1.png
+				// https://cdn1.byjus.com/wp-content/uploads/2019/05/Cosine-Graph.png
 				double adjustSpeedSetpoint = speedSetpoint * Math.cos(turnFeedback.getPositionError());
 
 				// Run drive controller
@@ -139,8 +142,6 @@ public class Module {
 		// Optimize state based on current angle
 		// Controllers run in "periodic" when the setpoint is not null
 		state = SwerveModuleState.optimize(state, getAngle());
-
-		state.speedMetersPerSecond *= state.angle.minus(getAngle()).getCos();
 
 		// Update setpoints, controllers run in "periodic"
 		speedSetpoint = state.speedMetersPerSecond;

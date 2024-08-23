@@ -34,7 +34,7 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 import java.util.Optional;
 
-/** Drivetrain / chassis of robot */
+/** Drivetrain (chassis) of robot */
 public class Drive extends SubsystemBase {
 	private static final double TRACK_WIDTH_X = DRIVE_CONFIG.trackWidthX();
 	private static final double TRACK_WIDTH_Y = DRIVE_CONFIG.trackWidthY();
@@ -166,7 +166,7 @@ public class Drive extends SubsystemBase {
 		// Log current wheel speeds
 		Logger.recordOutput("SwerveStates/MeasuredWheelSpeeds", getWheelSpeeds().states);
 		getDesiredWheelSpeeds()
-				.ifPresent((wheelSpeeds) -> Logger.recordOutput("SwerveStates/DesiredWheelSpeeds", wheelSpeeds.states));
+				.ifPresent((wheelSpeeds) -> Logger.recordOutput("SwerveStates/ModuleDesiredWheelSpeeds", wheelSpeeds.states));
 
 		// Update odometry
 		double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together, just use
@@ -293,6 +293,8 @@ public class Drive extends SubsystemBase {
 
 		SwerveDriveWheelStates wheelSpeeds = kinematics.toWheelSpeeds(speeds);
 
+		Logger.recordOutput("SwerveStates/DesiredWheelSpeeds", wheelSpeeds.states);
+
 		setWheelSpeeds(wheelSpeeds);
 	}
 
@@ -313,8 +315,8 @@ public class Drive extends SubsystemBase {
 	 * Get all individual the swerve module desired speeds. Each wheel state is a turn angle and drive
 	 * velocity in meters/second.
 	 *
-	 * @return {@link SwerveDriveWheelStates} object which contains an array of all desired swerve module
-	 *         states or null.
+	 * @return optional {@link SwerveDriveWheelStates} object which contains an array of all desired swerve module
+	 *         states.
 	 */
 	public Optional<SwerveDriveWheelStates> getDesiredWheelSpeeds() {
 		if (modules().map(Module::getDesiredSpeeds).anyMatch(Optional::isEmpty)) {

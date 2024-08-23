@@ -11,19 +11,6 @@
         "vgap": 16.0,
         "titleType": 0,
         "tiles": {
-          "8,0": {
-            "size": [
-              2,
-              1
-            ],
-            "content": {
-              "_type": "ComboBox Chooser",
-              "_source0": "network_table:///SmartDashboard/Auto Chooser",
-              "_title": "Auto Chooser",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
           "1,0": {
             "size": [
               2,
@@ -115,6 +102,19 @@
               "_glyph": 223,
               "_showGlyph": true
             }
+          },
+          "5,0": {
+            "size": [
+              2,
+              1
+            ],
+            "content": {
+              "_type": "ComboBox Chooser",
+              "_source0": "network_table:///SmartDashboard/Auto Chooser",
+              "_title": "Auto Chooser",
+              "_glyph": 317,
+              "_showGlyph": true
+            }
           }
         }
       }
@@ -134,9 +134,9 @@
     }
   ],
   "windowGeometry": {
-    "x": 563.2000122070312,
-    "y": 140.0,
-    "width": 979.2000122070312,
-    "height": 555.2000122070312
+    "x": 26.0,
+    "y": 289.0,
+    "width": 2580.0,
+    "height": 988.0
   }
 }

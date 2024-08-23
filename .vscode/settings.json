@@ -53,23 +53,24 @@
 
 	// Spell check
     "cSpell.words": [
-        "AHRS",
-        "Arducam",
-        "Brushless",
-        "cancoder",
-        "deadband",
-        "Feedforward",
-        "Holonomic",
-        "Lightstrip",
-        "Pathfinding",
-        "photonvision",
-        "Quasistatic",
-        "Ramsete",
-        "Robo",
-        "teleop",
-        "teleoperated",
-        "wpilibj"
-    ],
+		"AHRS",
+		"Arducam",
+		"Brushless",
+		"cancoder",
+		"deadband",
+		"Feedforward",
+		"Holonomic",
+		"Lightstrip",
+		"Pathfinding",
+		"photonvision",
+		"Quasistatic",
+		"Ramsete",
+		"Robo",
+		"setpoints",
+		"teleop",
+		"teleoperated",
+		"wpilibj"
+	],
 
 	// WPILib
     "wpilib.selectDefaultSimulateExtension": true,

@@ -33,24 +33,16 @@ public class DriveConstants {
 	public static final DriveConfig DRIVE_CONFIG = switch (Constants.getRobot()) {
 		case SIM_BOT, COMP_BOT -> new DriveConfig(
 				Units.inchesToMeters(2),
-				0.54,
-				0.54,
-				0.61,
-				0.61,
-				6,
-				25,
-				10,
-				6);
+				0.885, 0.885,
+				0.9612, 0.9612,
+				3.81, 14.5,
+				6.0883, 14.5);
 		case DEV_BOT -> new DriveConfig(
 				Units.inchesToMeters(2),
-				0.54,
-				0.54,
-				0.61,
-				0.61,
-				4.57,
-				22.86,
-				10,
-				6);
+				0.885, 0.885,
+				0.9612, 0.9612,
+				3.81, 14.5,
+				6.0883, 14.56);
 	};
 
 	// --- Module Config ---
@@ -78,18 +70,19 @@ public class DriveConstants {
 				break;
 
 			case DEV_BOT: // DEV ONLY
-				FRONT_LEFT_MODULE_CONFIG = new ModuleConfig(41, 40, 1, new Rotation2d(-0.136474609), false);
-				FRONT_RIGHT_MODULE_CONFIG = new ModuleConfig(4, 5, 2, new Rotation2d(-0.3828125), false);
-				BACK_LEFT_MODULE_CONFIG = new ModuleConfig(2, 3, 4, new Rotation2d(-0.017333984375), false);
-				BACK_RIGHT_MODULE_CONFIG = new ModuleConfig(42, 6, 3, new Rotation2d(0.45385742175), false);
+				FRONT_LEFT_MODULE_CONFIG = new ModuleConfig(2, 3, 3, Rotation2d.fromRotations(0.631591796875), false);
+				FRONT_RIGHT_MODULE_CONFIG = new ModuleConfig(14, 17, 4, Rotation2d.fromRotations(-0.77758789062),
+						false);
+				BACK_LEFT_MODULE_CONFIG = new ModuleConfig(8, 9, 2, Rotation2d.fromRotations(-0.641357421875), false);
+				BACK_RIGHT_MODULE_CONFIG = new ModuleConfig(10, 11, 1, Rotation2d.fromRotations(0.453857421875), false);
 				break;
 
 			default:
 			case COMP_BOT: // COMP ONLY - REAL USED BOT
-				FRONT_LEFT_MODULE_CONFIG = new ModuleConfig(2, 3, 3, new Rotation2d(0.631591796875), false);
-				FRONT_RIGHT_MODULE_CONFIG = new ModuleConfig(14, 17, 4, new Rotation2d(-0.77587890), false);
-				BACK_LEFT_MODULE_CONFIG = new ModuleConfig(8, 9, 2, new Rotation2d(-0.641357421875), false);
-				BACK_RIGHT_MODULE_CONFIG = new ModuleConfig(10, 11, 1, new Rotation2d(0.453857421), false);
+				FRONT_LEFT_MODULE_CONFIG = new ModuleConfig(2, 3, 3, Rotation2d.fromRotations(0.631591796875), false);
+				FRONT_RIGHT_MODULE_CONFIG = new ModuleConfig(14, 17, 4, Rotation2d.fromRotations(-0.77587890), false);
+				BACK_LEFT_MODULE_CONFIG = new ModuleConfig(8, 9, 2, Rotation2d.fromRotations(-0.641357421875), false);
+				BACK_RIGHT_MODULE_CONFIG = new ModuleConfig(10, 11, 1, Rotation2d.fromRotations(0.453857421), false);
 				break;
 		}
 	}
@@ -115,25 +108,25 @@ public class DriveConstants {
 				0.0,
 				10.0,
 				0.0,
-				Mk4Reductions.L1.reduction,
-				Mk4Reductions.TURN.reduction);
+				Mk4iReductions.L1.reduction,
+				Mk4iReductions.TURN.reduction);
 		case SIM_BOT -> new ModuleConstants(
-				0.014,
-				0.134,
+				0.1,
+				0.13,
 				0.1,
 				0.0,
 				10.0,
 				0.0,
-				Mk4iReductions.L3.reduction,
+				Mk4iReductions.L1.reduction,
 				Mk4iReductions.TURN.reduction);
 		case COMP_BOT -> new ModuleConstants(
-				5.0,
+				0.1,
+				0.13,
+				0.1,
 				0.0,
-				35.0,
+				10.0,
 				0.0,
-				4000.0,
-				50.0,
-				Mk4iReductions.L3.reduction,
+				Mk4iReductions.L1.reduction,
 				Mk4iReductions.TURN.reduction);
 	};
 
@@ -164,11 +157,11 @@ public class DriveConstants {
 	// --- Heading Controller Config ---
 
 	public record HeadingControllerConstants(
-			double Kp, double Kd, double maxVelocity, double maxAcceleration) {
+			double Kp, double Kd) {
 	}
 
 	public static final HeadingControllerConstants HEADING_CONTROLLER_CONSTANTS = switch (Constants.getRobot()) {
-		default -> new HeadingControllerConstants(5.0, 0.0, 8.0, 20.0);
+		default -> new HeadingControllerConstants(5.0, 0.0);
 	};
 
 	// --- Module reductions ---
@@ -188,6 +181,7 @@ public class DriveConstants {
 	}
 
 	// https://www.swervedrivespecialties.com/products/mk4-swerve-module
+	@SuppressWarnings("unused")
 	private enum Mk4Reductions {
 		L1((50.0 / 14.0) * (19.0 / 25.0) * (45.0 / 15.0)),
 		L2((50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0)),
