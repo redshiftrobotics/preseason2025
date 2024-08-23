@@ -10,15 +10,16 @@ import frc.robot.commands.teleop.input.DriverInput;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.controllers.HeadingController;
 
-/** Drive control command for driving robot with x and y with heading locked */
+/** Drive control command for driving robot with x and y while facing at specified heading */
 public class TeleopLockedHeading extends Command {
 	private final Drive drive;
 	private final DriverInput input;
 	private final Supplier<Rotation2d> headingSupplier;
 	private final HeadingController headingController;
 
+
 	/**
-	 * Creates a new TeleopDrive Command. Meant to be default command for drivetrain.
+	 * Creates a new TeleopLockedHeading command.
 	 *
 	 * @param drive           drivetrain of robot
 	 * @param input           inputs for drive
@@ -59,6 +60,7 @@ public class TeleopLockedHeading extends Command {
 
 	@Override
 	public boolean isFinished() {
+		// Stop locking heading once manuel spin is requested
 		return Math.abs(input.getOmegaRadiansPerSecond().getRadians()) > 1E-3;
 	}
 
