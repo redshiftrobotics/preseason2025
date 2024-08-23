@@ -129,6 +129,7 @@ public class RobotContainer {
 		// Set up named commands for path planner auto
 		NamedCommands.registerCommand("StopWithX", Commands.runOnce(drive::stopUsingBrakeArrangement, drive));
 
+		// Alerts for constants to avoid using them in competition
 		if (Constants.TUNING_MODE) {
 			new Alert("Tuning mode active, do not use in competition.", AlertType.INFO).set(true);
 		}

@@ -48,6 +48,12 @@ public class Module {
 
 	private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
 
+	/**
+	 * Create an individual swerve module in a drivetrain.
+	 * 
+	 * @param io swerve module io implantation
+	 * @param distanceFromCenter distance from center of drivetrain to physical center of swerve module
+	 */
 	public Module(ModuleIO io, Translation2d distanceFromCenter) {
 		this.io = io;
 		this.distanceFromCenter = distanceFromCenter;
