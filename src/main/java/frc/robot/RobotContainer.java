@@ -1,7 +1,5 @@
 package frc.robot;
 
-import java.util.List;
-import java.util.function.BooleanSupplier;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -18,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.teleop.ForwardAtHeading;
 import frc.robot.commands.teleop.RelativeDrive;
@@ -154,9 +153,9 @@ public class RobotContainer {
 		if (driverController instanceof CommandXboxController) {
 			final CommandXboxController driverXbox = (CommandXboxController) driverController;
 
-			final BooleanSupplier useFieldRelative = new OverrideSwitch(driverXbox.y(), true, drive, "Field Relative");
+			final Trigger useFieldRelative = new Trigger(new OverrideSwitch(driverXbox.y(), true, drive, "Field Relative"));
 
-			final BooleanSupplier useAngleControlMode = new OverrideSwitch(driverXbox.a(), true, drive, "Angle Driven");
+			final Trigger useAngleControlMode = new Trigger(new OverrideSwitch(driverXbox.a(), true, drive, "Angle Driven"));
 
 			final DriverInput input = new DriverInput(
 					drive,
@@ -170,21 +169,31 @@ public class RobotContainer {
 
 			drive.setDefaultCommand(teleop);
 
-			for (int pov : List.of(0, 90, 180, 270)) {
+			boolean includeDiagonalPOV = true;
+			for (int pov = 0; pov < 360; pov += includeDiagonalPOV ? 45 : 90) {
 				Rotation2d angle = Rotation2d.fromDegrees(-pov);
 				driverXbox.pov(pov).and(useAngleControlMode).whileTrue(
 						new RelativeDrive(drive,
 								new ChassisSpeeds(angle.getCos(), 0, angle.getSin() * Math.PI)));
 
-				driverXbox.pov(pov).and(() -> !useAngleControlMode.getAsBoolean())
+				driverXbox.pov(pov).and(useAngleControlMode.negate())
 						.whileTrue(new ForwardAtHeading(drive, angle));
 
-				driverXbox.pov(pov).and(() -> !useAngleControlMode.getAsBoolean())
+				driverXbox.pov(pov).and(useAngleControlMode.negate())
 						.onFalse(new TeleopLockedHeading(drive, input, () -> angle));
 			}
 
-			driverXbox.x().onTrue(
-					Commands.runOnce(drive::stopUsingBrakeArrangement, drive).withName("stopUsingBrakeArrangement"));
+			driverXbox.x().whileTrue(
+					Commands.runOnce(drive::stopUsingBrakeArrangement, drive).andThen(Commands.idle(drive)).withName("StopWithX"));
+
+			driverXbox.b().onTrue(
+				Commands.runOnce(() -> {
+					if (drive.getCurrentCommand() != null) drive.getCurrentCommand().cancel();
+				}, drive).withName("Cancel"));
+
+
+			driverXbox.leftTrigger(0.2).whileTrue(input.startEnd(input::increaseSpeedLevel, input::decreaseSpeedLevel));
+			driverXbox.rightTrigger(0.2).whileTrue(input.startEnd(input::decreaseSpeedLevel, input::increaseSpeedLevel));
 
 		} else if (driverController instanceof CommandJoystick) {
 			final CommandJoystick driverJoystick = (CommandJoystick) driverController;

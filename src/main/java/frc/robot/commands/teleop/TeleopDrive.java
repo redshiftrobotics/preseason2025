@@ -52,4 +52,9 @@ public class TeleopDrive extends Command {
 	public boolean isFinished() {
 		return false;
 	}
+
+	@Override
+	public String getName() {
+		return String.format("%s[%s]", getClass().getSimpleName(), input.getSpeedLevel());
+	}
 }

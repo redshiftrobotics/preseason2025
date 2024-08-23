@@ -18,6 +18,26 @@ public class DriverInput extends SubsystemBase {
 	private final DoubleSupplier xSupplier, ySupplier, xAngleSupplier, yAngleSupplier;
 	private final BooleanSupplier fieldRelativeSupplier;
 
+	private SpeedLevel speedLevel;
+
+	private static enum SpeedLevel {
+		PRECISE(0.25, 0.1),
+		DEFAULT(0.90, 0.60),
+		BOOST(1, 0.75);
+
+		final double translationCoefficient, rotationCoefficient;
+
+		private SpeedLevel(double translationCoefficient, double rotationCoefficient) {
+			this.translationCoefficient = translationCoefficient;
+			this.rotationCoefficient = rotationCoefficient;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("Transl=%.0f%%, Rot=%.0f%%", translationCoefficient*100, rotationCoefficient*100);
+		}
+	}
+
 	public DriverInput(
 			Drive drive,
 			DoubleSupplier xSupplier,
@@ -31,18 +51,35 @@ public class DriverInput extends SubsystemBase {
 		this.xAngleSupplier = xAngleSupplier;
 		this.yAngleSupplier = yAngleSupplier;
 		this.fieldRelativeSupplier = fieldRelativeSupplier;
+
+		this.speedLevel = SpeedLevel.DEFAULT;
 	}
 
-	// TODO - Speed Modifiers
+	public void setSpeedLevel(SpeedLevel speedLevel) {
+		this.speedLevel = speedLevel;
+	}
+
+	public void increaseSpeedLevel() {
+		this.speedLevel = SpeedLevel.values()[Math.min(speedLevel.ordinal() + 1, SpeedLevel.values().length - 1)];
+	}
+
+	public void decreaseSpeedLevel() {
+		this.speedLevel = SpeedLevel.values()[Math.max(speedLevel.ordinal() - 1, 0)];
+
+	}
+
+	public SpeedLevel getSpeedLevel() {
+		return speedLevel;
+	}
 
 	public Translation2d getTranslationMetersPerSecond() {
 		return DriverInputUtil.getTranslationMetersPerSecond(xSupplier.getAsDouble(), ySupplier.getAsDouble(),
-				drive.getMaxLinearSpeedMetersPerSec());
+				drive.getMaxLinearSpeedMetersPerSec() * this.speedLevel.translationCoefficient);
 	}
 
 	public Rotation2d getOmegaRadiansPerSecond() {
 		return DriverInputUtil.getOmegaRadiansPerSecond(yAngleSupplier.getAsDouble(),
-				drive.getMaxAngularSpeedRadPerSec());
+				drive.getMaxAngularSpeedRadPerSec() * this.speedLevel.translationCoefficient);
 	}
 
 	public Rotation2d getHeadingDirection() {
@@ -60,5 +97,6 @@ public class DriverInput extends SubsystemBase {
 		ChassisSpeeds speeds = drive.getRobotSpeeds();
 		SmartDashboard.putNumber("Heading Degrees", -pose.getRotation().getDegrees());
 		SmartDashboard.putNumber("Speed MPH", Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond) * 2.2369);
+		SmartDashboard.putString("Speed Level", speedLevel.name());
 	}
 }

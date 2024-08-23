@@ -16,12 +16,6 @@ public class DriverInputUtil {
 	private static final LoggedTunableNumber stickDirectionDeadband = new LoggedTunableNumber(
 			"TeleopDrive/AngleDeadband", 0.5);
 
-	private static final LoggedTunableNumber maxLinearVelocityCoefficient = new LoggedTunableNumber(
-			"TeleopDrive/Default/maxLinearVelocityCoefficient", 1);
-
-	private static final LoggedTunableNumber maxAngularVelocityCoefficient = new LoggedTunableNumber(
-			"TeleopDrive/Default/maxAngularVelocityCoefficient", 0.65);
-
 	public static Translation2d getTranslationMetersPerSecond(double xInput, double yInput, double maxTranslationSpeedMetersPerSecond) {
 
 		Translation2d translation = new Translation2d(xInput, yInput);
@@ -39,7 +33,7 @@ public class DriverInputUtil {
 				.getTranslation();
 
 		// return final value
-		return squaredLinearVelocity.times(maxTranslationSpeedMetersPerSecond * maxLinearVelocityCoefficient.get());
+		return squaredLinearVelocity.times(maxTranslationSpeedMetersPerSecond);
 	}
 
 	public static Rotation2d getOmegaRadiansPerSecond(double omegaInput, double maxAngularSpeedRadPerSec) {
@@ -52,7 +46,7 @@ public class DriverInputUtil {
 		double omegaSquared = Math.copySign(Math.pow(omega, 2), omega);
 
 		// return final value
-		return new Rotation2d(omegaSquared * maxAngularSpeedRadPerSec * maxAngularVelocityCoefficient.get());
+		return new Rotation2d(omegaSquared * maxAngularSpeedRadPerSec);
 	}
 
 	public static Rotation2d getHeadingDirection(double xInput, double yInput) {
