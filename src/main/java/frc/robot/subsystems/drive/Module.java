@@ -155,10 +155,11 @@ public class Module {
 
 	/** Returns the setpoint module state (turn angle and drive velocity) */
 	public Optional<SwerveModuleState> getDesiredSpeeds() {
-		if (speedSetpoint == null || angleSetpoint == null) {
-			return Optional.empty();
-		}
-		return Optional.of(new SwerveModuleState(speedSetpoint, angleSetpoint));
+		return angleSetpoint == null
+				? Optional.empty()
+				: Optional.of(new SwerveModuleState(
+						speedSetpoint == null ? 0 : speedSetpoint,
+						angleSetpoint));
 	}
 
 	// --- Position ---

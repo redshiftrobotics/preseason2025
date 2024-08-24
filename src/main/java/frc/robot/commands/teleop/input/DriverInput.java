@@ -6,19 +6,19 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.drive.Drive;
-
-import java.util.function.BooleanSupplier;
 
 public class DriverInput extends SubsystemBase {
 	private final Drive drive;
 
 	private final DoubleSupplier xSupplier, ySupplier, xAngleSupplier, yAngleSupplier;
-	private final BooleanSupplier fieldRelativeSupplier;
 
 	private SpeedLevel speedLevel;
+
+	private final Field2d dashboardField2d = new Field2d();
 
 	public static enum SpeedLevel {
 		PRECISE(0.25, 0.1),
@@ -39,16 +39,17 @@ public class DriverInput extends SubsystemBase {
 			DoubleSupplier xSupplier,
 			DoubleSupplier ySupplier,
 			DoubleSupplier xAngleSupplier,
-			DoubleSupplier yAngleSupplier,
-			BooleanSupplier fieldRelativeSupplier) {
+			DoubleSupplier yAngleSupplier) {
 		this.drive = drive;
 		this.xSupplier = xSupplier;
 		this.ySupplier = ySupplier;
 		this.xAngleSupplier = xAngleSupplier;
 		this.yAngleSupplier = yAngleSupplier;
-		this.fieldRelativeSupplier = fieldRelativeSupplier;
 
 		this.speedLevel = SpeedLevel.DEFAULT;
+
+		SmartDashboard.putData("Drive Subsystem", this.drive);
+		// SmartDashboard.putData("Field2d", this.dashboardField2d);
 	}
 
 	public void setSpeedLevel(SpeedLevel speedLevel) {
@@ -81,17 +82,18 @@ public class DriverInput extends SubsystemBase {
 		return DriverInputUtil.getHeadingDirection(xAngleSupplier.getAsDouble(), yAngleSupplier.getAsDouble());
 	}
 
-	public boolean getFieldRelative() {
-		return fieldRelativeSupplier.getAsBoolean();
-	}
-
 	@Override
 	public void periodic() {
-		SmartDashboard.putData(drive);
 		Pose2d pose = drive.getPose();
+
+		dashboardField2d.setRobotPose(pose);
+
 		ChassisSpeeds speeds = drive.getRobotSpeeds();
 		SmartDashboard.putNumber("Heading Degrees", -pose.getRotation().getDegrees());
 		SmartDashboard.putNumber("Speed MPH", Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond) * 2.2369);
+
 		SmartDashboard.putString("Speed Level", speedLevel.name());
+		SmartDashboard.putString("Speed Transl", String.format("%.2f%%", speedLevel.translationCoefficient * 100));
+		SmartDashboard.putString("Speed Rot", String.format("%.2f%%", speedLevel.rotationCoefficient * 100));
 	}
 }

@@ -58,19 +58,6 @@
               "Colors/Color when false": "#8B0000FF"
             }
           },
-          "1,2": {
-            "size": [
-              3,
-              1
-            ],
-            "content": {
-              "_type": "Basic Subsystem",
-              "_source0": "network_table:///SmartDashboard/Drive",
-              "_title": "Drive",
-              "_glyph": 237,
-              "_showGlyph": true
-            }
-          },
           "3,0": {
             "size": [
               1,
@@ -90,22 +77,9 @@
               "Visuals/Orientation": "VERTICAL"
             }
           },
-          "0,2": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/Speed Level",
-              "_title": "Speed Level",
-              "_glyph": 223,
-              "_showGlyph": true
-            }
-          },
           "5,0": {
             "size": [
-              2,
+              3,
               1
             ],
             "content": {
@@ -114,6 +88,55 @@
               "_title": "Auto Chooser",
               "_glyph": 317,
               "_showGlyph": true
+            }
+          },
+          "0,2": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "List Layout",
+              "_title": "Speed Level",
+              "_glyph": 223,
+              "_showGlyph": true,
+              "Layout/Label position": "TOP",
+              "_children": [
+                {
+                  "_type": "Text View",
+                  "_source0": "network_table:///SmartDashboard/Speed Level",
+                  "_title": "Speed Level",
+                  "_glyph": 223,
+                  "_showGlyph": true
+                },
+                {
+                  "_type": "Text View",
+                  "_source0": "network_table:///SmartDashboard/Speed Transl",
+                  "_title": "Speed Transl",
+                  "_glyph": 148,
+                  "_showGlyph": false
+                },
+                {
+                  "_type": "Text View",
+                  "_source0": "network_table:///SmartDashboard/Speed Rot",
+                  "_title": "Speed Rot",
+                  "_glyph": 148,
+                  "_showGlyph": false
+                }
+              ]
+            }
+          },
+          "1,2": {
+            "size": [
+              3,
+              1
+            ],
+            "content": {
+              "_type": "Basic Subsystem",
+              "_source0": "network_table:///SmartDashboard/Drive Subsystem",
+              "_title": "Drive Subsystem",
+              "_glyph": 148,
+              "_showGlyph": false
             }
           }
         }
@@ -134,9 +157,9 @@
     }
   ],
   "windowGeometry": {
-    "x": 26.0,
-    "y": 289.0,
+    "x": 1364.0,
+    "y": 281.0,
     "width": 2580.0,
-    "height": 988.0
+    "height": 960.0
   }
 }

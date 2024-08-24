@@ -29,20 +29,9 @@ public class LoggedTunableNumber implements DoubleSupplier {
 	 * @param defaultValue Default value
 	 */
 	public LoggedTunableNumber(String dashboardKey, double defaultValue) {
-		this(dashboardKey, defaultValue, Constants.TUNING_MODE);
-	}
-
-	/**
-	 * Create a new LoggedTunableNumber with the default value
-	 *
-	 * @param dashboardKey Key on dashboard
-	 * @param defaultValue Default value
-	 * @param tuningMode   whether value can be changed
-	 */
-	public LoggedTunableNumber(String dashboardKey, double defaultValue, boolean tuningMode) {
 		this.key = TABLE_KEY + "/" + dashboardKey;
 		this.defaultValue = defaultValue;
-		dashboardNumber = tuningMode ? new LoggedDashboardNumber(key, defaultValue) : null;
+		dashboardNumber = Constants.TUNING_MODE ? new LoggedDashboardNumber(key, defaultValue) : null;
 	}
 
 	/**
