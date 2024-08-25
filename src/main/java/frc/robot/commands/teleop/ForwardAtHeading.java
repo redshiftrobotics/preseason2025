@@ -49,12 +49,14 @@ public class ForwardAtHeading extends Command {
 	}
 
 	private ChassisSpeeds getDesiredSpeeds() {
+		double rotationRadians = headingController.calculate();
+
 		return new ChassisSpeeds(
 				headingController.atGoal() && timer.hasElapsed(delaySecondsTillForward.get())
 						? forwardMetersPerSecond.get()
 						: 0,
 				0,
-				headingController.calculate());
+				headingController.atGoal() ? 0 : rotationRadians);
 	}
 
 	@Override

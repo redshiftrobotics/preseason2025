@@ -2,91 +2,70 @@ package frc.robot.utility;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import java.util.function.BooleanSupplier;
 
 /** Class for switching on and off features, implements BooleanSupplier */
 public class OverrideSwitch implements BooleanSupplier {
-    private final Subsystem requirement;
 
-    private final boolean defaultValue;
-    private boolean value;
+	private boolean value;
 
-    private final String name;
+	private final String name;
+
+	public static enum Mode {
+		TOGGLE, HOLD
+	}
 
 	/**
 	 * Creates new Override switch
 	 *
-     * @param trigger      trigger to toggle state
-     * @param defaultValue starting state
-     * @param requirement  will clear command on this subsystem on state change
-	 */
-	public OverrideSwitch(Trigger trigger, boolean defaultValue, Subsystem requirement) {
-		this(trigger, defaultValue, requirement, null);
-	}
-
-    /**
-	 * Creates new Override switch
-     *
 	 * @param trigger      trigger to toggle state
-	 * @param defaultValue starting state
-	 * @param requirement  will clear command on this subsystem on state change
-	 * @param name		   name for smart dashboard
-     */
-    public OverrideSwitch(Trigger trigger, boolean defaultValue, Subsystem requirement, String name) {
-        this.defaultValue = defaultValue;
-
-        this.requirement = requirement;
+	 * @param name         name for smart dashboard
+	 * @param mode         either toggle or hold
+	 * @param defaultState default state
+	 */
+	public OverrideSwitch(Trigger trigger, String name, Mode mode, boolean defaultState) {
 		this.name = name;
 
-        trigger.onTrue(Commands.runOnce(this::toggle));
+		switch (mode) {
+			case TOGGLE:
+				trigger.onTrue(Commands.runOnce(this::toggle));
+				break;
 
-		this.reset();
-    }
+			case HOLD:
+				trigger.whileTrue(defaultState ? Commands.startEnd(this::toggleOff, this::toggleOn) : Commands.startEnd(this::toggleOn, this::toggleOff));
+				break;
+		}
 
-    public OverrideSwitch(Trigger trigger, boolean defaultValue) {
-        this(trigger, defaultValue, null);
-    }
+		set(defaultState);
+	}
 
-    public OverrideSwitch(Trigger trigger) {
-        this(trigger, false);
-    }
-
-    private void set(boolean value) {
-        this.value = value;
+	private void set(boolean value) {
+		this.value = value;
 
 		if (name != null) {
 			SmartDashboard.putBoolean(name, value);
 		}
+	}
 
-        if (requirement != null && requirement.getCurrentCommand() != null) {
-            requirement.getCurrentCommand().cancel();
-        }
-    }
+	public void toggle() {
+		set(!value);
+	}
 
-    public void toggle() {
-        set(!value);
-    }
+	public void toggleOn() {
+		set(true);
+	}
 
-    public void reset() {
-        set(defaultValue);
-    }
+	public void toggleOff() {
+		set(false);
+	}
 
-    public void toggleOn() {
-        set(true);
-    }
+	public boolean get() {
+		return value;
+	}
 
-    public void toggleOff() {
-        set(false);
-    }
-
-    public boolean get() {
-        return value;
-    }
-
-    @Override
-    public boolean getAsBoolean() {
-        return get();
-    }
+	@Override
+	public boolean getAsBoolean() {
+		return get();
+	}
 }

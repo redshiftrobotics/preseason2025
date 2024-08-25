@@ -52,7 +52,7 @@ public class TeleopLockedHeading extends Command {
 		ChassisSpeeds speeds = new ChassisSpeeds(
 				translation.getX(),
 				translation.getY(),
-				rotationRadians);
+				headingController.atGoal() ? 0 : rotationRadians);
 
 		drive.setRobotSpeeds(speeds, fieldRelative);
 	}

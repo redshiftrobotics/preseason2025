@@ -2,7 +2,10 @@ package frc.robot.subsystems.drive;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
@@ -14,6 +17,8 @@ import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.drive.DriveConstants.ModuleConfig;
 import java.util.OptionalDouble;
 import java.util.Queue;
+import static frc.robot.subsystems.drive.DriveConstants.MODULE_CONSTANTS;
+import static frc.robot.subsystems.drive.DriveConstants.ODOMETRY_FREQUENCY;
 
 /**
  * Module IO implementation for SparkMax drive motor controller, SparkMax turn motor controller (NEO
@@ -30,10 +35,6 @@ import java.util.Queue;
  * "/Drive/ModuleX/TurnAbsolutePositionRad"
  */
 public class ModuleIOSparkMaxCANCoder implements ModuleIO {
-	// Gear ratios for SDS MK4i L2, adjust as necessary
-	private static final double DRIVE_GEAR_RATIO = (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0);
-	private static final double TURN_GEAR_RATIO = 150.0 / 7.0;
-
 	private final CANSparkMax driveSparkMax;
 	private final CANSparkMax turnSparkMax;
 
@@ -57,9 +58,14 @@ public class ModuleIOSparkMaxCANCoder implements ModuleIO {
 		absoluteEncoderOffset = config.absoluteEncoderOffset();
 		isTurnMotorInverted = config.turnMotorInverted();
 
-		turnAbsoluteEncoder.getConfigurator().apply(new CANcoderConfiguration());
+		turnAbsoluteEncoder.getConfigurator().apply(new CANcoderConfiguration()
+				.withMagnetSensor(new MagnetSensorConfigs()
+						.withAbsoluteSensorRange(AbsoluteSensorRangeValue.Unsigned_0To1)
+						.withMagnetOffset(0)
+						.withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)));
+
 		turnAbsoluteEncoderPosition = turnAbsoluteEncoder.getAbsolutePosition();
-		turnAbsoluteEncoderPosition.setUpdateFrequency(50);
+		turnAbsoluteEncoderPosition.setUpdateFrequency(ODOMETRY_FREQUENCY);
 
 		driveSparkMax.restoreFactoryDefaults();
 		turnSparkMax.restoreFactoryDefaults();
@@ -122,28 +128,30 @@ public class ModuleIOSparkMaxCANCoder implements ModuleIO {
 		turnAbsoluteEncoderPosition.refresh();
 
 		// --- Drive ---
-		inputs.drivePositionRad = Units.rotationsToRadians(driveEncoder.getPosition()) / DRIVE_GEAR_RATIO;
+		inputs.drivePositionRad = Units.rotationsToRadians(driveEncoder.getPosition())
+				/ MODULE_CONSTANTS.driveReduction();
 		inputs.driveVelocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(driveEncoder.getVelocity())
-				/ DRIVE_GEAR_RATIO;
+				/ MODULE_CONSTANTS.driveReduction();
 		inputs.driveAppliedVolts = driveSparkMax.getAppliedOutput() * driveSparkMax.getBusVoltage();
 		inputs.driveCurrentAmps = new double[] { driveSparkMax.getOutputCurrent() };
 
 		// --- Turn ---
-		inputs.turnAbsolutePosition = new Rotation2d(turnAbsoluteEncoderPosition.getValueAsDouble())
+		inputs.turnAbsolutePosition = Rotation2d.fromRotations(turnAbsoluteEncoderPosition.getValueAsDouble())
 				.minus(absoluteEncoderOffset);
-		inputs.turnPosition = Rotation2d.fromRotations(turnRelativeEncoder.getPosition() / TURN_GEAR_RATIO);
+		inputs.turnPosition = Rotation2d
+				.fromRotations(turnRelativeEncoder.getPosition() / MODULE_CONSTANTS.turnReduction());
 		inputs.turnVelocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(turnRelativeEncoder.getVelocity())
-				/ TURN_GEAR_RATIO;
+				/ MODULE_CONSTANTS.turnReduction();
 		inputs.turnAppliedVolts = turnSparkMax.getAppliedOutput() * turnSparkMax.getBusVoltage();
 		inputs.turnCurrentAmps = new double[] { turnSparkMax.getOutputCurrent() };
 
 		// --- Odometry ---
 		inputs.odometryTimestamps = timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
 		inputs.odometryDrivePositionsRad = drivePositionQueue.stream()
-				.mapToDouble((Double value) -> Units.rotationsToRadians(value) / DRIVE_GEAR_RATIO)
+				.mapToDouble((Double value) -> Units.rotationsToRadians(value) / MODULE_CONSTANTS.driveReduction())
 				.toArray();
 		inputs.odometryTurnPositions = turnPositionQueue.stream()
-				.map((Double value) -> Rotation2d.fromRotations(value / TURN_GEAR_RATIO))
+				.map((Double value) -> Rotation2d.fromRotations(value / MODULE_CONSTANTS.turnReduction()))
 				.toArray(Rotation2d[]::new);
 
 		timestampQueue.clear();

@@ -12,7 +12,6 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.DriveConstants.ModuleLimits;
 import frc.robot.utility.LoggedTunableNumber;
-import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 /** Controller for rotating robot to goal heading using ProfiledPIDController */
@@ -25,11 +24,12 @@ public class HeadingController {
 			HEADING_CONTROLLER_CONSTANTS.Kd());
 
 	private static final LoggedTunableNumber maxVelocityCoefficient = new LoggedTunableNumber(
-			"HeadingController/MaxVelocityCoefficient", 0.8);
+			"HeadingController/MaxVelocityCoefficient", 1);
 	private static final LoggedTunableNumber maxAccelerationCoefficient = new LoggedTunableNumber(
-			"HeadingController/MaxAccelerationCoefficient", 0.8);
+			"HeadingController/MaxAccelerationCoefficient", 1);
+
 	private static final LoggedTunableNumber toleranceDegrees = new LoggedTunableNumber(
-			"HeadingController/ToleranceDegrees", 2.0);
+			"HeadingController/ToleranceDegrees", 1);
 
 	private final Drive drive;
 
@@ -84,9 +84,9 @@ public class HeadingController {
 			headingControllerRadians.setPID(Kp.get(), 0, Kd.get());
 		}, Kp, Kd);
 
-		{
+		LoggedTunableNumber.ifChanged(hashCode(), () -> {
 			headingControllerRadians.setTolerance(Units.degreesToRadians(toleranceDegrees.get()));
-		}
+		}, toleranceDegrees);
 
 		ModuleLimits moduleLimits = RobotState.getInstance().getModuleLimits();
 
@@ -95,7 +95,7 @@ public class HeadingController {
 				/ DriveConstants.DRIVE_CONFIG.driveBaseRadius()
 				* maxAccelerationCoefficient.get();
 
-		double maxAngularVelocity = moduleLimits.maxDriveAcceleration()
+		double maxAngularVelocity = moduleLimits.maxDriveVelocity()
 				/ DriveConstants.DRIVE_CONFIG.driveBaseRadius()
 				* maxVelocityCoefficient.get();
 
@@ -103,20 +103,22 @@ public class HeadingController {
 				new TrapezoidProfile.Constraints(maxAngularVelocity, maxAngularAcceleration));
 
 		// Calculate output
-		output = headingControllerRadians.calculate(drive.getPose().getRotation().getRadians());
+		double measurement = drive.getPose().getRotation().getRadians();
+		output = headingControllerRadians.calculate(measurement);
 
+		Logger.recordOutput(
+				"Drive/HeadingController/Output", output);
 		Logger.recordOutput(
 				"Drive/HeadingController/HeadingError", headingControllerRadians.getPositionError());
 		Logger.recordOutput(
-				"Drive/HeadingController/Output", output);
+			"Drive/HeadingController/AtGoal", headingControllerRadians.atSetpoint());
+		Logger.recordOutput(
+			"Drive/HeadingController/AtGoal", headingControllerRadians.atGoal());
 
 		return output;
 	}
 
-	/**
-	 * @return true if within tolerance of aiming at goal
-	 */
-	@AutoLogOutput(key = "Drive/HeadingController/AtGoal")
+	/** Get if within tolerance of aiming at goal */
 	public boolean atGoal() {
 		return headingControllerRadians.atGoal();
 	}

@@ -1,6 +1,5 @@
 package frc.robot;
 
-
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -8,6 +7,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -154,9 +154,11 @@ public class RobotContainer {
 		if (driverController instanceof CommandXboxController) {
 			final CommandXboxController driverXbox = (CommandXboxController) driverController;
 
-			final Trigger useFieldRelative = new Trigger(new OverrideSwitch(driverXbox.y(), true, drive, "Field Relative"));
+			final Trigger useFieldRelative = new Trigger(
+					new OverrideSwitch(driverXbox.y(), "Field Relative", OverrideSwitch.Mode.TOGGLE, true));
 
-			final Trigger useAngleControlMode = new Trigger(new OverrideSwitch(driverXbox.a(), true, drive, "Angle Driven"));
+			final Trigger useAngleControlMode = new Trigger(
+					new OverrideSwitch(driverXbox.a(), "Angle Driven", OverrideSwitch.Mode.HOLD, true));
 
 			final DriverInput input = new DriverInput(
 					drive,
@@ -173,28 +175,31 @@ public class RobotContainer {
 			boolean includeDiagonalPOV = true;
 			for (int pov = 0; pov < 360; pov += includeDiagonalPOV ? 45 : 90) {
 				Rotation2d angle = Rotation2d.fromDegrees(-pov);
-				driverXbox.pov(pov).and(useAngleControlMode).whileTrue(
+				driverXbox.pov(pov).and(useAngleControlMode.negate()).whileTrue(
 						new RelativeDrive(drive,
-								new ChassisSpeeds(angle.getCos(), 0, angle.getSin() * Math.PI)));
+								// new ChassisSpeeds(angle.getCos(), 0, angle.getSin() * Math.PI)));
+								new ChassisSpeeds(angle.getCos(), angle.getSin(), 0)));
 
-				driverXbox.pov(pov).and(useAngleControlMode.negate())
+				driverXbox.pov(pov).and(useAngleControlMode)
 						.whileTrue(new ForwardAtHeading(drive, angle));
 
-				driverXbox.pov(pov).and(useAngleControlMode.negate())
+				driverXbox.pov(pov).and(useAngleControlMode)
 						.onFalse(new TeleopLockedHeading(drive, input, () -> angle));
 			}
 
 			driverXbox.x().whileTrue(
-					Commands.runOnce(drive::stopUsingBrakeArrangement, drive).andThen(Commands.idle(drive)).withName("StopWithX"));
+					Commands.runOnce(drive::stopUsingBrakeArrangement, drive).andThen(Commands.idle(drive))
+							.withName("StopWithX"));
 
 			driverXbox.b().onTrue(
-				Commands.runOnce(() -> {
-					if (drive.getCurrentCommand() != null) drive.getCurrentCommand().cancel();
-				}, drive).withName("Cancel"));
+					Commands.runOnce(() -> {
+						if (drive.getCurrentCommand() != null)
+							drive.getCurrentCommand().cancel();
+					}, drive).withName("Cancel"));
 
-
-			driverXbox.leftTrigger(0.2).whileTrue(input.startEnd(input::increaseSpeedLevel, input::decreaseSpeedLevel));
-			driverXbox.rightTrigger(0.2).whileTrue(input.startEnd(input::decreaseSpeedLevel, input::increaseSpeedLevel));
+			driverXbox.rightTrigger(0.2)
+					.whileTrue(input.startEnd(input::increaseSpeedLevel, input::decreaseSpeedLevel));
+			driverXbox.leftTrigger(0.2).whileTrue(input.startEnd(input::decreaseSpeedLevel, input::increaseSpeedLevel));
 
 		} else if (driverController instanceof CommandJoystick) {
 			final CommandJoystick driverJoystick = (CommandJoystick) driverController;
@@ -213,6 +218,10 @@ public class RobotContainer {
 	}
 
 	private void configureOperatorControllerBindings() {
+		if (Constants.getMode() == Constants.Mode.SIM && !DriverStation.isJoystickConnected(1)) {
+			return;
+		}
+
 		if (operatorController instanceof CommandXboxController) {
 			final CommandXboxController operatorXbox = (CommandXboxController) operatorController;
 
