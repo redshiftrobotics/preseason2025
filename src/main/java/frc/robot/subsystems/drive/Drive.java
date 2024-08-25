@@ -35,11 +35,8 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 import java.util.Optional;
 
-/** Drivetrain (chassis) of robot */
+/** Swerve drivetrain (chassis) of robot. This contains four swerve modules and a gyro */
 public class Drive extends SubsystemBase {
-	private static final double TRACK_WIDTH_X = DRIVE_CONFIG.trackWidthX();
-	private static final double TRACK_WIDTH_Y = DRIVE_CONFIG.trackWidthY();
-
 	private static final double DRIVE_BASE_RADIUS = DRIVE_CONFIG.driveBaseRadius();
 
 	private static final double MAX_LINEAR_SPEED = DRIVE_CONFIG.maxLinearVelocity();
@@ -65,7 +62,7 @@ public class Drive extends SubsystemBase {
 	/**
 	 * Creates a new drivetrain for robot
 	 *
-	 * @param gyroIO     gyro
+	 * @param gyroIO     gyroscope for yaw
 	 * @param flModuleIO front left swerve module
 	 * @param frModuleIO front right swerve module
 	 * @param blModuleIO back left swerve module
@@ -83,12 +80,14 @@ public class Drive extends SubsystemBase {
 		// save gyro
 		this.gyroIO = gyroIO;
 
-		// Create modules and give them position
+		// Create and save modules and give them position
+		double trackCenterX = DRIVE_CONFIG.bumperWidthX() / 2;
+		double trackCenterY = DRIVE_CONFIG.bumperWidthY() / 2;
 		modules = new Module[] {
-				new Module(flModuleIO, new Translation2d(TRACK_WIDTH_X / 2.0, TRACK_WIDTH_Y / 2.0)),
-				new Module(frModuleIO, new Translation2d(TRACK_WIDTH_X / 2.0, -TRACK_WIDTH_Y / 2.0)),
-				new Module(blModuleIO, new Translation2d(-TRACK_WIDTH_X / 2.0, TRACK_WIDTH_Y / 2.0)),
-				new Module(brModuleIO, new Translation2d(-TRACK_WIDTH_X / 2.0, -TRACK_WIDTH_Y / 2.0))
+				new Module(flModuleIO, new Translation2d(trackCenterX, trackCenterY)),
+				new Module(frModuleIO, new Translation2d(trackCenterX, -trackCenterY)),
+				new Module(blModuleIO, new Translation2d(-trackCenterX, trackCenterY)),
+				new Module(brModuleIO, new Translation2d(-trackCenterX, -trackCenterY))
 		};
 
 		// --- Set up kinematics ---
@@ -103,7 +102,7 @@ public class Drive extends SubsystemBase {
 
 		// --- Start odometry threads ---
 
-		// Start threads (no-op for each if no signals have been created)
+		// Start threads (does nothing if no signals have been created)
 		PhoenixOdometryThread.getInstance().start();
 		SparkMaxOdometryThread.getInstance().start();
 
@@ -116,10 +115,10 @@ public class Drive extends SubsystemBase {
 				this::getRobotSpeeds,
 				this::setRobotSpeeds,
 				new HolonomicPathFollowerConfig(
-					new PIDConstants(5), new PIDConstants(5),
-					MAX_LINEAR_SPEED, DRIVE_BASE_RADIUS, new ReplanningConfig(
-						true, false, 1.0, 0.25
-					), Constants.LOOP_PERIOD_SECONDS),
+						new PIDConstants(5), new PIDConstants(5),
+						MAX_LINEAR_SPEED, DRIVE_BASE_RADIUS, new ReplanningConfig(
+								true, false, 1.0, 0.25),
+						Constants.LOOP_PERIOD_SECONDS),
 				AllianceFlipUtil::shouldFlip,
 				this);
 
@@ -150,6 +149,10 @@ public class Drive extends SubsystemBase {
 
 	// --- Robot Pose ---
 
+	/**
+	 * Periodic of drivetrain, is called every command scheduler loop (20ms).
+	 * Updates pose with odometry.
+	 */
 	@Override
 	public void periodic() {
 
@@ -168,7 +171,8 @@ public class Drive extends SubsystemBase {
 
 		// Log current wheel speeds
 		Logger.recordOutput("SwerveStates/MeasuredWheelSpeeds", getWheelSpeeds().states);
-		Logger.recordOutput("SwerveStates/ModuleDesiredWheelSpeeds", getDesiredWheelSpeeds().orElse(new SwerveDriveWheelStates(new SwerveModuleState[] {})).states);
+		Logger.recordOutput("SwerveStates/ModuleDesiredWheelSpeeds",
+				getDesiredWheelSpeeds().orElse(new SwerveDriveWheelStates(new SwerveModuleState[] {})).states);
 
 		// Update odometry
 		double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together, use first
@@ -219,7 +223,7 @@ public class Drive extends SubsystemBase {
 	}
 
 	/**
-	 * Resets the current estimated position of robot.
+	 * Set the current estimated position of robot.
 	 *
 	 * @param pose new position robot believes it is located at
 	 */
@@ -240,9 +244,9 @@ public class Drive extends SubsystemBase {
 	// --- Robot Speeds ---
 
 	/**
-	 * Get velocity of robot chassis
+	 * Get robot relative velocity of robot chassis
 	 *
-	 * @return speeds of robot in meters/se
+	 * @return translational speed in meters/sec and rotation speed in radians/sec
 	 *
 	 * @see https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html#wpilib-coordinate-system
 	 */
@@ -253,9 +257,9 @@ public class Drive extends SubsystemBase {
 	/**
 	 * Get velocity of robot chassis, either robot or field relative.
 	 *
-	 * @param fieldRelative whether velocity is relative to field
+	 * @param fieldRelative true if velocity is relative to field, false if relative to chassis
 	 *
-	 * @return speeds of robot in meters/sec, either relative to robot or field
+	 * @return translational speed in meters/sec and rotation speed in radians/sec
 	 *
 	 * @see https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html#wpilib-coordinate-system
 	 */
@@ -273,9 +277,9 @@ public class Drive extends SubsystemBase {
 	}
 
 	/**
-	 * Set desired velocity of robot chassis.
+	 * Set desired robot relative velocity of robot chassis.
 	 *
-	 * @param speeds speeds in meters/sec
+	 * @param speeds translational speed in meters/sec and rotation speed in radians/sec
 	 *
 	 * @see https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html#wpilib-coordinate-system
 	 */
@@ -286,8 +290,8 @@ public class Drive extends SubsystemBase {
 	/**
 	 * Runs the drive at the desired velocity, either robot or field relative.
 	 *
-	 * @param speeds        speeds in meters/sec
-	 * @param fieldRelative whether velocity is relative to field
+	 * @param speeds        translational speed in meters/sec and rotation speed in radians/sec
+	 * @param fieldRelative true if velocity is relative to field, false if relative to chassis
 	 *
 	 * @see https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html#wpilib-coordinate-system
 	 */
@@ -308,7 +312,7 @@ public class Drive extends SubsystemBase {
 	// --- Wheel States ---
 
 	/**
-	 * Get all individual the swerve module speeds. Each wheel state is a turn angle and drive
+	 * Get measured swerve module speeds for each swerve module. Each wheel state is a turn angle and drive
 	 * velocity in meters/second.
 	 *
 	 * @return a {@link SwerveDriveWheelStates} object which contains an array of all swerve module
@@ -319,7 +323,7 @@ public class Drive extends SubsystemBase {
 	}
 
 	/**
-	 * Get all individual the swerve module desired speeds. Each wheel state is a turn angle and drive
+	 * Get desired swerve module desired speeds for each swerve module. Each wheel state is a turn angle and drive
 	 * velocity in meters/second.
 	 *
 	 * @return optional {@link SwerveDriveWheelStates} object which contains an array of all desired swerve module
@@ -334,7 +338,7 @@ public class Drive extends SubsystemBase {
 	}
 
 	/**
-	 * Set all individual desired swerve modules speeds. Each wheel state is a turn angle and drive
+	 * Set desired swerve modules for each swerve module. Each wheel state is a turn angle and drive
 	 * velocity in meters/second.
 	 *
 	 * @return a {@link SwerveDriveWheelStates} object which contains an array of all desired swerve
@@ -354,7 +358,7 @@ public class Drive extends SubsystemBase {
 	// --- Wheel Positions ---
 
 	/**
-	 * Get all individual swerve module positions. Each wheel position is a turn angle and drive
+	 * Get measured swerve module position from each swerve module. Each wheel position is a turn angle and drive
 	 * position in meters
 	 *
 	 * @return a {@link SwerveDriveWheelPositions} object which contains an array of all swerve module

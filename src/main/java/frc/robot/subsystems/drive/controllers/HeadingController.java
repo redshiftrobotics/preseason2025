@@ -53,32 +53,48 @@ public class HeadingController {
 		headingControllerRadians.setTolerance(Units.degreesToRadians(toleranceDegrees.get()));
 	}
 
-	/** Reset last position and rotation */
+	/** Reset last position and rotation to prepare for new use */
 	public void reset() {
 		headingControllerRadians.reset(
 				drive.getPose().getRotation().getRadians(), drive.getRobotSpeeds().omegaRadiansPerSecond);
 	}
 
-	/** Set goal heading in radians */
-	public void setGoal(double heading) {
+	/**
+	 * Set goal heading in radians. Calculate will now give values to get to this heading.
+	 * 
+	 * @param headingRadians desired heading of chassis in radians
+	 */
+	public void setGoal(double headingRadians) {
 		Logger.recordOutput(
-			"Drive/HeadingController/Goal", heading);
+			"Drive/HeadingController/Goal", headingRadians);
 
-		headingControllerRadians.setGoal(heading);
+		headingControllerRadians.setGoal(headingRadians);
 	}
 
-	/** Get goal heading in radians */
+	/**
+	 * Get goal heading in radians.
+	 * 
+	 * @return desired heading of chassis
+	 */
 	public double getGoal() {
 		return headingControllerRadians.getGoal().position;
 	}
 
-	public double calculate(double goalHeading) {
-		setGoal(goalHeading);
+	/**
+	 * Get speed chassis needs to rotation at to reach heading goal
+	 * 
+	 * @param goalHeadingRadians  desired heading of chassis in radians
+	 * @return rotation speed to reach heading goal, omega radians per second
+	 */
+	public double calculate(double goalHeadingRadians) {
+		setGoal(goalHeadingRadians);
 		return calculate();
 	}
 
 	/**
-	 * @return omega radians per second to turn to goal heading
+	 * Get speed chassis needs to rotation at to reach heading goal
+	 * 
+	 * @return rotation speed to reach heading goal, omega radians per second
 	 */
 	public double calculate() {
 
@@ -119,7 +135,11 @@ public class HeadingController {
 		return output;
 	}
 
-	/** Get if within tolerance of aiming at goal */
+	/**
+	 * Get if the chassis heading is our goal heading
+	 * 
+	 * @return true if the absolute value of the position error is less than tolerance
+	 */
 	public boolean atGoal() {
 		return headingControllerRadians.atGoal();
 	}

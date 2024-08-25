@@ -43,10 +43,10 @@ public class TeleopDriveController {
 	 * Creates a new TeleopDriveController object
 	 *
 	 * @param drive drivetrain of robot
-	 * @param xSupplier supplier of translational x
-	 * @param ySupplier supplier of translation y
-	 * @param xAngleSupplier supplier of rotational x
-	 * @param yAngleSupplier
+	 * @param xSupplier supplier of translational x (forward+)
+	 * @param ySupplier supplier of translational y (left+)
+	 * @param xAngleSupplier supplier of rotational x (angle)
+	 * @param yAngleSupplier supplier of rotational y (angle, ccw_ omega)
 	 */
 	public TeleopDriveController(
 			Drive drive,
@@ -61,16 +61,31 @@ public class TeleopDriveController {
 		this.yAngleSupplier = yAngleSupplier;
 	}
 
+	/**
+	 * Get desired chassis translation from controller (x and y supplier)
+	 * 
+	 * @return translation x and y in meters per second
+	 */
 	public Translation2d getTranslationMetersPerSecond() {
 		return TeleopDriveController.getTranslationMetersPerSecond(xSupplier.getAsDouble(), ySupplier.getAsDouble(),
 				drive.getMaxLinearSpeedMetersPerSec() * TeleopDriveController.speedLevel.translationCoefficient);
 	}
 
+	/**
+	 * Get desired chassis rotation from controller (y angle supplier)
+	 * 
+	 * @return rotation in unit per second
+	 */
 	public Rotation2d getOmegaRadiansPerSecond() {
 		return TeleopDriveController.getOmegaRadiansPerSecond(yAngleSupplier.getAsDouble(),
 				drive.getMaxAngularSpeedRadPerSec() * TeleopDriveController.speedLevel.translationCoefficient);
 	}
 
+	/**
+	 * Get desired chassis heading from controller (x and y angle supplier)
+	 * 
+	 * @return heading angle
+	 */
 	public Rotation2d getHeadingDirection() {
 		return TeleopDriveController.getHeadingDirection(xAngleSupplier.getAsDouble(), yAngleSupplier.getAsDouble());
 	}
