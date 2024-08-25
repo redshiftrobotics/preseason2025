@@ -3,7 +3,6 @@ package frc.robot.subsystems.drive.controllers;
 import static frc.robot.subsystems.drive.DriveConstants.HEADING_CONTROLLER_CONSTANTS;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
@@ -24,12 +23,12 @@ public class HeadingController {
 			HEADING_CONTROLLER_CONSTANTS.Kd());
 
 	private static final LoggedTunableNumber maxVelocityCoefficient = new LoggedTunableNumber(
-			"HeadingController/MaxVelocityCoefficient", 1);
+			"Drive/HeadingController/MaxVelocityCoefficient", 1);
 	private static final LoggedTunableNumber maxAccelerationCoefficient = new LoggedTunableNumber(
-			"HeadingController/MaxAccelerationCoefficient", 1);
+			"Drive/HeadingController/MaxAccelerationCoefficient", 1);
 
 	private static final LoggedTunableNumber toleranceDegrees = new LoggedTunableNumber(
-			"HeadingController/ToleranceDegrees", 1);
+			"Drive/HeadingController/ToleranceDegrees", 1);
 
 	private final Drive drive;
 
@@ -54,31 +53,26 @@ public class HeadingController {
 		headingControllerRadians.setTolerance(Units.degreesToRadians(toleranceDegrees.get()));
 	}
 
-	/**
-	 * Creates a new HeadingController object with specified hading goal
-	 *
-	 * @param drive drivetrain of robot
-	 * @param goal  target heading
-	 */
-	public HeadingController(Drive drive, Rotation2d heading) {
-		this(drive);
-		setGoal(heading);
-	}
-
+	/** Reset last position and rotation */
 	public void reset() {
 		headingControllerRadians.reset(
 				drive.getPose().getRotation().getRadians(), drive.getRobotSpeeds().omegaRadiansPerSecond);
 	}
 
-	public void setGoal(Rotation2d heading) {
-		headingControllerRadians.setGoal(heading.getRadians());
+	/** Set goal heading in radians */
+	public void setGoal(double heading) {
+		Logger.recordOutput(
+			"Drive/HeadingController/Goal", heading);
+
+		headingControllerRadians.setGoal(heading);
 	}
 
-	public Rotation2d getGoal() {
-		return new Rotation2d(headingControllerRadians.getGoal().position);
+	/** Get goal heading in radians */
+	public double getGoal() {
+		return headingControllerRadians.getGoal().position;
 	}
 
-	public double calculate(Rotation2d goalHeading) {
+	public double calculate(double goalHeading) {
 		setGoal(goalHeading);
 		return calculate();
 	}
@@ -119,8 +113,6 @@ public class HeadingController {
 				"Drive/HeadingController/Output", output);
 		Logger.recordOutput(
 				"Drive/HeadingController/HeadingError", headingControllerRadians.getPositionError());
-		Logger.recordOutput(
-			"Drive/HeadingController/AtGoal", headingControllerRadians.atSetpoint());
 		Logger.recordOutput(
 			"Drive/HeadingController/AtGoal", headingControllerRadians.atGoal());
 

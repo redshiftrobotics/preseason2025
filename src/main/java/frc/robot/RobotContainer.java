@@ -5,6 +5,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -12,6 +13,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -22,7 +24,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.commands.teleop.input.DriverInput;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
@@ -33,6 +34,8 @@ import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSparkMaxCANCoder;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.drive.controllers.HeadingController;
+import frc.robot.subsystems.drive.controllers.TeleopDriveController;
+import frc.robot.subsystems.drive.controllers.TeleopDriveController.SpeedLevel;
 import frc.robot.subsystems.examples.flywheel.Flywheel;
 import frc.robot.subsystems.examples.flywheel.FlywheelIOSparkMax;
 import frc.robot.utility.Alert;
@@ -134,11 +137,12 @@ public class RobotContainer {
 		// Set up named commands for path planner auto
 		// https://pathplanner.dev/pplib-named-commands.html
 		NamedCommands.registerCommand("StopWithX", Commands.runOnce(drive::stopUsingBrakeArrangement, drive));
+		NamedCommands.registerCommand("Shoot", Commands.runOnce(() -> flywheelExample.runVelocity(0)));
 
 		// Path planner Autos
 		// https://pathplanner.dev/gui-editing-paths-and-autos.html#autos
 		autoChooser.addOption(
-				"PathPlannerTest", new PathPlannerAuto("FirstTestAuto"));
+				"Four Note Center", new PathPlannerAuto("Four Note Center"));
 
 		// Alerts for constants to avoid using them in competition
 		if (Constants.TUNING_MODE) {
@@ -147,6 +151,9 @@ public class RobotContainer {
 
 		// Configure the button bindings
 		configureControllerBindings();
+
+		// Start displaying smart dashboard outputs
+		initSmartDashboardOutputs();
 	}
 
 	/**
@@ -173,7 +180,7 @@ public class RobotContainer {
 
 			RobotModeTriggers.disabled().onTrue(drive.run(drive::stop));
 
-			final DriverInput input = new DriverInput(
+			final TeleopDriveController input = new TeleopDriveController(
 					drive,
 					() -> -driverXbox.getLeftY(),
 					() -> -driverXbox.getLeftX(),
@@ -188,6 +195,9 @@ public class RobotContainer {
 			}, drive::stop).withName("DefaultDrive"));
 
 			boolean includeDiagonalPOV = true;
+
+			final HeadingController headingController = new HeadingController(drive);
+
 			for (int pov = 0; pov < 360; pov += includeDiagonalPOV ? 45 : 90) {
 
 				// POV angles are in Clock Wise Degrees, convert to standard Rotation
@@ -198,52 +208,82 @@ public class RobotContainer {
 				driverXbox.pov(pov).and(useAngleControlMode.negate())
 						.whileTrue(
 								drive.startEnd(() -> drive.setRobotSpeeds(
-										new ChassisSpeeds(angle.getCos(), angle.getSin(), 0)),
+										new ChassisSpeeds(
+												angle.getCos()
+														* TeleopDriveController.getSpeedLevel().translationCoefficient,
+												angle.getSin()
+														* TeleopDriveController.getSpeedLevel().translationCoefficient,
+												0)),
 										drive::stop)
 										.withName(String.format("DriveRobotRelative %s\u00B0", pov)));
 
-				final HeadingController headingController = new HeadingController(drive, angle);
-
+				// While the POV is being pressed and we are angle control mode
+				// Start by resetting the controller and setting the goal angle to the pov angle
 				driverXbox.pov(pov).and(useAngleControlMode)
-						.whileTrue(
-								Commands.runOnce(headingController::reset).andThen(drive.run(() -> {
-									double rotationRadians = headingController.calculate();
-									drive.setRobotSpeeds(new ChassisSpeeds(headingController.atGoal() ? 1 : 0, 0,
+						.onTrue(drive.runOnce(() -> {
+							headingController.reset();
+							headingController.setGoal(angle.getRadians());
+						})
+								.withName(String.format("PrepareLockedHeading %s\u00B0", pov)));
+				// Then while it is held, if we are not at the angle turn to it, if we are at the angle go forward at
+				// the angle
+				driverXbox.pov(pov).and(useAngleControlMode)
+						.whileTrue(drive.run(() -> {
+							double rotationRadians = headingController.calculate();
+							drive.setRobotSpeeds(
+									new ChassisSpeeds(
+											(headingController.atGoal() ? 1 : 0)
+													* TeleopDriveController.getSpeedLevel().translationCoefficient,
+											0,
 											headingController.atGoal() ? 0 : rotationRadians));
-								}))
-										.withName(String.format("ForwardLockedHeading %s\u00B0", pov)));
-
+						})
+								.withName(String.format("ForwardLockedHeading %s\u00B0", pov)));
+				// Then once the pov is let go, if we are not at the angle continue turn to it, while also accepting x
+				// and y input to drive
 				driverXbox.pov(pov).and(useAngleControlMode)
 						.onFalse(
 								drive.run(() -> {
 									Translation2d translation = input.getTranslationMetersPerSecond();
 									double rotationRadians = headingController.calculate();
 									drive.setRobotSpeeds(
-											new ChassisSpeeds(translation.getX(), translation.getY(),
+											new ChassisSpeeds(
+													translation.getX(),
+													translation.getY(),
 													headingController.atGoal() ? 0 : rotationRadians),
 											useFieldRelative.getAsBoolean());
 								}).until(() -> input.getOmegaRadiansPerSecond().getRadians() != 0)
 										.withName(String.format("DriveLockedHeading %s\u00B0", pov)));
 			}
 
+			// While X is held down go into stop and go into the cross position to resistent movement,
+			// then once X button is let go put modules forward
 			driverXbox.x().whileTrue(
 					drive.startEnd(drive::stopUsingBrakeArrangement, drive::stopUsingForwardArrangement)
 							.withName("StopWithX"));
 
+			// When be is pressed stop the drivetrain then idle it,
+			// cancelling all incoming commands
 			driverXbox.b().whileTrue(
 					drive.runOnce(drive::stop)
-							.andThen(Commands.idle(drive).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
-									.withName("Cancel")));
+							.andThen(Commands.idle(drive))
+							.withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
+							.withName("StopCancel"));
 
-			driverXbox.rightTrigger(0.2)
-					.whileTrue(input.startEnd(input::increaseSpeedLevel, input::decreaseSpeedLevel));
-			driverXbox.leftTrigger(0.2)
-					.whileTrue(input.startEnd(input::decreaseSpeedLevel, input::increaseSpeedLevel));
+			// When right (Gas) trigger is held down, put in boost (fast) mode
+			driverXbox.rightTrigger(0.5)
+					.whileTrue(Commands.startEnd(
+							() -> TeleopDriveController.setSpeedLevel(SpeedLevel.BOOST),
+							() -> TeleopDriveController.setSpeedLevel(SpeedLevel.DEFAULT)));
+			// When left (Brake) trigger is held down, put in precise (slow) mode
+			driverXbox.leftTrigger(0.5)
+					.whileTrue(Commands.startEnd(
+							() -> TeleopDriveController.setSpeedLevel(SpeedLevel.PRECISE),
+							() -> TeleopDriveController.setSpeedLevel(SpeedLevel.DEFAULT)));
 
 		} else if (driverController instanceof CommandJoystick) {
 			final CommandJoystick driverJoystick = (CommandJoystick) driverController;
 
-			DriverInput input = new DriverInput(
+			TeleopDriveController input = new TeleopDriveController(
 					drive,
 					() -> -driverJoystick.getY(),
 					() -> -driverJoystick.getX(),
@@ -271,14 +311,14 @@ public class RobotContainer {
 			operatorXbox
 					.povUp()
 					.whileTrue(
-							Commands.runOnce(() -> robotState.flywheelShootRPMCompensation += 0.1)
+							Commands.runOnce(() -> robotState.adjustFlywheelShotRPM(0.1))
 									.andThen(Commands.waitSeconds(0.05))
 									.ignoringDisable(true)
 									.repeatedly());
 			operatorXbox
 					.povDown()
 					.whileTrue(
-							Commands.runOnce(() -> robotState.flywheelShootRPMCompensation -= 0.1)
+							Commands.runOnce(() -> robotState.adjustFlywheelShotRPM(-0.1))
 									.andThen(Commands.waitSeconds(0.05))
 									.ignoringDisable(true)
 									.repeatedly());
@@ -290,6 +330,24 @@ public class RobotContainer {
 							flywheelExample::stop,
 							flywheelExample));
 		}
+	}
+
+	public void initSmartDashboardOutputs() {
+		SmartDashboard.putData("Drive Subsystem", this.drive);
+	}
+
+	public void updateSmartDashboardOutputs() {
+		Pose2d pose = drive.getPose();
+
+		ChassisSpeeds speeds = drive.getRobotSpeeds();
+		SmartDashboard.putNumber("Heading Degrees", -pose.getRotation().getDegrees());
+		SmartDashboard.putNumber("Speed MPH", Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond) * 2.2369);
+
+		SmartDashboard.putString("Speed Level", TeleopDriveController.getSpeedLevel().name());
+		SmartDashboard.putString("Speed Transl",
+				String.format("%.2f%%", TeleopDriveController.getSpeedLevel().translationCoefficient * 100));
+		SmartDashboard.putString("Speed Rot",
+				String.format("%.2f%%", TeleopDriveController.getSpeedLevel().rotationCoefficient * 100));
 	}
 
 	/**
