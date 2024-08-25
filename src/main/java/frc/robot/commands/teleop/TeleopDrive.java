@@ -54,7 +54,12 @@ public class TeleopDrive extends Command {
 	}
 
 	@Override
+	public void end(boolean interrupted) {
+		drive.stop();
+	}
+
+	@Override
 	public String getName() {
-		return String.format("%s[%s]", getClass().getSimpleName(), input.getSpeedLevel());
+		return String.format("%s[Transl=%.0f%%, Rot=%.0f%%]", getClass().getSimpleName(), input.getSpeedLevel().translationCoefficient*100, input.getSpeedLevel().rotationCoefficient*100);
 	}
 }

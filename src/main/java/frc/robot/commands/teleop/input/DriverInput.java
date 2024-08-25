@@ -20,22 +20,17 @@ public class DriverInput extends SubsystemBase {
 
 	private SpeedLevel speedLevel;
 
-	private static enum SpeedLevel {
+	public static enum SpeedLevel {
 		PRECISE(0.25, 0.1),
 		DEFAULT(0.90, 0.60),
 		BOOST(1, 0.75),
 		MAX_BOOST(1, 1);
 
-		final double translationCoefficient, rotationCoefficient;
+		public final double translationCoefficient, rotationCoefficient;
 
 		private SpeedLevel(double translationCoefficient, double rotationCoefficient) {
 			this.translationCoefficient = translationCoefficient;
 			this.rotationCoefficient = rotationCoefficient;
-		}
-
-		@Override
-		public String toString() {
-			return String.format("Transl=%.0f%%, Rot=%.0f%%", translationCoefficient*100, rotationCoefficient*100);
 		}
 	}
 

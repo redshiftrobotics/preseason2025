@@ -65,6 +65,11 @@ public class ForwardAtHeading extends Command {
 	}
 
 	@Override
+	public void end(boolean interrupted) {
+		drive.stop();
+	}
+
+	@Override
 	public String getName() {
 		return String.format("%s[%d]", getClass().getSimpleName(), (int) headingController.getGoal().getDegrees());
 	}

@@ -1,3 +1,8 @@
+1. fix sudden decrease in speed when switching between ForwardAtHeading and TelopLockedHeading
+2. Why do motors do a bit less than requested always
+3. Fix Driver station "Internal issue with print and error tags"
+4. Speed up slow points to fix command loop overruns
+
 1. Set up PathWeaver
 2. Learn how to calibrate PathWeaver on robot 
 3. Set up photonvision on personal raspberry pi with custom field layout and 2 cameras

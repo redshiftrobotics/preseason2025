@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -168,9 +169,8 @@ public class RobotContainer {
 					() -> -driverXbox.getRightX(),
 					useFieldRelative);
 
-			final TeleopDrive teleop = new TeleopDrive(drive, input);
-
-			drive.setDefaultCommand(teleop);
+			drive.setDefaultCommand(
+				new TeleopDrive(drive, input));
 
 			boolean includeDiagonalPOV = true;
 			for (int pov = 0; pov < 360; pov += includeDiagonalPOV ? 45 : 90) {
@@ -188,18 +188,17 @@ public class RobotContainer {
 			}
 
 			driverXbox.x().whileTrue(
-					Commands.runOnce(drive::stopUsingBrakeArrangement, drive).andThen(Commands.idle(drive))
+					drive.startEnd(drive::stopUsingBrakeArrangement, drive::stopUsingForwardArrangement)
 							.withName("StopWithX"));
 
-			driverXbox.b().onTrue(
-					Commands.runOnce(() -> {
-						if (drive.getCurrentCommand() != null)
-							drive.getCurrentCommand().cancel();
-					}, drive).withName("Cancel"));
+			driverXbox.b().whileTrue(
+					Commands.idle(drive).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
+							.withName("Cancel"));
 
 			driverXbox.rightTrigger(0.2)
-					.whileTrue(input.startEnd(input::increaseSpeedLevel, input::decreaseSpeedLevel));
-			driverXbox.leftTrigger(0.2).whileTrue(input.startEnd(input::decreaseSpeedLevel, input::increaseSpeedLevel));
+					.whileTrue(drive.startEnd(input::increaseSpeedLevel, input::decreaseSpeedLevel));
+			driverXbox.leftTrigger(0.2)
+					.whileTrue(drive.startEnd(input::decreaseSpeedLevel, input::increaseSpeedLevel));
 
 		} else if (driverController instanceof CommandJoystick) {
 			final CommandJoystick driverJoystick = (CommandJoystick) driverController;
