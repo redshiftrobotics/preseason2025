@@ -123,7 +123,7 @@ public class DriveConstants {
 		case SIM_BOT -> new ModuleConstants(
                 0.014,
                 0.134,
-                0.1,
+                1,
                 0.0,
                 10.0,
                 0.0,
