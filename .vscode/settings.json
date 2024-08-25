@@ -2,6 +2,8 @@
 	// Java 
     "java.configuration.updateBuildConfiguration": "automatic",
     "java.server.launchMode": "Standard",
+
+	// Exclude
     "files.exclude": {
         "**/.git": true,
         "**/.svn": true,
@@ -73,5 +75,9 @@
 	],
 
 	// WPILib
-    "wpilib.selectDefaultSimulateExtension": true,
+	"wpilib.selectDefaultSimulateExtension": true,
+	"[jsonc]": {
+		"editor.defaultFormatter": "vscode.json-language-features"
+	},
+
 }
