@@ -233,9 +233,9 @@ public class Drive extends SubsystemBase {
 
 	/**
 	 * Adds a vision measurement to the pose estimator.
-	 *
+	 *  
 	 * @param visionPose The pose of the robot as measured by the vision camera.
-	 * @param timestamp  The timestamp of the vision measurement in seconds.
+	 * @param timestamp  The timestamp of the vision measurement in seconds. You must use a timestamp with an epoch since FPGA time startup.
 	 */
 	public void addVisionMeasurement(Pose2d visionPose, double timestamp) {
 		poseEstimator.addVisionMeasurement(visionPose, timestamp);

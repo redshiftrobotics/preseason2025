@@ -73,16 +73,21 @@ public class Module {
 	 */
 	public void updateInputs() {
 
+		int hc = hashCode();
+
 		LoggedTunableNumber.ifChanged(
-				hashCode(),
+				hc,
 				() -> driveFeedforward = new SimpleMotorFeedforward(driveFeedForwardKs.get(), driveFeedForwardKv.get(),
 						0),
-				driveFeedForwardKs,
-				driveFeedForwardKv);
+				driveFeedForwardKs, driveFeedForwardKv);
 		LoggedTunableNumber.ifChanged(
-				hashCode(), () -> driveFeedback.setPID(driveKp.get(), 0, driveKd.get()), driveKp, driveKd);
+				hc,
+				() -> driveFeedback.setPID(driveKp.get(), 0, driveKd.get()),
+				driveKp, driveKd);
 		LoggedTunableNumber.ifChanged(
-				hashCode(), () -> turnFeedback.setPID(turnKp.get(), 0, turnKd.get()), turnKp, turnKd);
+				hc,
+				() -> turnFeedback.setPID(turnKp.get(), 0, turnKd.get()),
+				turnKp, turnKd);
 
 		io.updateInputs(inputs);
 	}
@@ -95,6 +100,7 @@ public class Module {
 
 		// On first cycle, reset relative turn encoder
 		// Wait until absolute angle is nonzero in case it wasn't initialized yet
+		// Use absolute position to generate offset for relative positions since we can read relative runs faster
 		if (turnRelativeOffset == null && inputs.turnAbsolutePosition.getRadians() != 0.0) {
 			turnRelativeOffset = inputs.turnAbsolutePosition.minus(inputs.turnPosition);
 		}
@@ -127,10 +133,13 @@ public class Module {
 		// Calculate positions for odometry
 		int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
 		odometryPositions = new SwerveModulePosition[sampleCount];
+
 		for (int i = 0; i < sampleCount; i++) {
 			double positionMeters = inputs.odometryDrivePositionsRad[i] * DRIVE_CONFIG.wheelRadius();
+
 			Rotation2d angle = inputs.odometryTurnPositions[i].plus(
 					turnRelativeOffset != null ? turnRelativeOffset : new Rotation2d());
+
 			odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
 		}
 	}
