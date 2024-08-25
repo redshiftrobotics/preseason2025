@@ -34,4 +34,8 @@ public class RobotState {
 	}
 
 	public double flywheelShootRPMCompensation = 0;
+
+	public void adjustFlywheelShotRPM(double rpm) {
+		flywheelShootRPMCompensation += rpm;
+	}
 }
