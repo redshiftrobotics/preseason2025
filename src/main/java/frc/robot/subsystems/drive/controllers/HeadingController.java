@@ -61,7 +61,7 @@ public class HeadingController {
 
 	/**
 	 * Set goal heading in radians. Calculate will now give values to get to this heading.
-	 * 
+	 *
 	 * @param headingRadians desired heading of chassis in radians
 	 */
 	public void setGoal(double headingRadians) {
@@ -73,7 +73,7 @@ public class HeadingController {
 
 	/**
 	 * Get goal heading in radians.
-	 * 
+	 *
 	 * @return desired heading of chassis
 	 */
 	public double getGoal() {
@@ -82,7 +82,7 @@ public class HeadingController {
 
 	/**
 	 * Get speed chassis needs to rotation at to reach heading goal
-	 * 
+	 *
 	 * @param goalHeadingRadians  desired heading of chassis in radians
 	 * @return rotation speed to reach heading goal, omega radians per second
 	 */
@@ -93,7 +93,7 @@ public class HeadingController {
 
 	/**
 	 * Get speed chassis needs to rotation at to reach heading goal
-	 * 
+	 *
 	 * @return rotation speed to reach heading goal, omega radians per second
 	 */
 	public double calculate() {
@@ -137,7 +137,7 @@ public class HeadingController {
 
 	/**
 	 * Get if the chassis heading is our goal heading
-	 * 
+	 *
 	 * @return true if the absolute value of the position error is less than tolerance
 	 */
 	public boolean atGoal() {

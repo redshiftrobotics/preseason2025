@@ -63,7 +63,7 @@ public class TeleopDriveController {
 
 	/**
 	 * Get desired chassis translation from controller (x and y supplier)
-	 * 
+	 *
 	 * @return translation x and y in meters per second
 	 */
 	public Translation2d getTranslationMetersPerSecond() {
@@ -73,7 +73,7 @@ public class TeleopDriveController {
 
 	/**
 	 * Get desired chassis rotation from controller (y angle supplier)
-	 * 
+	 *
 	 * @return rotation in unit per second
 	 */
 	public Rotation2d getOmegaRadiansPerSecond() {
@@ -83,7 +83,7 @@ public class TeleopDriveController {
 
 	/**
 	 * Get desired chassis heading from controller (x and y angle supplier)
-	 * 
+	 *
 	 * @return heading angle
 	 */
 	public Rotation2d getHeadingDirection() {
