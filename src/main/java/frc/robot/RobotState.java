@@ -6,10 +6,10 @@ import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.DriveConstants.ModuleLimits;
 
-/** Singleton to store global state of robot */
+/** Singleton to store global state of robot, try to use sparingly */
 public class RobotState {
 
-	// --- Singleton ---
+	// --- Singleton Setup ---
 
 	private static RobotState instance;
 

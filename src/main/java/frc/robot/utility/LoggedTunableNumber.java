@@ -6,19 +6,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
+
+import javax.sound.sampled.ReverbType;
+
 import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 
 /**
- * Class for a tunable number. Gets value from dashboard in tuning mode, returns default if not or
- * value not in dashboard.
+ * Class for a tunable number. Gets value from dashboard in tuning mode, returns default if not in tuning mode, or
+ * if the value is not in dashboard.
  */
+@SuppressWarnings("unused")
 public class LoggedTunableNumber implements DoubleSupplier {
 	private static final String TABLE_KEY = "TunableNumbers";
 
 	private final String key;
-	private boolean hasDefault = false;
-	private double defaultValue;
-	private LoggedDashboardNumber dashboardNumber;
+	private final double defaultValue;
+	private final LoggedDashboardNumber dashboardNumber;
 	private Map<Integer, Double> lastHasChangedValues = new HashMap<>();
 
 	/**
@@ -27,9 +30,9 @@ public class LoggedTunableNumber implements DoubleSupplier {
 	 * @param dashboardKey Key on dashboard
 	 */
 	public LoggedTunableNumber(String dashboardKey) {
-		this.key = TABLE_KEY + "/" + dashboardKey;
+		this(dashboardKey, 0);
 	}
-
+	
 	/**
 	 * Create a new LoggedTunableNumber with the default value
 	 *
@@ -37,23 +40,9 @@ public class LoggedTunableNumber implements DoubleSupplier {
 	 * @param defaultValue Default value
 	 */
 	public LoggedTunableNumber(String dashboardKey, double defaultValue) {
-		this(dashboardKey);
-		initDefault(defaultValue);
-	}
-
-	/**
-	 * Set the default value of the number. The default value can only be set once.
-	 *
-	 * @param defaultValue The default value
-	 */
-	public void initDefault(double defaultValue) {
-		if (!hasDefault) {
-			hasDefault = true;
-			this.defaultValue = defaultValue;
-			if (Constants.TUNING_MODE) {
-				dashboardNumber = new LoggedDashboardNumber(key, defaultValue);
-			}
-		}
+		this.key = TABLE_KEY + "/" + dashboardKey;
+		this.defaultValue = defaultValue;
+		dashboardNumber = Constants.TUNING_MODE ? new LoggedDashboardNumber(key, defaultValue) : null;
 	}
 
 	/**
@@ -62,9 +51,6 @@ public class LoggedTunableNumber implements DoubleSupplier {
 	 * @return The current value
 	 */
 	public double get() {
-		if (!hasDefault) {
-			return 0.0;
-		}
 		return Constants.TUNING_MODE ? dashboardNumber.get() : defaultValue;
 	}
 
@@ -77,6 +63,8 @@ public class LoggedTunableNumber implements DoubleSupplier {
 	 *         otherwise.
 	 */
 	public boolean hasChanged(int id) {
+		if (!Constants.TUNING_MODE) return false;
+
 		double currentValue = get();
 		Double lastValue = lastHasChangedValues.get(id);
 		if (lastValue == null || currentValue != lastValue) {
@@ -98,7 +86,7 @@ public class LoggedTunableNumber implements DoubleSupplier {
 	 */
 	public static void ifChanged(
 			int id, Consumer<double[]> action, LoggedTunableNumber... tunableNumbers) {
-		if (Arrays.stream(tunableNumbers).anyMatch(tunableNumber -> tunableNumber.hasChanged(id))) {
+		if (Constants.TUNING_MODE && Arrays.stream(tunableNumbers).anyMatch(tunableNumber -> tunableNumber.hasChanged(id))) {
 			action.accept(Arrays.stream(tunableNumbers).mapToDouble(LoggedTunableNumber::get).toArray());
 		}
 	}

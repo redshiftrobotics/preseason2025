@@ -164,7 +164,7 @@ public class DriveConstants {
 	// --- Heading Controller Config ---
 
 	public record HeadingControllerConstants(
-			double kP, double kD, double maxVelocity, double maxAcceleration) {
+			double Kp, double Kd, double maxVelocity, double maxAcceleration) {
 	}
 
 	public static final HeadingControllerConstants HEADING_CONTROLLER_CONSTANTS = switch (Constants.getRobot()) {

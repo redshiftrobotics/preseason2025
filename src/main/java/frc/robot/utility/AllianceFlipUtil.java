@@ -52,11 +52,7 @@ public class AllianceFlipUtil {
 		return translation3d;
 	}
 
-	/**
-	 * Get whether to flip. If alliance is blue or unknown don't flip, if it is red then flip.
-	 *
-	 * @return True if we should flip alliance.
-	 */
+	/** Get whether to flip. If alliance is blue or unknown don't flip, if it is red then flip. */
 	public static boolean shouldFlip() {
 		Optional<Alliance> alliance = DriverStation.getAlliance();
 		return alliance.isPresent() && alliance.get() == Alliance.Red;

@@ -23,7 +23,8 @@ public class DriverInput extends SubsystemBase {
 	private static enum SpeedLevel {
 		PRECISE(0.25, 0.1),
 		DEFAULT(0.90, 0.60),
-		BOOST(1, 0.75);
+		BOOST(1, 0.75), 
+		MAX_BOOST(1, 1);
 
 		final double translationCoefficient, rotationCoefficient;
 
@@ -65,7 +66,6 @@ public class DriverInput extends SubsystemBase {
 
 	public void decreaseSpeedLevel() {
 		this.speedLevel = SpeedLevel.values()[Math.max(speedLevel.ordinal() - 1, 0)];
-
 	}
 
 	public SpeedLevel getSpeedLevel() {

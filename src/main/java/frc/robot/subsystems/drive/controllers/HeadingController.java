@@ -19,10 +19,10 @@ import org.littletonrobotics.junction.Logger;
 public class HeadingController {
 
 	// Tunable parameters
-	private static final LoggedTunableNumber kP = new LoggedTunableNumber("HeadingController/kP",
-			HEADING_CONTROLLER_CONSTANTS.kP());
-	private static final LoggedTunableNumber kD = new LoggedTunableNumber("HeadingController/kD",
-			HEADING_CONTROLLER_CONSTANTS.kD());
+	private static final LoggedTunableNumber Kp = new LoggedTunableNumber("HeadingController/kP",
+			HEADING_CONTROLLER_CONSTANTS.Kp());
+	private static final LoggedTunableNumber Kd = new LoggedTunableNumber("HeadingController/kD",
+			HEADING_CONTROLLER_CONSTANTS.Kd());
 
 	private static final LoggedTunableNumber maxVelocityCoefficient = new LoggedTunableNumber(
 			"HeadingController/MaxVelocityCoefficient", 0.8);
@@ -45,9 +45,9 @@ public class HeadingController {
 		this.drive = drive;
 
 		headingControllerRadians = new ProfiledPIDController(
-				kP.get(),
+				Kp.get(),
 				0,
-				kD.get(),
+				Kd.get(),
 				new TrapezoidProfile.Constraints(0.0, 0.0),
 				Constants.LOOP_PERIOD_SECONDS);
 		headingControllerRadians.enableContinuousInput(-Math.PI, Math.PI);
@@ -80,8 +80,11 @@ public class HeadingController {
 	public double calculate() {
 
 		// Update profiled PID controller
-		if (Constants.TUNING_MODE) {
-			headingControllerRadians.setPID(kP.get(), 0, kD.get());
+		LoggedTunableNumber.ifChanged(hashCode(), () -> {
+			headingControllerRadians.setPID(Kp.get(), 0, Kd.get());
+		}, Kp, Kd);
+
+		{
 			headingControllerRadians.setTolerance(Units.degreesToRadians(toleranceDegrees.get()));
 		}
 

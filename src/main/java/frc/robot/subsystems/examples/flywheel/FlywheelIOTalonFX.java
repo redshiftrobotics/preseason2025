@@ -73,11 +73,11 @@ public class FlywheelIOTalonFX implements FlywheelIO {
 	}
 
 	@Override
-	public void configurePID(double kP, double kI, double kD) {
+	public void configurePID(double Kp, double Ki, double Kd) {
 		var config = new Slot0Configs();
-		config.kP = kP;
-		config.kI = kI;
-		config.kD = kD;
+		config.kP = Kp;
+		config.kI = Ki;
+		config.kD = Kd;
 		leader.getConfigurator().apply(config);
 	}
 }

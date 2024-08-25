@@ -48,7 +48,7 @@ public class FlywheelIOSim implements FlywheelIO {
 	}
 
 	@Override
-	public void configurePID(double kP, double kI, double kD) {
-		pid.setPID(kP, kI, kD);
+	public void configurePID(double Kp, double Ki, double Kd) {
+		pid.setPID(Kp, Ki, Kd);
 	}
 }
