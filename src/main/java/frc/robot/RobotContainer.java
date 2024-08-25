@@ -2,14 +2,16 @@ package frc.robot;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -17,12 +19,9 @@ import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.commands.teleop.ForwardAtHeading;
-import frc.robot.commands.teleop.RelativeDrive;
-import frc.robot.commands.teleop.TeleopDrive;
-import frc.robot.commands.teleop.TeleopLockedHeading;
 import frc.robot.commands.teleop.input.DriverInput;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
@@ -33,6 +32,7 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSparkMaxCANCoder;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.drive.controllers.HeadingController;
 import frc.robot.subsystems.examples.flywheel.Flywheel;
 import frc.robot.subsystems.examples.flywheel.FlywheelIOSparkMax;
 import frc.robot.utility.Alert;
@@ -113,9 +113,11 @@ public class RobotContainer {
 				break;
 		}
 
-		autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
+		// autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
+		autoChooser = new LoggedDashboardChooser<>("Auto Chooser", new SendableChooser<Command>());
 
 		// Set up SysId routines
+		// https://docs.wpilib.org/en/stable/docs/software/advanced-controls/system-identification/introduction.html
 		autoChooser.addOption(
 				"Drive SysId (Quasistatic Forward)",
 				drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
@@ -123,12 +125,20 @@ public class RobotContainer {
 				"Drive SysId (Quasistatic Reverse)",
 				drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
 		autoChooser.addOption(
-				"Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+				"Drive SysId (Dynamic Forward)",
+				drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
 		autoChooser.addOption(
-				"Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+				"Drive SysId (Dynamic Reverse)",
+				drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
 		// Set up named commands for path planner auto
+		// https://pathplanner.dev/pplib-named-commands.html
 		NamedCommands.registerCommand("StopWithX", Commands.runOnce(drive::stopUsingBrakeArrangement, drive));
+
+		// Path planner Autos
+		// https://pathplanner.dev/gui-editing-paths-and-autos.html#autos
+		autoChooser.addOption(
+				"PathPlannerTest", new PathPlannerAuto("FirstTestAuto"));
 
 		// Alerts for constants to avoid using them in competition
 		if (Constants.TUNING_MODE) {
@@ -161,30 +171,59 @@ public class RobotContainer {
 			final Trigger useAngleControlMode = new Trigger(
 					new OverrideSwitch(driverXbox.a(), "Angle Driven", OverrideSwitch.Mode.HOLD, true));
 
+			RobotModeTriggers.disabled().onTrue(drive.run(drive::stop));
+
 			final DriverInput input = new DriverInput(
 					drive,
 					() -> -driverXbox.getLeftY(),
 					() -> -driverXbox.getLeftX(),
 					() -> -driverXbox.getRightY(),
-					() -> -driverXbox.getRightX(),
-					useFieldRelative);
+					() -> -driverXbox.getRightX());
 
-			drive.setDefaultCommand(
-				new TeleopDrive(drive, input));
+			drive.setDefaultCommand(drive.runEnd(() -> {
+				Translation2d translation = input.getTranslationMetersPerSecond();
+				Rotation2d rotation = input.getOmegaRadiansPerSecond();
+				drive.setRobotSpeeds(new ChassisSpeeds(translation.getX(), translation.getY(), rotation.getRadians()),
+						useFieldRelative.getAsBoolean());
+			}, drive::stop).withName("DefaultDrive"));
 
 			boolean includeDiagonalPOV = true;
 			for (int pov = 0; pov < 360; pov += includeDiagonalPOV ? 45 : 90) {
-				Rotation2d angle = Rotation2d.fromDegrees(-pov);
-				driverXbox.pov(pov).and(useAngleControlMode.negate()).whileTrue(
-						new RelativeDrive(drive,
-								// new ChassisSpeeds(angle.getCos(), 0, angle.getSin() * Math.PI)));
-								new ChassisSpeeds(angle.getCos(), angle.getSin(), 0)));
+
+				// POV angles are in Clock Wise Degrees, convert to standard Rotation
+				final Rotation2d angle = Rotation2d.fromDegrees(-pov);
+
+				// While the POV is being pressed and we are not in angle control mode,
+				// set the chassis speeds to the Cos and Sin of the angle (so at 0 degrees forward by 1 left by 0, etc)
+				driverXbox.pov(pov).and(useAngleControlMode.negate())
+						.whileTrue(
+								drive.startEnd(() -> drive.setRobotSpeeds(
+										new ChassisSpeeds(angle.getCos(), angle.getSin(), 0)),
+										drive::stop)
+										.withName(String.format("DriveRobotRelative %s\u00B0", pov)));
+
+				final HeadingController headingController = new HeadingController(drive, angle);
 
 				driverXbox.pov(pov).and(useAngleControlMode)
-						.whileTrue(new ForwardAtHeading(drive, angle));
+						.whileTrue(
+								Commands.runOnce(headingController::reset).andThen(drive.run(() -> {
+									double rotationRadians = headingController.calculate();
+									drive.setRobotSpeeds(new ChassisSpeeds(headingController.atGoal() ? 1 : 0, 0,
+											headingController.atGoal() ? 0 : rotationRadians));
+								}))
+										.withName(String.format("ForwardLockedHeading %s\u00B0", pov)));
 
 				driverXbox.pov(pov).and(useAngleControlMode)
-						.onFalse(new TeleopLockedHeading(drive, input, () -> angle));
+						.onFalse(
+								drive.run(() -> {
+									Translation2d translation = input.getTranslationMetersPerSecond();
+									double rotationRadians = headingController.calculate();
+									drive.setRobotSpeeds(
+											new ChassisSpeeds(translation.getX(), translation.getY(),
+													headingController.atGoal() ? 0 : rotationRadians),
+											useFieldRelative.getAsBoolean());
+								}).until(() -> input.getOmegaRadiansPerSecond().getRadians() != 0)
+										.withName(String.format("DriveLockedHeading %s\u00B0", pov)));
 			}
 
 			driverXbox.x().whileTrue(
@@ -192,13 +231,14 @@ public class RobotContainer {
 							.withName("StopWithX"));
 
 			driverXbox.b().whileTrue(
-					Commands.idle(drive).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
-							.withName("Cancel"));
+					drive.runOnce(drive::stop)
+							.andThen(Commands.idle(drive).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
+									.withName("Cancel")));
 
 			driverXbox.rightTrigger(0.2)
-					.whileTrue(drive.startEnd(input::increaseSpeedLevel, input::decreaseSpeedLevel));
+					.whileTrue(input.startEnd(input::increaseSpeedLevel, input::decreaseSpeedLevel));
 			driverXbox.leftTrigger(0.2)
-					.whileTrue(drive.startEnd(input::decreaseSpeedLevel, input::increaseSpeedLevel));
+					.whileTrue(input.startEnd(input::decreaseSpeedLevel, input::increaseSpeedLevel));
 
 		} else if (driverController instanceof CommandJoystick) {
 			final CommandJoystick driverJoystick = (CommandJoystick) driverController;
@@ -208,11 +248,14 @@ public class RobotContainer {
 					() -> -driverJoystick.getY(),
 					() -> -driverJoystick.getX(),
 					() -> -driverJoystick.getTwist(),
-					() -> 0,
-					() -> true);
+					() -> 0);
 
-			drive.setDefaultCommand(
-					new TeleopDrive(drive, input));
+			drive.setDefaultCommand(drive.startEnd(() -> {
+				Translation2d translation = input.getTranslationMetersPerSecond();
+				Rotation2d rotation = input.getOmegaRadiansPerSecond();
+				drive.setRobotSpeeds(new ChassisSpeeds(translation.getX(), translation.getY(), rotation.getRadians()),
+						true);
+			}, drive::stop));
 		}
 	}
 

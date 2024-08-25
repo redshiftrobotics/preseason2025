@@ -1,11 +1,12 @@
 package frc.robot.subsystems.drive;
 
-import static edu.wpi.first.units.Units.Volts;
+import edu.wpi.first.units.Units;
 import static frc.robot.subsystems.drive.DriveConstants.DRIVE_CONFIG;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -109,19 +110,21 @@ public class Drive extends SubsystemBase {
 		// --- PathPlanner ---
 
 		// Configure AutoBuilder for PathPlanner
-		HolonomicPathFollowerConfig config = new HolonomicPathFollowerConfig(
-				MAX_LINEAR_SPEED, DRIVE_BASE_RADIUS, new ReplanningConfig());
-
 		AutoBuilder.configureHolonomic(
 				this::getPose,
 				this::resetPose,
 				this::getRobotSpeeds,
 				this::setRobotSpeeds,
-				config,
+				new HolonomicPathFollowerConfig(
+					new PIDConstants(5), new PIDConstants(5),
+					MAX_LINEAR_SPEED, DRIVE_BASE_RADIUS, new ReplanningConfig(
+						true, false, 1.0, 0.25
+					), Constants.LOOP_PERIOD_SECONDS),
 				AllianceFlipUtil::shouldFlip,
 				this);
 
-		Pathfinding.setPathfinder(new LocalADStarAK());
+		Pathfinding.setPathfinder(new LocalADStarAK()); // https://pathplanner.dev/pplib-pathfinding.html#advantagekit-compatibility
+
 		PathPlannerLogging.setLogActivePathCallback(
 				activePath -> Logger.recordOutput(
 						"Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()])));
@@ -129,6 +132,10 @@ public class Drive extends SubsystemBase {
 				targetPose -> Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose));
 
 		// --- Configure SysId ---
+
+		// https://docs.wpilib.org/en/stable/docs/software/advanced-controls/system-identification/introduction.html
+		// Open the SysId tool
+
 		sysId = new SysIdRoutine(
 				new SysIdRoutine.Config(
 						null,
@@ -136,11 +143,7 @@ public class Drive extends SubsystemBase {
 						null,
 						state -> Logger.recordOutput("Drive/SysIdState", state.toString())),
 				new SysIdRoutine.Mechanism(
-						voltage -> {
-							for (int i = 0; i < modules.length; i++) {
-								modules[i].runCharacterization(voltage.in(Volts));
-							}
-						},
+						voltage -> modules().forEach((module) -> module.runCharacterization(voltage.in(Units.Volts))),
 						null,
 						this));
 	}
@@ -165,12 +168,10 @@ public class Drive extends SubsystemBase {
 
 		// Log current wheel speeds
 		Logger.recordOutput("SwerveStates/MeasuredWheelSpeeds", getWheelSpeeds().states);
-		getDesiredWheelSpeeds()
-				.ifPresent((wheelSpeeds) -> Logger.recordOutput("SwerveStates/ModuleDesiredWheelSpeeds", wheelSpeeds.states));
+		Logger.recordOutput("SwerveStates/ModuleDesiredWheelSpeeds", getDesiredWheelSpeeds().orElse(new SwerveDriveWheelStates(new SwerveModuleState[] {})).states);
 
 		// Update odometry
-		double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together, just use
-																		// first
+		double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together, use first
 		int sampleCount = sampleTimestamps.length;
 
 		// for each new odometry sample
@@ -242,6 +243,8 @@ public class Drive extends SubsystemBase {
 	 * Get velocity of robot chassis
 	 *
 	 * @return speeds of robot in meters/se
+	 *
+	 * @see https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html#wpilib-coordinate-system
 	 */
 	public ChassisSpeeds getRobotSpeeds() {
 		return getRobotSpeeds(false);
@@ -253,6 +256,8 @@ public class Drive extends SubsystemBase {
 	 * @param fieldRelative whether velocity is relative to field
 	 *
 	 * @return speeds of robot in meters/sec, either relative to robot or field
+	 *
+	 * @see https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html#wpilib-coordinate-system
 	 */
 	public ChassisSpeeds getRobotSpeeds(boolean fieldRelative) {
 		SwerveDriveWheelStates wheelSpeeds = getWheelSpeeds();
@@ -271,6 +276,8 @@ public class Drive extends SubsystemBase {
 	 * Set desired velocity of robot chassis.
 	 *
 	 * @param speeds speeds in meters/sec
+	 *
+	 * @see https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html#wpilib-coordinate-system
 	 */
 	public void setRobotSpeeds(ChassisSpeeds speeds) {
 		setRobotSpeeds(speeds, false);
@@ -281,6 +288,8 @@ public class Drive extends SubsystemBase {
 	 *
 	 * @param speeds        speeds in meters/sec
 	 * @param fieldRelative whether velocity is relative to field
+	 *
+	 * @see https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html#wpilib-coordinate-system
 	 */
 	public void setRobotSpeeds(ChassisSpeeds speeds, boolean fieldRelative) {
 
@@ -292,8 +301,6 @@ public class Drive extends SubsystemBase {
 		speeds = ChassisSpeeds.discretize(speeds, Constants.LOOP_PERIOD_SECONDS);
 
 		SwerveDriveWheelStates wheelSpeeds = kinematics.toWheelSpeeds(speeds);
-
-		Logger.recordOutput("SwerveStates/DesiredWheelSpeeds", wheelSpeeds.states);
 
 		setWheelSpeeds(wheelSpeeds);
 	}
@@ -335,7 +342,9 @@ public class Drive extends SubsystemBase {
 	 */
 	public void setWheelSpeeds(SwerveDriveWheelStates speeds) {
 
-		SwerveDriveKinematics.desaturateWheelSpeeds(speeds.states, MAX_LINEAR_SPEED);
+		SwerveDriveKinematics.desaturateWheelSpeeds(speeds.states, getMaxLinearSpeedMetersPerSec());
+
+		Logger.recordOutput("SwerveStates/DesiredWheelSpeeds", speeds.states);
 
 		for (int i = 0; i < modules.length; i++) {
 			modules[i].setSpeeds(speeds.states[i]);

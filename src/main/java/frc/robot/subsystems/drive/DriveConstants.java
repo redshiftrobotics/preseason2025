@@ -6,7 +6,7 @@ import frc.robot.Constants;
 
 /**
  * Constants for drivetrain/chassis. All constants should be in meters and radians (m/s, m/s^2,
- * rad/s, rad/s^2) Switch expressions must cover all cases.
+ * rad/s, rad/s^2). Switch expressions must cover all cases.
  *
  * <p>
  * in the future find builder pattern like way to make records, I think there is a library?
@@ -42,7 +42,7 @@ public class DriveConstants {
 				0.885, 0.885,
 				0.9612, 0.9612,
 				3.81, 14.5,
-				6.0883, 14.56);
+				6.0883, 14.5);
 	};
 
 	// --- Module Config ---
@@ -92,6 +92,7 @@ public class DriveConstants {
 	public record ModuleConstants(
 			double feedForwardKs,
 			double feedForwardKv,
+			// double feedForwardKt,
 			double driveKp,
 			double driveKd,
 			double turnKp,
@@ -101,31 +102,31 @@ public class DriveConstants {
 	}
 
 	public static final ModuleConstants MODULE_CONSTANTS = switch (Constants.getRobot()) {
+		case COMP_BOT -> new ModuleConstants(
+                0.1,
+                0.13,
+                0.1,
+                0.0,
+                10.0,
+                0.0,
+				Mk4iReductions.L1.reduction,
+				Mk4iReductions.TURN.reduction);
 		case DEV_BOT -> new ModuleConstants(
-				0.1,
-				0.13,
-				0.1,
-				0.0,
-				10.0,
-				0.0,
+                0.1,
+                0.13,
+                0.1,
+                0.0,
+                10.0,
+                0.0,
 				Mk4iReductions.L1.reduction,
 				Mk4iReductions.TURN.reduction);
 		case SIM_BOT -> new ModuleConstants(
-				0.1,
-				0.13,
-				0.1,
-				0.0,
-				10.0,
-				0.0,
-				Mk4iReductions.L1.reduction,
-				Mk4iReductions.TURN.reduction);
-		case COMP_BOT -> new ModuleConstants(
-				0.1,
-				0.13,
-				0.1,
-				0.0,
-				10.0,
-				0.0,
+                0.014,
+                0.134,
+                0.1,
+                0.0,
+                10.0,
+                0.0,
 				Mk4iReductions.L1.reduction,
 				Mk4iReductions.TURN.reduction);
 	};

@@ -52,8 +52,17 @@ public class HeadingController {
 				Constants.LOOP_PERIOD_SECONDS);
 		headingControllerRadians.enableContinuousInput(-Math.PI, Math.PI);
 		headingControllerRadians.setTolerance(Units.degreesToRadians(toleranceDegrees.get()));
+	}
 
-		reset();
+	/**
+	 * Creates a new HeadingController object with specified hading goal
+	 *
+	 * @param drive drivetrain of robot
+	 * @param goal  target heading
+	 */
+	public HeadingController(Drive drive, Rotation2d heading) {
+		this(drive);
+		setGoal(heading);
 	}
 
 	public void reset() {
