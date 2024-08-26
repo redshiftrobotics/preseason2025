@@ -5,8 +5,6 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.ParentDevice;
 
-import frc.robot.Constants;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -127,15 +125,15 @@ public class PhoenixOdometryThread extends Thread {
 		return queue;
 	}
 
-	/** Wait (sleep) until we the next odometry update) */
+	/** Wait (sleep) until we the next odometry update */
 	private void waitForAllSignals() {
 		// Wait for updates from all signals
 		signalsLock.lock();
 		try {
+			final double odometryPeriodSeconds = 1 / DriveConstants.ODOMETRY_FREQUENCY;
 			if (isCANFD) {
-				BaseStatusSignal.waitForAll(Constants.LOOP_PERIOD_SECONDS, signals);
+				BaseStatusSignal.waitForAll(2.0 * odometryPeriodSeconds, signals);
 			} else {
-				final double odometryPeriodSeconds = 1 / DriveConstants.ODOMETRY_FREQUENCY;
 				final long odometryFrequencyMillis = (long) odometryPeriodSeconds * 1000;
 
 				// "waitForAll" does not support blocking on multiple signals with a bus that is not CAN FD,
