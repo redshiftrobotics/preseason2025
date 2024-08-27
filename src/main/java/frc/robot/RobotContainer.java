@@ -38,6 +38,7 @@ import frc.robot.subsystems.examples.flywheel.FlywheelIO;
 import frc.robot.subsystems.examples.flywheel.FlywheelIOSparkMax;
 import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.CameraIOPhotonVision;
+import frc.robot.subsystems.vision.CameraIOSim;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.utility.Alert;
 import frc.robot.utility.Alert.AlertType;
@@ -104,7 +105,9 @@ public class RobotContainer {
                                 new ModuleIOSim(),
                                 new ModuleIOSim());
                 flywheelExample = new Flywheel(new FlywheelIOSparkMax());
-                vision = new AprilTagVision();
+                vision =
+                        new AprilTagVision(
+                                new CameraIOSim(VisionConstants.FRONT_CAMERA, drive::getPose));
                 break;
 
             default:
@@ -120,6 +123,17 @@ public class RobotContainer {
                 vision = new AprilTagVision();
                 break;
         }
+
+        vision.setRobotPoseSupplier(drive::getPose);
+        vision.addVisionEstimateConsumer(
+                (visionEstimate) -> {
+                    if (visionEstimate.isSuccess()) {
+                        drive.addVisionMeasurement(
+                                visionEstimate.getPose2d(),
+                                visionEstimate.timestampSeconds(),
+                                visionEstimate.standardDeviations());
+                    }
+                });
 
         // autoChooser = new LoggedDashboardChooser<>("Auto Chooser",
         // AutoBuilder.buildAutoChooser());

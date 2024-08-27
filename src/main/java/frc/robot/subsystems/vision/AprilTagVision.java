@@ -1,14 +1,28 @@
 package frc.robot.subsystems.vision;
 
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.FieldConstants;
+import frc.robot.subsystems.vision.Camera.VisionResultStatus;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class AprilTagVision extends SubsystemBase {
 
     private final Camera[] cameras;
+
+    private Supplier<Pose2d> robotPoseSupplier = null;
+    private List<Consumer<TimestampedRobotPoseEstimate>> timestampRobotPoseEstimateConsumers =
+            new ArrayList<>();
 
     public AprilTagVision(CameraIO... camerasIO) {
         this.cameras =
@@ -20,6 +34,31 @@ public class AprilTagVision extends SubsystemBase {
     @Override
     public void periodic() {
         cameras().forEach(Camera::periodic);
+
+        for (Camera camera : cameras) {
+            TimestampedRobotPoseEstimate visionEstimate =
+                    new TimestampedRobotPoseEstimate(
+                            camera.getEstimatedRobotPose(),
+                            camera.getTimestampSeconds(),
+                            camera.getStandardDeviations(),
+                            robotPoseSupplier == null
+                                    ? camera.getStatus()
+                                    : camera.getStatus(robotPoseSupplier.get()));
+
+            for (Consumer<TimestampedRobotPoseEstimate> consumer :
+                    timestampRobotPoseEstimateConsumers) {
+                consumer.accept(visionEstimate);
+            }
+        }
+    }
+
+    public void setRobotPoseSupplier(Supplier<Pose2d> robotPoseSupplier) {
+        this.robotPoseSupplier = robotPoseSupplier;
+    }
+
+    public void addVisionEstimateConsumer(
+            Consumer<TimestampedRobotPoseEstimate> timestampRobotPoseEstimateConsumer) {
+        timestampRobotPoseEstimateConsumers.add(timestampRobotPoseEstimateConsumer);
     }
 
     public Stream<Camera> cameras() {
@@ -34,5 +73,19 @@ public class AprilTagVision extends SubsystemBase {
                 Arrays.stream(cameras)
                         .map(Camera::getCameraName)
                         .collect(Collectors.joining(", ")));
+    }
+
+    public record TimestampedRobotPoseEstimate(
+            Pose3d robotPose,
+            double timestampSeconds,
+            Matrix<N3, N1> standardDeviations,
+            VisionResultStatus status) {
+        public Pose2d getPose2d() {
+            return robotPose.toPose2d();
+        }
+
+        public boolean isSuccess() {
+            return status.success;
+        }
     }
 }

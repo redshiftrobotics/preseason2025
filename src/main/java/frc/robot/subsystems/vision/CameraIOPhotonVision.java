@@ -47,14 +47,7 @@ public class CameraIOPhotonVision implements CameraIO {
     }
 
     @Override
-    public AprilTagFieldLayout getAprilTagFieldLayout() {
-        return photonPoseEstimator.getFieldTags();
-    }
-
-    @Override
     public void updateInputs(CameraIOInputs inputs) {
-        // https://github.com/FRC-Sonic-Squirrels/2024-Robot-Code/blob/main/src/main/java/frc/robot/subsystems/vision/VisionIOPhotonVision.java#L42
-
         Optional<EstimatedRobotPose> estimatedRobotPoseOptional = photonPoseEstimator.update();
 
         if (estimatedRobotPoseOptional.isPresent()) {

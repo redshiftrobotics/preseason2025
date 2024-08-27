@@ -46,6 +46,7 @@
 	"editor.detectIndentation": false,
 	"cSpell.words": [
 		"AHRS",
+		"apriltag",
 		"Arducam",
 		"Brushless",
 		"cancoder",

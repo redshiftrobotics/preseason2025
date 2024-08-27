@@ -1,38 +1,55 @@
 {
-    "name": "MecAdjCrescendo",
-    "rotations": [
-        {
-            "axis": "x",
-            "degrees": 90
-        },
-        {
-            "axis": "z",
-            "degrees": 90
-        }
-    ],
-    "position": [
-        0,
-        0,
-        0
-    ],
-    "cameras": [],
-    "components": [
-        {
-            "zeroedRotations": [
-                {
-                    "axis": "x",
-                    "degrees": 90
-                },
-                {
-                    "axis": "z",
-                    "degrees": 90
-                }
-            ],
-            "zeroedPosition": [
-                0.238,
-                0.0,
-                -0.298
-            ]
-        }
-    ]
+	"name": "MecAdjCrescendo",
+	"rotations": [
+		{
+			"axis": "x",
+			"degrees": 90
+		},
+		{
+			"axis": "z",
+			"degrees": 90
+		}
+	],
+	"position": [
+		0,
+		0,
+		0
+	],
+	"cameras": [
+		{
+			"name": "Front Right Camera",
+			"rotations": [
+				{
+					"axis": "z",
+					"degrees": 30
+				}
+			],
+			"position": [
+				0.805, 0, 0.0762
+			],
+			"resolution": [
+				800, 600
+			],
+			"fov": 70
+		}
+	],
+	"components": [
+		{
+			"zeroedRotations": [
+				{
+					"axis": "x",
+					"degrees": 90
+				},
+				{
+					"axis": "z",
+					"degrees": 90
+				}
+			],
+			"zeroedPosition": [
+				0.238,
+				0.0,
+				-0.298
+			]
+		}
+	]
 }

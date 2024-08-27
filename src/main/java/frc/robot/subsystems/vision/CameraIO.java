@@ -9,7 +9,7 @@ public interface CameraIO {
     @AutoLog
     public static class CameraIOInputs {
 
-        Pose3d estimatedRobotPose = null;
+        Pose3d estimatedRobotPose = new Pose3d();
         double timestampSecondsFPGA = -1;
 
         int[] tagsUsed = new int[] {};
@@ -24,11 +24,6 @@ public interface CameraIO {
 
     /** Set april tag field layout to use */
     public default void setAprilTagFieldLayout(AprilTagFieldLayout layout) {}
-
-    /** Get april tag field layout being used */
-    public default AprilTagFieldLayout getAprilTagFieldLayout() {
-        return null;
-    }
 
     /** Updates the set of loggable inputs. */
     public default void updateInputs(CameraIOInputs inputs) {}

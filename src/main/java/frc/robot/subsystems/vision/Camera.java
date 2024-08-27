@@ -44,6 +44,7 @@ public class Camera {
     private final CameraIOInputsAutoLogged inputs = new CameraIOInputsAutoLogged();
 
     private double lastTimestampSecondsFPGA = -1;
+    private Pose3d[] tagPositionsOnField = new Pose3d[] {};
 
     private AprilTagFieldLayout aprilTagFieldLayout;
     private Set<Integer> tagsIdsOnField;
@@ -62,7 +63,7 @@ public class Camera {
 
         this.aprilTagFieldLayout = aprilTagFieldLayout;
         this.tagsIdsOnField =
-                io.getAprilTagFieldLayout().getTags().stream()
+                aprilTagFieldLayout.getTags().stream()
                         .map((tag) -> tag.ID)
                         .collect(Collectors.toSet());
 
@@ -81,6 +82,15 @@ public class Camera {
         Logger.processInputs("Vision/" + getCameraName(), inputs);
         io.updateInputs(inputs);
         missingCameraAlert.set(inputs.connected);
+
+        tagPositionsOnField =
+                Arrays.stream(inputs.tagsUsed)
+                        .mapToObj(aprilTagFieldLayout::getTagPose)
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .toArray(Pose3d[]::new);
+
+        Logger.recordOutput("Vision/" + getCameraName() + "/tagsUsed", tagPositionsOnField);
     }
 
     /** Get the pose of the robot as measured by the vision camera. */
@@ -105,10 +115,7 @@ public class Camera {
 
         // Get data about distance to each tag that is present on field
         DoubleSummaryStatistics distanceToTagsUsedSummary =
-                Arrays.stream(inputs.tagsUsed)
-                        .mapToObj(aprilTagFieldLayout::getTagPose)
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
+                Arrays.stream(tagPositionsOnField)
                         .mapToDouble(
                                 (tagPose3d) ->
                                         tagPose3d
@@ -198,20 +205,6 @@ public class Camera {
         }
 
         return VisionResultStatus.SUCCESSFUL;
-    }
-
-    public record TimestampedRobotPoseEstimate(
-            Pose3d robotPose,
-            double timestampSeconds,
-            Matrix<N3, N1> standardDeviations,
-            VisionResultStatus status) {
-        public Pose2d getPose2d() {
-            return robotPose.toPose2d();
-        }
-
-        public boolean isSuccess() {
-            return status.success;
-        }
     }
 
     public enum VisionResultStatus {
