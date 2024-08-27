@@ -1,38 +1,35 @@
 package frc.robot.subsystems.vision;
 
-import org.littletonrobotics.junction.AutoLog;
-
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose3d;
+import org.littletonrobotics.junction.AutoLog;
 
 /** IO layer interface for april tag detection systems */
 public interface CameraIO {
-	@AutoLog
-	public static class CameraIOInputs {
+    @AutoLog
+    public static class CameraIOInputs {
 
-		Pose3d estimatedRobotPose = null;
-		double timestampSecondsFPGA = -1;
+        Pose3d estimatedRobotPose = null;
+        double timestampSecondsFPGA = -1;
 
-		int[] tagsUsed = new int[] {};
+        int[] tagsUsed = new int[] {};
 
-		boolean connected = false;
-	}
+        boolean connected = false;
+    }
 
-	/** Get name of io camera */
-	public default String getCameraName() {
-		return "Camera";
-	}
+    /** Get name of io camera */
+    public default String getCameraName() {
+        return "Camera";
+    }
 
-	/** Set april tag field layout to use */
-	public default void setAprilTagFieldLayout(AprilTagFieldLayout layout) {
-	}
+    /** Set april tag field layout to use */
+    public default void setAprilTagFieldLayout(AprilTagFieldLayout layout) {}
 
-	/** Get april tag field layout being used */
-	public default AprilTagFieldLayout getAprilTagFieldLayout() {
-		return null;
-	}
+    /** Get april tag field layout being used */
+    public default AprilTagFieldLayout getAprilTagFieldLayout() {
+        return null;
+    }
 
-	/** Updates the set of loggable inputs. */
-	public default void updateInputs(CameraIOInputs inputs) {
-	}
+    /** Updates the set of loggable inputs. */
+    public default void updateInputs(CameraIOInputs inputs) {}
 }

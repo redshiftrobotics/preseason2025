@@ -157,9 +157,9 @@ spotless {
         toggleOffOn()
 
         // googleJavaFormat() // 2 space ident, default
-        // googleJavaFormat('1.11.0').aosp().reflowLongStrings() // 4 space indent with Android Open Source Project style guide
+        googleJavaFormat('1.11.0').aosp().reflowLongStrings() // 4 space indent with Android Open Source Project style guide
 
-        // eclipse().configFile('custom-config.xml')
+        // eclipse().configFile('eclipse-custom-config.xml')
 
         removeUnusedImports()
         trimTrailingWhitespace()
@@ -177,7 +177,7 @@ spotless {
     }
     // json {
     //     // This crashes if there are commets or trailing commas in your JSON, breaking build if compile java depends on spotless
-    //
+
     //     target fileTree(".") {
     //         include "**/*.json"
     //         exclude "**/build/**", "**/build-*/**"
