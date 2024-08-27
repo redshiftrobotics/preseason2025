@@ -1,9 +1,9 @@
 package frc.robot.utility;
 
-public class LoggedGroup {
+public class LoggedTunableNumberGroup {
 	private final String root;
 
-	public LoggedGroup(String root) {
+	public LoggedTunableNumberGroup(String root) {
 		this.root = root;
 	}
 
@@ -11,7 +11,7 @@ public class LoggedGroup {
 		return new LoggedTunableNumber(root + "/" + name, defaultValue);
 	}
 
-	public LoggedGroup subgroup(String name) {
-		return new LoggedGroup(root + "/" + name);
+	public LoggedTunableNumberGroup subgroup(String name) {
+		return new LoggedTunableNumberGroup(root + "/" + name);
 	}
 }

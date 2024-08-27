@@ -8,13 +8,13 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.utility.LoggedGroup;
+import frc.robot.utility.LoggedTunableNumberGroup;
 import frc.robot.utility.LoggedTunableNumber;
 
 /** Controller for converting joystick values to drive components */
 public class TeleopDriveController {
 
-	private static final LoggedGroup group = new LoggedGroup("Drive/TeleopDriveController");
+	private static final LoggedTunableNumberGroup group = new LoggedTunableNumberGroup("Drive/TeleopDriveController");
 
 	private static final LoggedTunableNumber stickDeadband = group.buildTunable("Deadband", 0.2);
 
@@ -43,9 +43,9 @@ public class TeleopDriveController {
 	/**
 	 * Creates a new TeleopDriveController object
 	 *
-	 * @param drive drivetrain of robot
-	 * @param xSupplier supplier of translational x (forward+)
-	 * @param ySupplier supplier of translational y (left+)
+	 * @param drive          drivetrain of robot
+	 * @param xSupplier      supplier of translational x (forward+)
+	 * @param ySupplier      supplier of translational y (left+)
 	 * @param xAngleSupplier supplier of rotational x (angle)
 	 * @param yAngleSupplier supplier of rotational y (angle, ccw_ omega)
 	 */
@@ -103,7 +103,8 @@ public class TeleopDriveController {
 
 	/** Increase translational and rotational speed coefficients up one level */
 	public void increaseSpeedLevel() {
-		TeleopDriveController.speedLevel = SpeedLevel.values()[Math.min(speedLevel.ordinal() + 1, SpeedLevel.values().length - 1)];
+		TeleopDriveController.speedLevel = SpeedLevel.values()[Math.min(speedLevel.ordinal() + 1,
+				SpeedLevel.values().length - 1)];
 	}
 
 	/** Decrease translational and rotational speed coefficients down one level */

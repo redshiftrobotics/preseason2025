@@ -11,7 +11,7 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.DriveConstants.ModuleLimits;
 import frc.robot.utility.LoggedTunableNumber;
-import frc.robot.utility.LoggedGroup;
+import frc.robot.utility.LoggedTunableNumberGroup;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -19,7 +19,7 @@ import org.littletonrobotics.junction.Logger;
 public class HeadingController {
 
 	// Tunable parameters
-	private static final LoggedGroup group = new LoggedGroup("Drive/HeadingController");
+	private static final LoggedTunableNumberGroup group = new LoggedTunableNumberGroup("Drive/HeadingController");
 
 	private static final LoggedTunableNumber Kp = group.buildTunable("kP", HEADING_CONTROLLER_CONSTANTS.Kp());
 	private static final LoggedTunableNumber Kd = group.buildTunable("kD", HEADING_CONTROLLER_CONSTANTS.Kd());

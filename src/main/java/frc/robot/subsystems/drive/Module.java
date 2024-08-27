@@ -10,7 +10,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.utility.LoggedTunableNumber;
-import frc.robot.utility.LoggedGroup;
+import frc.robot.utility.LoggedTunableNumberGroup;
 
 import org.littletonrobotics.junction.Logger;
 import java.util.Optional;
@@ -21,7 +21,7 @@ import java.util.Optional;
  */
 public class Module {
 
-	private static final LoggedGroup group = new LoggedGroup("Drive/Module");
+	private static final LoggedTunableNumberGroup group = new LoggedTunableNumberGroup("Drive/Module");
 
 	private static final LoggedTunableNumber driveFeedForwardKs = group.buildTunable("DriveFfKs",
 			MODULE_CONSTANTS.feedForwardKs());
@@ -72,6 +72,14 @@ public class Module {
 	 * updates need to be properly thread-locked.
 	 */
 	public void updateInputs() {
+		io.updateInputs(inputs);
+	}
+
+	/**
+	 * Run periodic of module. This uses our PID controllers to try and reach our angle and speed setpoints.
+	 */
+	public void periodic() {
+		Logger.processInputs("Drive/" + toString(), inputs);
 
 		int hc = hashCode();
 
@@ -88,15 +96,6 @@ public class Module {
 				hc,
 				() -> turnFeedback.setPID(turnKp.get(), 0, turnKd.get()),
 				turnKp, turnKd);
-
-		io.updateInputs(inputs);
-	}
-
-	/**
-	 * Run periodic of module. This uses our PID controllers to try and reach our angle and speed setpoints.
-	 */
-	public void periodic() {
-		Logger.processInputs("Drive/" + toString(), inputs);
 
 		// On first cycle, reset relative turn encoder
 		// Wait until absolute angle is nonzero in case it wasn't initialized yet
