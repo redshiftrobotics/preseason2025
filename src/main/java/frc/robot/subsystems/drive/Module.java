@@ -23,16 +23,16 @@ public class Module {
 
 	private static final LoggedTunableNumberGroup group = new LoggedTunableNumberGroup("Drive/Module");
 
-	private static final LoggedTunableNumber driveFeedForwardKs = group.buildTunable("DriveFfKs",
+	private static final LoggedTunableNumber driveFeedForwardKs = group.build("DriveFfKs",
 			MODULE_CONSTANTS.feedForwardKs());
-	private static final LoggedTunableNumber driveFeedForwardKv = group.buildTunable("DriveFfKv",
+	private static final LoggedTunableNumber driveFeedForwardKv = group.build("DriveFfKv",
 			MODULE_CONSTANTS.feedForwardKv());
 
-	private static final LoggedTunableNumber driveKp = group.buildTunable("DriveKp", MODULE_CONSTANTS.driveKp());
-	private static final LoggedTunableNumber driveKd = group.buildTunable("DriveKd", MODULE_CONSTANTS.driveKd());
+	private static final LoggedTunableNumber driveKp = group.build("DriveKp", MODULE_CONSTANTS.driveKp());
+	private static final LoggedTunableNumber driveKd = group.build("DriveKd", MODULE_CONSTANTS.driveKd());
 
-	private static final LoggedTunableNumber turnKp = group.buildTunable("TurnKp", MODULE_CONSTANTS.turnKp());
-	private static final LoggedTunableNumber turnKd = group.buildTunable("TurnKd", MODULE_CONSTANTS.turnKd());
+	private static final LoggedTunableNumber turnKp = group.build("TurnKp", MODULE_CONSTANTS.turnKp());
+	private static final LoggedTunableNumber turnKd = group.build("TurnKd", MODULE_CONSTANTS.turnKd());
 
 	private final ModuleIO io;
 	private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();

@@ -7,7 +7,7 @@ public class LoggedTunableNumberGroup {
 		this.root = root;
 	}
 
-	public LoggedTunableNumber buildTunable(String name, double defaultValue) {
+	public LoggedTunableNumber build(String name, double defaultValue) {
 		return new LoggedTunableNumber(root + "/" + name, defaultValue);
 	}
 

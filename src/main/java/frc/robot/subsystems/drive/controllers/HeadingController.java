@@ -21,14 +21,14 @@ public class HeadingController {
 	// Tunable parameters
 	private static final LoggedTunableNumberGroup group = new LoggedTunableNumberGroup("Drive/HeadingController");
 
-	private static final LoggedTunableNumber Kp = group.buildTunable("kP", HEADING_CONTROLLER_CONSTANTS.Kp());
-	private static final LoggedTunableNumber Kd = group.buildTunable("kD", HEADING_CONTROLLER_CONSTANTS.Kd());
+	private static final LoggedTunableNumber Kp = group.build("kP", HEADING_CONTROLLER_CONSTANTS.Kp());
+	private static final LoggedTunableNumber Kd = group.build("kD", HEADING_CONTROLLER_CONSTANTS.Kd());
 
-	private static final LoggedTunableNumber maxVelocityCoefficient = group.buildTunable("MaxVelocityCoefficient", 1);
+	private static final LoggedTunableNumber maxVelocityCoefficient = group.build("MaxVelocityCoefficient", 1);
 	private static final LoggedTunableNumber maxAccelerationCoefficient = group
-			.buildTunable("MaxAccelerationCoefficient", 1);
+			.build("MaxAccelerationCoefficient", 1);
 
-	private static final LoggedTunableNumber toleranceDegrees = group.buildTunable("ToleranceDegrees", 1);
+	private static final LoggedTunableNumber toleranceDegrees = group.build("ToleranceDegrees", 1);
 
 	private final Drive drive;
 

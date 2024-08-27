@@ -16,9 +16,9 @@ public class TeleopDriveController {
 
 	private static final LoggedTunableNumberGroup group = new LoggedTunableNumberGroup("Drive/TeleopDriveController");
 
-	private static final LoggedTunableNumber stickDeadband = group.buildTunable("Deadband", 0.2);
+	private static final LoggedTunableNumber stickDeadband = group.build("Deadband", 0.2);
 
-	private static final LoggedTunableNumber stickDirectionDeadband = group.buildTunable("AngleDeadband", 0.5);
+	private static final LoggedTunableNumber stickDirectionDeadband = group.build("AngleDeadband", 0.5);
 
 	private final Drive drive;
 
