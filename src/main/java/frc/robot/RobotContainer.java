@@ -31,13 +31,17 @@ import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
-import frc.robot.subsystems.drive.ModuleIOSparkMaxCANCoder;
+import frc.robot.subsystems.drive.ModuleIOSparkMax;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.drive.controllers.HeadingController;
 import frc.robot.subsystems.drive.controllers.TeleopDriveController;
 import frc.robot.subsystems.drive.controllers.TeleopDriveController.SpeedLevel;
 import frc.robot.subsystems.examples.flywheel.Flywheel;
+import frc.robot.subsystems.examples.flywheel.FlywheelIO;
 import frc.robot.subsystems.examples.flywheel.FlywheelIOSparkMax;
+import frc.robot.subsystems.vision.AprilTagVision;
+import frc.robot.subsystems.vision.CameraIOPhotonVision;
+import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.utility.Alert;
 import frc.robot.utility.Alert.AlertType;
 import frc.robot.utility.OverrideSwitch;
@@ -53,6 +57,7 @@ public class RobotContainer {
 
 	// Subsystems
 	private final Drive drive;
+	private final AprilTagVision vision;
 	private final Flywheel flywheelExample;
 
 	// Controller
@@ -74,17 +79,21 @@ public class RobotContainer {
 						new ModuleIOTalonFX(DriveConstants.BACK_LEFT_MODULE_CONFIG),
 						new ModuleIOTalonFX(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
 				flywheelExample = new Flywheel(new FlywheelIOSparkMax());
+				vision = new AprilTagVision();
 				break;
 
 			case DEV_BOT:
 				// Real robot, instantiate hardware IO implementations
 				drive = new Drive(
 						new GyroIONavX(),
-						new ModuleIOSparkMaxCANCoder(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
-						new ModuleIOSparkMaxCANCoder(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
-						new ModuleIOSparkMaxCANCoder(DriveConstants.BACK_LEFT_MODULE_CONFIG),
-						new ModuleIOSparkMaxCANCoder(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
+						new ModuleIOSparkMax(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
+						new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
+						new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
+						new ModuleIOSparkMax(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
 				flywheelExample = new Flywheel(new FlywheelIOSparkMax());
+				vision = new AprilTagVision(
+					new CameraIOPhotonVision(VisionConstants.FRONT_CAMERA)
+				);
 				break;
 
 			case SIM_BOT:
@@ -97,6 +106,7 @@ public class RobotContainer {
 						new ModuleIOSim(),
 						new ModuleIOSim());
 				flywheelExample = new Flywheel(new FlywheelIOSparkMax());
+				vision = new AprilTagVision();
 				break;
 
 			default:
@@ -112,7 +122,9 @@ public class RobotContainer {
 						},
 						new ModuleIO() {
 						});
-				flywheelExample = new Flywheel(new FlywheelIOSparkMax());
+				flywheelExample = new Flywheel(new FlywheelIO() {
+				});
+				vision = new AprilTagVision();
 				break;
 		}
 
@@ -176,7 +188,7 @@ public class RobotContainer {
 					new OverrideSwitch(driverXbox.y(), "Field Relative", OverrideSwitch.Mode.TOGGLE, true));
 
 			final Trigger useAngleControlMode = new Trigger(
-					new OverrideSwitch(driverXbox.a(), "Angle Driven", OverrideSwitch.Mode.HOLD, true));
+					new OverrideSwitch(driverXbox.rightBumper(), "Angle Driven", OverrideSwitch.Mode.HOLD, true));
 
 			RobotModeTriggers.disabled().onTrue(drive.run(drive::stop));
 
@@ -269,13 +281,13 @@ public class RobotContainer {
 							.withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
 							.withName("StopCancel"));
 
-			// When right (Gas) trigger is held down, put in boost (fast) mode
-			driverXbox.rightTrigger(0.5)
+			// When right (Gas) trigger is held down or left stick (sprint) is pressed, put in boost (fast) mode
+			driverXbox.rightTrigger(0.5).or(driverXbox.leftStick())
 					.whileTrue(Commands.startEnd(
 							() -> TeleopDriveController.setSpeedLevel(SpeedLevel.BOOST),
 							() -> TeleopDriveController.setSpeedLevel(SpeedLevel.DEFAULT)));
-			// When left (Brake) trigger is held down, put in precise (slow) mode
-			driverXbox.leftTrigger(0.5)
+			// When left (Brake) trigger is held down or right stick (crouch) is pressed, put in precise (slow) mode
+			driverXbox.leftTrigger(0.5).or(driverXbox.rightStick())
 					.whileTrue(Commands.startEnd(
 							() -> TeleopDriveController.setSpeedLevel(SpeedLevel.PRECISE),
 							() -> TeleopDriveController.setSpeedLevel(SpeedLevel.DEFAULT)));

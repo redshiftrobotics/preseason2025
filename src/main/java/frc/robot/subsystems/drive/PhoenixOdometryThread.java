@@ -59,7 +59,7 @@ public class PhoenixOdometryThread extends Thread {
 	 * Starts the thread,
 	 * this causes JVM to create a new thread which runs currently to this thread,
 	 * which call the run() method being called in that thread, preventing it from blocking this thread.
-	 * 
+	 *
 	 * <p>
 	 * This method only starts the thread if there are timestamp queues registered to keep track of time.
 	 */
@@ -108,7 +108,7 @@ public class PhoenixOdometryThread extends Thread {
 	/**
 	 * Creates and registers a timestamp queue, which will store the timestamps
 	 * at which the signals are sampled.
-	 * 
+	 *
 	 * <p>
 	 * This queue stores the timestamp in seconds with epoch starting at FPGA clock startup.
 	 *
@@ -153,7 +153,7 @@ public class PhoenixOdometryThread extends Thread {
 
 	/**
 	 * Get timestamp with latency removed
-	 * 
+	 *
 	 * @return the FPGA timestamp in seconds minus the average latency of all signals
 	 */
 	private double getTimestampWithoutLatency() {
@@ -163,7 +163,7 @@ public class PhoenixOdometryThread extends Thread {
 		double timestampSeconds = timeStampMicroseconds / 1e6;
 
 		// Avoiding streams due to performance overhead and high frequency required :(
-			
+
 		// double averageLatency = Arrays.stream(signals).map(BaseStatusSignal::getTimestamp).mapToDouble(Timestamp::getLatency).average().orElse(0);
 		// return timestampSeconds - averageLatency;
 

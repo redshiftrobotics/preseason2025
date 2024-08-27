@@ -23,7 +23,7 @@ public class SparkMaxOdometryThread {
 
 	private List<Queue<Double>> timestampQueues = new ArrayList<>();
 
-	
+
 	// --- Create Singleton with notifier ---
 
 	private final Notifier notifier;
@@ -56,7 +56,7 @@ public class SparkMaxOdometryThread {
 	/**
 	 * Starts the Notifier to periodically call the {@link #periodic} method
 	 * at the frequency defined by DriveConstants.ODOMETRY_FREQUENCY.
-	 * 
+	 *
 	 * <p>
 	 * This method only starts the Notifier if there are timestamp queues registered to keep track of time.
 	 */
@@ -132,7 +132,7 @@ public class SparkMaxOdometryThread {
 			double timestampSeconds = timeStampMicroseconds / 1e6;
 
 			// Avoiding streams due to performance overhead and high frequency required :(
-				
+
 			// List<OptionalDouble> values = signals.stream().map(Supplier::get).toList();
 			// if (values.stream().allMatch(OptionalDouble::isPresent)) {
 			// for (int i = 0; i < queues.size(); i++) {

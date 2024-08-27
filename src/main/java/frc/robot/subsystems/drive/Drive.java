@@ -10,6 +10,7 @@ import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -18,6 +19,8 @@ import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics.SwerveDriveWheelStates;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.kinematics.SwerveDriveWheelPositions;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -230,12 +233,24 @@ public class Drive extends SubsystemBase {
 
 	/**
 	 * Adds a vision measurement to the pose estimator.
-	 *  
+	 *
 	 * @param visionPose the pose of the robot as measured by the vision camera.
-	 * @param timestamp  the timestamp of the vision measurement in seconds. You must use a timestamp with an epoch since FPGA time startup.
+	 * @param timestamp the timestamp of the vision measurement in seconds. You must use a timestamp with an epoch since FPGA time startup.
 	 */
 	public void addVisionMeasurement(Pose2d visionPose, double timestamp) {
 		poseEstimator.addVisionMeasurement(visionPose, timestamp);
+	}
+
+	/**
+	 * Adds a vision measurement to the pose estimator with standard deviations.
+	 *
+	 * @param visionPose the pose of the robot as measured by the vision camera.
+	 * @param timestamp  the timestamp of the vision measurement in seconds. You must use a timestamp with an epoch since FPGA time startup.
+	 * @param standardDeviations standard deviations of the vision measurements. Increase these numbers to trust global measurements from vision less. This matrix is in the form [x, y, theta]ᵀ, with units in meters and radians.
+	 */
+	public void addVisionMeasurement(Pose2d visionPose, double timestamp, Matrix<N3,N1> standardDeviations) {
+		poseEstimator.setVisionMeasurementStdDevs(standardDeviations);
+		addVisionMeasurement(visionPose, timestamp);
 	}
 
 	// --- Robot Speeds ---
