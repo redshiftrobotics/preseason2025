@@ -129,7 +129,7 @@ public class RobotContainer {
                 (visionEstimate) -> {
                     if (visionEstimate.isSuccess()) {
                         drive.addVisionMeasurement(
-                                visionEstimate.getPose2d(),
+                                visionEstimate.robotPose2d(),
                                 visionEstimate.timestampSeconds(),
                                 visionEstimate.standardDeviations());
                     }

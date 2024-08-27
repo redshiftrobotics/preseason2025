@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.littletonrobotics.junction.Logger;
 
 public class AprilTagVision extends SubsystemBase {
 
@@ -44,6 +45,16 @@ public class AprilTagVision extends SubsystemBase {
                             robotPoseSupplier == null
                                     ? camera.getStatus()
                                     : camera.getStatus(robotPoseSupplier.get()));
+
+            String root = "Vision/" + camera.getCameraName();
+            Logger.recordOutput(root + "/tagsUsedPositions", camera.getTagPositionsOnField());
+
+            if (visionEstimate.isSuccess()) {
+                Logger.recordOutput(root + "/positionEstimate", visionEstimate.robotPose());
+            }
+            if (visionEstimate.status.failLevel < 2) {
+                Logger.recordOutput(root + "/status", visionEstimate.status);
+            }
 
             for (Consumer<TimestampedRobotPoseEstimate> consumer :
                     timestampRobotPoseEstimateConsumers) {
@@ -80,12 +91,13 @@ public class AprilTagVision extends SubsystemBase {
             double timestampSeconds,
             Matrix<N3, N1> standardDeviations,
             VisionResultStatus status) {
-        public Pose2d getPose2d() {
+
+        public Pose2d robotPose2d() {
             return robotPose.toPose2d();
         }
 
         public boolean isSuccess() {
-            return status.success;
+            return status.isSuccess();
         }
     }
 }

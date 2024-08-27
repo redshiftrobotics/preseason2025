@@ -83,14 +83,18 @@ public class Camera {
         io.updateInputs(inputs);
         missingCameraAlert.set(inputs.connected);
 
+        // Logging
+
         tagPositionsOnField =
                 Arrays.stream(inputs.tagsUsed)
                         .mapToObj(aprilTagFieldLayout::getTagPose)
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .toArray(Pose3d[]::new);
+    }
 
-        Logger.recordOutput("Vision/" + getCameraName() + "/tagsUsed", tagPositionsOnField);
+    public Pose3d[] getTagPositionsOnField() {
+        return tagPositionsOnField;
     }
 
     /** Get the pose of the robot as measured by the vision camera. */
@@ -115,7 +119,7 @@ public class Camera {
 
         // Get data about distance to each tag that is present on field
         DoubleSummaryStatistics distanceToTagsUsedSummary =
-                Arrays.stream(tagPositionsOnField)
+                Arrays.stream(getTagPositionsOnField())
                         .mapToDouble(
                                 (tagPose3d) ->
                                         tagPose3d
@@ -146,7 +150,7 @@ public class Camera {
     public VisionResultStatus getStatus(Pose2d lastRobotPose) {
         VisionResultStatus status = getStatus();
 
-        if (!status.success) {
+        if (!status.isSuccess()) {
             return status;
         }
 
@@ -208,23 +212,27 @@ public class Camera {
     }
 
     public enum VisionResultStatus {
-        NOT_A_NEW_RESULT(false),
-        NO_TARGETS_VISIBLE(false),
-        INVALID_TAG(false),
+        NOT_A_NEW_RESULT(3),
+        NO_TARGETS_VISIBLE(3),
+        INVALID_TAG(3),
 
-        INVALID_POSE_OUTSIDE_FIELD(false),
-        Z_HEIGHT_BAD(false),
-        PITCH_OR_ROLL_BAD(false),
+        INVALID_POSE_OUTSIDE_FIELD(2),
+        Z_HEIGHT_BAD(2),
+        PITCH_OR_ROLL_BAD(2),
 
-        NOT_CLOSE_ENOUGH_TO_GYRO_ROTATION(false),
-        TOO_FAR_FROM_EXISTING_ESTIMATE(false),
+        NOT_CLOSE_ENOUGH_TO_GYRO_ROTATION(1),
+        TOO_FAR_FROM_EXISTING_ESTIMATE(1),
 
-        SUCCESSFUL(true);
+        SUCCESSFUL(-1);
 
-        public final boolean success;
+        public final int failLevel;
 
-        private VisionResultStatus(boolean success) {
-            this.success = success;
+        private VisionResultStatus(int failLevel) {
+            this.failLevel = failLevel;
+        }
+
+        public boolean isSuccess() {
+            return failLevel < 0;
         }
     }
 }
