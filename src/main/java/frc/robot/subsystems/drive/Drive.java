@@ -9,6 +9,8 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
+
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -17,6 +19,8 @@ import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics.SwerveDriveWheelStates;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.kinematics.SwerveDriveWheelPositions;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -37,10 +41,6 @@ import java.util.Optional;
 
 /** Swerve drivetrain (chassis) of robot. This contains four swerve modules and a gyro */
 public class Drive extends SubsystemBase {
-	private static final double DRIVE_BASE_RADIUS = DRIVE_CONFIG.driveBaseRadius();
-
-	private static final double MAX_LINEAR_SPEED = DRIVE_CONFIG.maxLinearVelocity();
-	private static final double MAX_ANGULAR_SPEED = DRIVE_CONFIG.maxAngularVelocity();
 
 	// https://www.geeksforgeeks.org/reentrant-lock-java/
 	static final Lock odometryLock = new ReentrantLock();
@@ -116,7 +116,7 @@ public class Drive extends SubsystemBase {
 				this::setRobotSpeeds,
 				new HolonomicPathFollowerConfig(
 						new PIDConstants(5), new PIDConstants(5),
-						MAX_LINEAR_SPEED, DRIVE_BASE_RADIUS, new ReplanningConfig(
+						DRIVE_CONFIG.maxLinearVelocity(), DRIVE_CONFIG.driveBaseRadius(), new ReplanningConfig(
 								true, false, 1.0, 0.25),
 						Constants.LOOP_PERIOD_SECONDS),
 				AllianceFlipUtil::shouldFlip,
@@ -156,7 +156,7 @@ public class Drive extends SubsystemBase {
 	@Override
 	public void periodic() {
 
-		odometryLock.lock(); // Prevents odometry updates while reading data
+		odometryLock.lock(); // Prevents odometry updates while reading data, this is needed as odometry is handed on a different thread
 		gyroIO.updateInputs(gyroInputs);
 		modules().forEach(Module::updateInputs);
 		odometryLock.unlock();
@@ -234,8 +234,8 @@ public class Drive extends SubsystemBase {
 	/**
 	 * Adds a vision measurement to the pose estimator.
 	 *  
-	 * @param visionPose The pose of the robot as measured by the vision camera.
-	 * @param timestamp  The timestamp of the vision measurement in seconds. You must use a timestamp with an epoch since FPGA time startup.
+	 * @param visionPose the pose of the robot as measured by the vision camera.
+	 * @param timestamp  the timestamp of the vision measurement in seconds. You must use a timestamp with an epoch since FPGA time startup.
 	 */
 	public void addVisionMeasurement(Pose2d visionPose, double timestamp) {
 		poseEstimator.addVisionMeasurement(visionPose, timestamp);
@@ -403,12 +403,12 @@ public class Drive extends SubsystemBase {
 
 	/** Returns the maximum linear speed in meters per second. */
 	public double getMaxLinearSpeedMetersPerSec() {
-		return MAX_LINEAR_SPEED;
+		return DRIVE_CONFIG.maxLinearVelocity();
 	}
 
 	/** Returns the maximum angular speed in radians per second. */
 	public double getMaxAngularSpeedRadPerSec() {
-		return MAX_ANGULAR_SPEED;
+		return DRIVE_CONFIG.maxAngularVelocity();
 	}
 
 	// --- SysId ---
