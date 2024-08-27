@@ -8,16 +8,17 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.utility.LoggedGroup;
 import frc.robot.utility.LoggedTunableNumber;
 
 /** Controller for converting joystick values to drive components */
 public class TeleopDriveController {
 
-	private static final LoggedTunableNumber stickDeadband = new LoggedTunableNumber(
-			"Drive/TeleopDriveController/Deadband", 0.2);
+	private static final LoggedGroup group = new LoggedGroup("Drive/TeleopDriveController");
 
-	private static final LoggedTunableNumber stickDirectionDeadband = new LoggedTunableNumber(
-			"Drive/TeleopDriveController/AngleDeadband", 0.5);
+	private static final LoggedTunableNumber stickDeadband = group.buildTunable("Deadband", 0.2);
+
+	private static final LoggedTunableNumber stickDirectionDeadband = group.buildTunable("AngleDeadband", 0.5);
 
 	private final Drive drive;
 

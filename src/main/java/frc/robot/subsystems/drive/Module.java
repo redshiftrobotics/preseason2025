@@ -10,6 +10,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.utility.LoggedTunableNumber;
+import frc.robot.utility.LoggedGroup;
+
 import org.littletonrobotics.junction.Logger;
 import java.util.Optional;
 
@@ -19,20 +21,18 @@ import java.util.Optional;
  */
 public class Module {
 
-	private static final LoggedTunableNumber driveFeedForwardKs = new LoggedTunableNumber("Drive/Module/DriveFfKs",
+	private static final LoggedGroup group = new LoggedGroup("Drive/Module");
+
+	private static final LoggedTunableNumber driveFeedForwardKs = group.buildTunable("DriveFfKs",
 			MODULE_CONSTANTS.feedForwardKs());
-	private static final LoggedTunableNumber driveFeedForwardKv = new LoggedTunableNumber("Drive/Module/DriveFfKv",
+	private static final LoggedTunableNumber driveFeedForwardKv = group.buildTunable("DriveFfKv",
 			MODULE_CONSTANTS.feedForwardKv());
 
-	private static final LoggedTunableNumber driveKp = new LoggedTunableNumber("Drive/Module/DriveKp",
-			MODULE_CONSTANTS.driveKp());
-	private static final LoggedTunableNumber driveKd = new LoggedTunableNumber("Drive/Module/DriveKd",
-			MODULE_CONSTANTS.driveKd());
+	private static final LoggedTunableNumber driveKp = group.buildTunable("DriveKp", MODULE_CONSTANTS.driveKp());
+	private static final LoggedTunableNumber driveKd = group.buildTunable("DriveKd", MODULE_CONSTANTS.driveKd());
 
-	private static final LoggedTunableNumber turnKp = new LoggedTunableNumber("Drive/Module/TurnKp",
-			MODULE_CONSTANTS.turnKp());
-	private static final LoggedTunableNumber turnKd = new LoggedTunableNumber("Drive/Module/TurnKd",
-			MODULE_CONSTANTS.turnKd());
+	private static final LoggedTunableNumber turnKp = group.buildTunable("TurnKp", MODULE_CONSTANTS.turnKp());
+	private static final LoggedTunableNumber turnKd = group.buildTunable("TurnKd", MODULE_CONSTANTS.turnKd());
 
 	private final ModuleIO io;
 	private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();

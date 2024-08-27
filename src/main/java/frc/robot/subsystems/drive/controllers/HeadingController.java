@@ -11,24 +11,24 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.DriveConstants.ModuleLimits;
 import frc.robot.utility.LoggedTunableNumber;
+import frc.robot.utility.LoggedGroup;
+
 import org.littletonrobotics.junction.Logger;
 
 /** Controller for rotating robot to goal heading using ProfiledPIDController */
 public class HeadingController {
 
 	// Tunable parameters
-	private static final LoggedTunableNumber Kp = new LoggedTunableNumber("HeadingController/kP",
-			HEADING_CONTROLLER_CONSTANTS.Kp());
-	private static final LoggedTunableNumber Kd = new LoggedTunableNumber("HeadingController/kD",
-			HEADING_CONTROLLER_CONSTANTS.Kd());
+	private static final LoggedGroup group = new LoggedGroup("Drive/HeadingController");
 
-	private static final LoggedTunableNumber maxVelocityCoefficient = new LoggedTunableNumber(
-			"Drive/HeadingController/MaxVelocityCoefficient", 1);
-	private static final LoggedTunableNumber maxAccelerationCoefficient = new LoggedTunableNumber(
-			"Drive/HeadingController/MaxAccelerationCoefficient", 1);
+	private static final LoggedTunableNumber Kp = group.buildTunable("kP", HEADING_CONTROLLER_CONSTANTS.Kp());
+	private static final LoggedTunableNumber Kd = group.buildTunable("kD", HEADING_CONTROLLER_CONSTANTS.Kd());
 
-	private static final LoggedTunableNumber toleranceDegrees = new LoggedTunableNumber(
-			"Drive/HeadingController/ToleranceDegrees", 1);
+	private static final LoggedTunableNumber maxVelocityCoefficient = group.buildTunable("MaxVelocityCoefficient", 1);
+	private static final LoggedTunableNumber maxAccelerationCoefficient = group
+			.buildTunable("MaxAccelerationCoefficient", 1);
+
+	private static final LoggedTunableNumber toleranceDegrees = group.buildTunable("ToleranceDegrees", 1);
 
 	private final Drive drive;
 
@@ -65,9 +65,6 @@ public class HeadingController {
 	 * @param headingRadians desired heading of chassis in radians
 	 */
 	public void setGoal(double headingRadians) {
-		Logger.recordOutput(
-			"Drive/HeadingController/Goal", headingRadians);
-
 		headingControllerRadians.setGoal(headingRadians);
 	}
 
@@ -83,7 +80,7 @@ public class HeadingController {
 	/**
 	 * Get speed chassis needs to rotation at to reach heading goal
 	 *
-	 * @param goalHeadingRadians  desired heading of chassis in radians
+	 * @param goalHeadingRadians desired heading of chassis in radians
 	 * @return rotation speed to reach heading goal, omega radians per second
 	 */
 	public double calculate(double goalHeadingRadians) {
@@ -126,11 +123,13 @@ public class HeadingController {
 		output = headingControllerRadians.calculate(measurement);
 
 		Logger.recordOutput(
+				"Drive/HeadingController/Goal", headingControllerRadians.getGoal().position);
+		Logger.recordOutput(
 				"Drive/HeadingController/Output", output);
 		Logger.recordOutput(
 				"Drive/HeadingController/HeadingError", headingControllerRadians.getPositionError());
 		Logger.recordOutput(
-			"Drive/HeadingController/AtGoal", headingControllerRadians.atGoal());
+				"Drive/HeadingController/AtGoal", headingControllerRadians.atGoal());
 
 		return output;
 	}
