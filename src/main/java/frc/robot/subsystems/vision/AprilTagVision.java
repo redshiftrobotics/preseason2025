@@ -52,9 +52,8 @@ public class AprilTagVision extends SubsystemBase {
             if (visionEstimate.isSuccess()) {
                 Logger.recordOutput(root + "/positionEstimate", visionEstimate.robotPose());
             }
-            if (visionEstimate.status.failLevel < 2) {
-                Logger.recordOutput(root + "/status", visionEstimate.status);
-            }
+
+            Logger.recordOutput(root + "/status", visionEstimate.status);
 
             for (Consumer<TimestampedRobotPoseEstimate> consumer :
                     timestampRobotPoseEstimateConsumers) {

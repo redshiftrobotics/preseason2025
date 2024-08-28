@@ -172,6 +172,7 @@ public class Camera {
     }
 
     public VisionResultStatus getStatus() {
+        System.out.println(inputs.timestampSecondsFPGA + "==" + this.lastTimestampSecondsFPGA);
         if (inputs.timestampSecondsFPGA == this.lastTimestampSecondsFPGA) {
             return VisionResultStatus.NOT_A_NEW_RESULT;
         }
@@ -212,27 +213,27 @@ public class Camera {
     }
 
     public enum VisionResultStatus {
-        NOT_A_NEW_RESULT(3),
-        NO_TARGETS_VISIBLE(3),
-        INVALID_TAG(3),
+        NOT_A_NEW_RESULT(false),
+        NO_TARGETS_VISIBLE(false),
+        INVALID_TAG(false),
 
-        INVALID_POSE_OUTSIDE_FIELD(2),
-        Z_HEIGHT_BAD(2),
-        PITCH_OR_ROLL_BAD(2),
+        INVALID_POSE_OUTSIDE_FIELD(false),
+        Z_HEIGHT_BAD(false),
+        PITCH_OR_ROLL_BAD(false),
 
-        NOT_CLOSE_ENOUGH_TO_GYRO_ROTATION(1),
-        TOO_FAR_FROM_EXISTING_ESTIMATE(1),
+        NOT_CLOSE_ENOUGH_TO_GYRO_ROTATION(false),
+        TOO_FAR_FROM_EXISTING_ESTIMATE(false),
 
-        SUCCESSFUL(-1);
+        SUCCESSFUL(true);
 
-        public final int failLevel;
+        public final boolean success;
 
-        private VisionResultStatus(int failLevel) {
-            this.failLevel = failLevel;
+        private VisionResultStatus(boolean success) {
+            this.success = success;
         }
 
         public boolean isSuccess() {
-            return failLevel < 0;
+            return success;
         }
     }
 }
