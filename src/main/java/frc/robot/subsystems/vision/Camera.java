@@ -156,7 +156,7 @@ public class Camera {
 
         Pose2d estimatedRobotPose2d = inputs.estimatedRobotPose.toPose2d();
 
-        if (MathUtil.isNear(
+        if (!MathUtil.isNear(
                 estimatedRobotPose2d.getRotation().getDegrees(),
                 lastRobotPose.getRotation().getDegrees(),
                 maxValidDistanceAwayFromCurrentHeadingDegrees.get())) {
@@ -172,7 +172,6 @@ public class Camera {
     }
 
     public VisionResultStatus getStatus() {
-        System.out.println(inputs.timestampSecondsFPGA + "==" + this.lastTimestampSecondsFPGA);
         if (inputs.timestampSecondsFPGA == this.lastTimestampSecondsFPGA) {
             return VisionResultStatus.NOT_A_NEW_RESULT;
         }
@@ -192,17 +191,17 @@ public class Camera {
             return VisionResultStatus.INVALID_POSE_OUTSIDE_FIELD;
         }
 
-        if (MathUtil.isNear(0, inputs.estimatedRobotPose.getZ(), zHeightToleranceMeters.get())) {
+        if (!MathUtil.isNear(0, inputs.estimatedRobotPose.getZ(), zHeightToleranceMeters.get())) {
             return VisionResultStatus.Z_HEIGHT_BAD;
         }
 
         double pitchAndRollToleranceValueRadians =
                 Units.degreesToRadians(pitchAndRollToleranceDegrees.get());
-        if (MathUtil.isNear(
+        if (!MathUtil.isNear(
                         0,
                         inputs.estimatedRobotPose.getRotation().getX(),
                         pitchAndRollToleranceValueRadians)
-                && MathUtil.isNear(
+                && !MathUtil.isNear(
                         0,
                         inputs.estimatedRobotPose.getRotation().getY(),
                         pitchAndRollToleranceValueRadians)) {
