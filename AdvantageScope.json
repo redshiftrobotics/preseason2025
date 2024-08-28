@@ -1,178 +1,94 @@
 {
-    "hubs": [
+  "version": "3.0.1",
+  "layout": [
+    {
+      "type": 6,
+      "fields": [],
+      "listFields": [
+        [
+          {
+            "type": "Vision Target",
+            "key": "NT:/AdvantageKit/RealOutputs/Vision/frontCam/tagsUsedPositions",
+            "sourceTypeIndex": 2,
+            "sourceType": "Pose3d[]"
+          },
+          {
+            "type": "Green Ghost",
+            "key": "NT:/AdvantageKit/RealOutputs/Vision/frontCam/positionEstimate",
+            "sourceTypeIndex": 1,
+            "sourceType": "Pose3d"
+          }
+        ],
+        [
+          {
+            "type": "Robot",
+            "key": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
+            "sourceTypeIndex": 1,
+            "sourceType": "Pose2d"
+          }
+        ]
+      ],
+      "options": {
+        "field": "2024 Field",
+        "alliance": "blue",
+        "robot": "Duck Bot",
+        "unitDistance": "meters",
+        "unitRotation": "radians",
+        "cameraIndex": -1,
+        "fov": 50
+      },
+      "configHidden": false,
+      "title": "3D Field"
+    },
+    {
+      "type": 9,
+      "fields": [
         {
-            "x": -8,
-            "y": -8,
-            "width": 2576,
-            "height": 1416,
-            "state": {
-                "sidebar": {
-                    "width": 300,
-                    "expanded": [
-                        "/AdvantageKit",
-                        "/AdvantageKit/RealOutputs",
-                        "/AdvantageKit/RealOutputs/Odometry",
-                        "/AdvantageKit/RealOutputs/Odometry/Robot",
-                        "/AdvantageKit/RealOutputs/RobotState",
-                        "/AdvantageKit/RealOutputs/SwerveStates"
-                    ]
-                },
-                "tabs": {
-                    "selected": 2,
-                    "tabs": [
-                        {
-                            "type": 0,
-                            "path": "../docs/INDEX.md"
-                        },
-                        {
-                            "type": 6,
-                            "uuid": "41ocpa4s1fr36mptfs2vu842q75muhhr",
-                            "fields": [],
-                            "listFields": [
-                                [],
-                                [
-                                    {
-                                        "type": "Robot",
-                                        "key": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
-                                        "sourceTypeIndex": 1,
-                                        "sourceType": "Pose2d"
-                                    }
-                                ]
-                            ],
-                            "options": {
-                                "field": "2024 Field",
-                                "alliance": "blue",
-                                "robot": "Crab Bot",
-                                "unitDistance": "meters",
-                                "unitRotation": "radians"
-                            },
-                            "configHidden": false,
-                            "visualizer": {
-                                "cameraIndex": -1,
-                                "orbitFov": 50,
-                                "cameraPosition": [
-                                    10.520164667966252,
-                                    1.875454495940939,
-                                    -1.1266456636840467
-                                ],
-                                "cameraTarget": [
-                                    6.716408274686232,
-                                    1.2803378441726276,
-                                    -1.3094258243264263
-                                ]
-                            },
-                            "title": "3D Field"
-                        },
-                        {
-                            "type": 9,
-                            "uuid": "1lsdb4cy0ymit5ivxp3g98fdb86ese8q",
-                            "fields": [
-                                {
-                                    "key": "NT:/AdvantageKit/RealOutputs/SwerveStates/MeasuredWheelSpeeds",
-                                    "sourceTypeIndex": 1,
-                                    "sourceType": "SwerveModuleState[]"
-                                },
-                                {
-                                    "key": "NT:/AdvantageKit/RealOutputs/SwerveStates/DesiredWheelSpeeds",
-                                    "sourceTypeIndex": 1,
-                                    "sourceType": "SwerveModuleState[]"
-                                },
-                                {
-                                    "key": "NT:/AdvantageKit/RealOutputs/Odometry/Robot/rotation",
-                                    "sourceTypeIndex": 1,
-                                    "sourceType": "Rotation2d"
-                                }
-                            ],
-                            "listFields": [],
-                            "options": {
-                                "maxSpeed": 4.5,
-                                "rotationUnits": "radians",
-                                "arrangement": "0,1,2,3",
-                                "sizeLeftRight": 0.65,
-                                "sizeFrontBack": 0.65,
-                                "forwardDirection": "up"
-                            },
-                            "configHidden": false,
-                            "visualizer": null,
-                            "title": "Swerve"
-                        },
-                        {
-                            "type": 5,
-                            "uuid": "9yc11w3oi3yxl1zyh4y1wwk2y8dp2su3",
-                            "fields": [],
-                            "listFields": [
-                                [
-                                    {
-                                        "type": "Robot",
-                                        "key": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
-                                        "sourceTypeIndex": 1,
-                                        "sourceType": "Pose2d"
-                                    }
-                                ]
-                            ],
-                            "options": {
-                                "game": "2024 Field",
-                                "unitDistance": "meters",
-                                "unitRotation": "radians",
-                                "origin": "right",
-                                "size": 0.75,
-                                "allianceBumpers": "auto",
-                                "allianceOrigin": "blue",
-                                "orientation": "blue left, red right"
-                            },
-                            "configHidden": false,
-                            "visualizer": null,
-                            "title": "Odometry"
-                        },
-                        {
-                            "type": 8,
-                            "uuid": "f5fyb2gba2ubqlxs6t6zzbu2xjbc6j8n",
-                            "fields": [],
-                            "listFields": [],
-                            "options": {
-                                "ids": [
-                                    0,
-                                    1,
-                                    2
-                                ],
-                                "layouts": [
-                                    "Xbox Controller (White)",
-                                    "None",
-                                    "None"
-                                ]
-                            },
-                            "configHidden": false,
-                            "visualizer": null,
-                            "title": "Joysticks"
-                        }
-                    ]
-                }
-            }
-        }
-    ],
-    "satellites": [
-        {
-            "x": -5,
-            "y": 531,
-            "width": 518,
-            "height": 288,
-            "state": {
-                "type": 5,
-                "visualizer": null
-            },
-            "uuid": "9yc11w3oi3yxl1zyh4y1wwk2y8dp2su3"
+          "key": "NT:/AdvantageKit/RealOutputs/SwerveStates/MeasuredWheelSpeeds",
+          "sourceTypeIndex": 1,
+          "sourceType": "SwerveModuleState[]"
         },
         {
-            "x": -23,
-            "y": 159,
-            "width": 340,
-            "height": 340,
-            "state": {
-                "type": 9,
-                "visualizer": null
-            },
-            "uuid": "1lsdb4cy0ymit5ivxp3g98fdb86ese8q"
+          "key": "NT:/AdvantageKit/RealOutputs/SwerveStates/DesiredWheelSpeeds",
+          "sourceTypeIndex": 1,
+          "sourceType": "SwerveModuleState[]"
+        },
+        {
+          "key": "NT:/AdvantageKit/RealOutputs/Odometry/Robot/rotation",
+          "sourceTypeIndex": 1,
+          "sourceType": "Rotation2d"
         }
-    ],
-    "version": "3.2.1"
+      ],
+      "listFields": [],
+      "options": {
+        "maxSpeed": 4.5,
+        "rotationUnits": "radians",
+        "arrangement": "0,1,2,3",
+        "sizeLeftRight": 0.65,
+        "sizeFrontBack": 0.65,
+        "forwardDirection": "up"
+      },
+      "configHidden": false,
+      "title": "Swerve"
+    },
+    {
+      "type": 8,
+      "fields": [],
+      "listFields": [],
+      "options": {
+        "ids": [
+          0,
+          1,
+          2
+        ],
+        "layouts": [
+          "Xbox Controller (White)",
+          "None",
+          "None"
+        ]
+      },
+      "configHidden": false,
+      "title": "Joysticks"
+    }
+  ]
 }
