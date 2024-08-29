@@ -38,13 +38,14 @@ public class AprilTagVision extends SubsystemBase {
 
         for (Camera camera : cameras) {
 
-			VisionResultStatus status = robotPoseSupplier == null
-                                    ? camera.getStatus()
-                                    : camera.getStatus(robotPoseSupplier.get());
+            VisionResultStatus status =
+                    robotPoseSupplier == null
+                            ? camera.getStatus()
+                            : camera.getStatus(robotPoseSupplier.get());
 
-			if (status == VisionResultStatus.NOT_A_NEW_RESULT) {
-				continue;
-			}
+            if (status == VisionResultStatus.NOT_A_NEW_RESULT) {
+                continue;
+            }
 
             // Get Data
             TimestampedRobotPoseEstimate visionEstimate =
@@ -52,7 +53,7 @@ public class AprilTagVision extends SubsystemBase {
                             camera.getEstimatedRobotPose(),
                             camera.getTimestampSeconds(),
                             camera.getStandardDeviations(),
-							status);
+                            status);
 
             // Logging
 
@@ -64,8 +65,8 @@ public class AprilTagVision extends SubsystemBase {
                 Logger.recordOutput(root + "/positionEstimate", visionEstimate.robotPose());
             }
 
-			Logger.recordOutput(root + "/status", visionEstimate.status);
-			Logger.recordOutput(root + "/statusIsSuccess", visionEstimate.status.isSuccess());
+            Logger.recordOutput(root + "/status", visionEstimate.status);
+            Logger.recordOutput(root + "/statusIsSuccess", visionEstimate.status.isSuccess());
 
             // Give consumers estimate
 
