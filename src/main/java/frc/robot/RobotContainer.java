@@ -156,10 +156,12 @@ public class RobotContainer {
 
         // Set up named commands for path planner auto
         // https://pathplanner.dev/pplib-named-commands.html
+        NamedCommands.registerCommand("StopWithX", drive.runOnce(drive::stopUsingBrakeArrangement));
         NamedCommands.registerCommand(
-                "StopWithX", Commands.runOnce(drive::stopUsingBrakeArrangement, drive));
-        NamedCommands.registerCommand(
-                "Shoot", Commands.runOnce(() -> flywheelExample.runVelocity(0)));
+                "Shoot",
+                flywheelExample
+                        .startEnd(() -> flywheelExample.runVelocity(1000), flywheelExample::stop)
+                        .raceWith(Commands.waitSeconds(0.5)));
 
         // Path planner Autos
         // https://pathplanner.dev/gui-editing-paths-and-autos.html#autos
