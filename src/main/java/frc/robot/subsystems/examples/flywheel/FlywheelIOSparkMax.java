@@ -1,6 +1,10 @@
 package frc.robot.subsystems.examples.flywheel;
 
+import static frc.robot.subsystems.examples.flywheel.FlywheelConstants.FLYWHEEL_CONFIG;
+import static frc.robot.subsystems.examples.flywheel.FlywheelConstants.GEAR_RATIO;
+
 import com.revrobotics.CANSparkBase.ControlType;
+import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
@@ -13,22 +17,34 @@ import edu.wpi.first.math.util.Units;
  * "CANSparkFlex".
  */
 public class FlywheelIOSparkMax implements FlywheelIO {
-    private static final double GEAR_RATIO = 1.5;
-
-    private final CANSparkMax leader = new CANSparkMax(0, MotorType.kBrushless);
-    private final CANSparkMax follower = new CANSparkMax(1, MotorType.kBrushless);
-    private final RelativeEncoder encoder = leader.getEncoder();
-    private final SparkPIDController pid = leader.getPIDController();
+    private final CANSparkMax leader;
+    private final CANSparkMax follower;
+    private final RelativeEncoder encoder;
+    private final SparkPIDController pid;
 
     public FlywheelIOSparkMax() {
+
+        // --- Save config ---
+        leader = new CANSparkMax(FLYWHEEL_CONFIG.followerID(), MotorType.kBrushless);
+        follower = new CANSparkMax(FLYWHEEL_CONFIG.leaderID(), MotorType.kBrushless);
+
+        // --- Set up leader controller ---
+        encoder = leader.getEncoder();
+        pid = leader.getPIDController();
+
+        // --- Configure Hardware ---
+
+        // Defaults
         leader.restoreFactoryDefaults();
         follower.restoreFactoryDefaults();
 
-        leader.setCANTimeout(250);
-        follower.setCANTimeout(250);
+        // Controls
+        leader.setInverted(FLYWHEEL_CONFIG.leaderInverted());
+        follower.follow(leader, FLYWHEEL_CONFIG.followerInverted());
 
-        leader.setInverted(false);
-        follower.follow(leader, false);
+        // Disable voltage
+        leader.setIdleMode(IdleMode.kCoast);
+        follower.setIdleMode(IdleMode.kCoast);
 
         leader.enableVoltageCompensation(12.0);
         leader.setSmartCurrentLimit(30);

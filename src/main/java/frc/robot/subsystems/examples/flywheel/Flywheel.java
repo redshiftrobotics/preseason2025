@@ -1,19 +1,21 @@
 package frc.robot.subsystems.examples.flywheel;
 
 import static edu.wpi.first.units.Units.*;
+import static frc.robot.subsystems.examples.flywheel.FlywheelConstants.FEED_FORWARD_CONFIG;
+import static frc.robot.subsystems.examples.flywheel.FlywheelConstants.PID_CONFIG;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Flywheel extends SubsystemBase {
     private final FlywheelIO io;
-    private final FlywheelIOInputsAutoLogged inputs;
+    private final FlywheelIOInputsAutoLogged inputs = new FlywheelIOInputsAutoLogged();
+
     private final SimpleMotorFeedforward ffModel;
     private final SysIdRoutine sysId;
 
@@ -21,24 +23,12 @@ public class Flywheel extends SubsystemBase {
     public Flywheel(FlywheelIO io) {
         this.io = io;
 
-        inputs = new FlywheelIOInputsAutoLogged();
-
-        // Switch constants based on mode (the physics simulator is treated as a
-        // separate robot with different tuning)
-        switch (Constants.getMode()) {
-            case REAL:
-            case REPLAY:
-                ffModel = new SimpleMotorFeedforward(0.1, 0.05);
-                io.configurePID(1.0, 0.0, 0.0);
-                break;
-            case SIM:
-                ffModel = new SimpleMotorFeedforward(0.0, 0.03);
-                io.configurePID(0.5, 0.0, 0.0);
-                break;
-            default:
-                ffModel = new SimpleMotorFeedforward(0.0, 0.0);
-                break;
-        }
+        ffModel =
+                new SimpleMotorFeedforward(
+                        FEED_FORWARD_CONFIG.Ks(),
+                        FEED_FORWARD_CONFIG.Kv(),
+                        FEED_FORWARD_CONFIG.Ka());
+        io.configurePID(PID_CONFIG.Kp(), PID_CONFIG.Ki(), PID_CONFIG.Kd());
 
         // Configure SysId
         sysId =
@@ -76,6 +66,7 @@ public class Flywheel extends SubsystemBase {
 
     /** Stops the flywheel. */
     public void stop() {
+        runVelocity(0);
         io.stop();
     }
 

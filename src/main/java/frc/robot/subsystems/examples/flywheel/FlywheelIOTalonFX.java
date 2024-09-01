@@ -1,5 +1,8 @@
 package frc.robot.subsystems.examples.flywheel;
 
+import static frc.robot.subsystems.examples.flywheel.FlywheelConstants.FLYWHEEL_CONFIG;
+import static frc.robot.subsystems.examples.flywheel.FlywheelConstants.GEAR_RATIO;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -8,29 +11,46 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.util.Units;
 
 public class FlywheelIOTalonFX implements FlywheelIO {
-    private static final double GEAR_RATIO = 1.5;
+    private final TalonFX leader;
+    private final TalonFX follower;
 
-    private final TalonFX leader = new TalonFX(0);
-    private final TalonFX follower = new TalonFX(1);
-
-    private final StatusSignal<Double> leaderPosition = leader.getPosition();
-    private final StatusSignal<Double> leaderVelocity = leader.getVelocity();
-    private final StatusSignal<Double> leaderAppliedVolts = leader.getMotorVoltage();
-    private final StatusSignal<Double> leaderCurrent = leader.getSupplyCurrent();
-    private final StatusSignal<Double> followerCurrent = follower.getSupplyCurrent();
+    private final StatusSignal<Double> leaderPosition;
+    private final StatusSignal<Double> leaderVelocity;
+    private final StatusSignal<Double> leaderAppliedVolts;
+    private final StatusSignal<Double> leaderCurrent;
+    private final StatusSignal<Double> followerCurrent;
 
     public FlywheelIOTalonFX() {
+
+        leader = new TalonFX(FLYWHEEL_CONFIG.leaderID());
+        follower = new TalonFX(FLYWHEEL_CONFIG.followerID());
+
+        leaderPosition = leader.getPosition();
+        leaderVelocity = leader.getVelocity();
+        leaderAppliedVolts = leader.getMotorVoltage();
+        leaderCurrent = leader.getSupplyCurrent();
+
+        followerCurrent = follower.getSupplyCurrent();
+
         var config = new TalonFXConfiguration();
         config.CurrentLimits.SupplyCurrentLimit = 30.0;
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
         config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        config.MotorOutput.Inverted =
+                FLYWHEEL_CONFIG.leaderInverted()
+                        ? InvertedValue.Clockwise_Positive
+                        : InvertedValue.Clockwise_Positive;
         leader.getConfigurator().apply(config);
         follower.getConfigurator().apply(config);
-        follower.setControl(new Follower(leader.getDeviceID(), false));
+        follower.setControl(
+                new Follower(
+                        leader.getDeviceID(),
+                        FLYWHEEL_CONFIG.followerInverted() ^ FLYWHEEL_CONFIG.leaderInverted()));
 
         BaseStatusSignal.setUpdateFrequencyForAll(
                 50.0,
