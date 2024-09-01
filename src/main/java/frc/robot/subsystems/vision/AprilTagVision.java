@@ -19,99 +19,96 @@ import org.littletonrobotics.junction.Logger;
 
 public class AprilTagVision extends SubsystemBase {
 
-    private final Camera[] cameras;
+  private final Camera[] cameras;
 
-    private Supplier<Pose2d> robotPoseSupplier = null;
-    private List<Consumer<TimestampedRobotPoseEstimate>> timestampRobotPoseEstimateConsumers =
-            new ArrayList<>();
+  private Supplier<Pose2d> robotPoseSupplier = null;
+  private List<Consumer<TimestampedRobotPoseEstimate>> timestampRobotPoseEstimateConsumers =
+      new ArrayList<>();
 
-    public AprilTagVision(CameraIO... camerasIO) {
-        this.cameras =
-                Arrays.stream(camerasIO)
-                        .map(io -> new Camera(io, FieldConstants.APRIL_TAG_FIELD_LAYOUT))
-                        .toArray(Camera[]::new);
+  public AprilTagVision(CameraIO... camerasIO) {
+    this.cameras =
+        Arrays.stream(camerasIO)
+            .map(io -> new Camera(io, FieldConstants.APRIL_TAG_FIELD_LAYOUT))
+            .toArray(Camera[]::new);
+  }
+
+  @Override
+  public void periodic() {
+    cameras().forEach(Camera::periodic);
+
+    for (Camera camera : cameras) {
+
+      VisionResultStatus status =
+          robotPoseSupplier == null
+              ? camera.getStatus()
+              : camera.getStatus(robotPoseSupplier.get());
+
+      if (status == VisionResultStatus.NOT_A_NEW_RESULT) {
+        continue;
+      }
+
+      // Get Data
+      TimestampedRobotPoseEstimate visionEstimate =
+          new TimestampedRobotPoseEstimate(
+              camera.getEstimatedRobotPose(),
+              camera.getTimestampSeconds(),
+              camera.getStandardDeviations(),
+              status);
+
+      // Logging
+
+      String root = "Vision/" + camera.getCameraName();
+
+      Logger.recordOutput(root + "/tagsUsedPositions", camera.getTagPositionsOnField());
+
+      if (visionEstimate.isSuccess()) {
+        Logger.recordOutput(root + "/positionEstimate", visionEstimate.robotPose());
+      }
+
+      Logger.recordOutput(root + "/status", visionEstimate.status);
+      Logger.recordOutput(root + "/statusIsSuccess", visionEstimate.status.isSuccess());
+
+      // Give consumers estimate
+
+      for (Consumer<TimestampedRobotPoseEstimate> consumer : timestampRobotPoseEstimateConsumers) {
+        consumer.accept(visionEstimate);
+      }
+    }
+  }
+
+  public void setRobotPoseSupplier(Supplier<Pose2d> robotPoseSupplier) {
+    this.robotPoseSupplier = robotPoseSupplier;
+  }
+
+  public void addVisionEstimateConsumer(
+      Consumer<TimestampedRobotPoseEstimate> timestampRobotPoseEstimateConsumer) {
+    timestampRobotPoseEstimateConsumers.add(timestampRobotPoseEstimateConsumer);
+  }
+
+  public Stream<Camera> cameras() {
+    return Arrays.stream(cameras);
+  }
+
+  @Override
+  public String toString() {
+    return String.format(
+        "%s(%s)",
+        getClass().getName(),
+        Arrays.stream(cameras).map(Camera::getCameraName).collect(Collectors.joining(", ")));
+  }
+
+  public record TimestampedRobotPoseEstimate(
+      Pose3d robotPose,
+      double timestampSeconds,
+      Matrix<N3, N1> standardDeviations,
+      VisionResultStatus status) {
+
+    public Pose2d robotPose2d() {
+      return robotPose.toPose2d();
     }
 
-    @Override
-    public void periodic() {
-        cameras().forEach(Camera::periodic);
-
-        for (Camera camera : cameras) {
-
-            VisionResultStatus status =
-                    robotPoseSupplier == null
-                            ? camera.getStatus()
-                            : camera.getStatus(robotPoseSupplier.get());
-
-            if (status == VisionResultStatus.NOT_A_NEW_RESULT) {
-                continue;
-            }
-
-            // Get Data
-            TimestampedRobotPoseEstimate visionEstimate =
-                    new TimestampedRobotPoseEstimate(
-                            camera.getEstimatedRobotPose(),
-                            camera.getTimestampSeconds(),
-                            camera.getStandardDeviations(),
-                            status);
-
-            // Logging
-
-            String root = "Vision/" + camera.getCameraName();
-
-            Logger.recordOutput(root + "/tagsUsedPositions", camera.getTagPositionsOnField());
-
-            if (visionEstimate.isSuccess()) {
-                Logger.recordOutput(root + "/positionEstimate", visionEstimate.robotPose());
-            }
-
-            Logger.recordOutput(root + "/status", visionEstimate.status);
-            Logger.recordOutput(root + "/statusIsSuccess", visionEstimate.status.isSuccess());
-
-            // Give consumers estimate
-
-            for (Consumer<TimestampedRobotPoseEstimate> consumer :
-                    timestampRobotPoseEstimateConsumers) {
-                consumer.accept(visionEstimate);
-            }
-        }
+    public boolean isSuccess() {
+      return status.isSuccess();
     }
-
-    public void setRobotPoseSupplier(Supplier<Pose2d> robotPoseSupplier) {
-        this.robotPoseSupplier = robotPoseSupplier;
-    }
-
-    public void addVisionEstimateConsumer(
-            Consumer<TimestampedRobotPoseEstimate> timestampRobotPoseEstimateConsumer) {
-        timestampRobotPoseEstimateConsumers.add(timestampRobotPoseEstimateConsumer);
-    }
-
-    public Stream<Camera> cameras() {
-        return Arrays.stream(cameras);
-    }
-
-    @Override
-    public String toString() {
-        return String.format(
-                "%s(%s)",
-                getClass().getName(),
-                Arrays.stream(cameras)
-                        .map(Camera::getCameraName)
-                        .collect(Collectors.joining(", ")));
-    }
-
-    public record TimestampedRobotPoseEstimate(
-            Pose3d robotPose,
-            double timestampSeconds,
-            Matrix<N3, N1> standardDeviations,
-            VisionResultStatus status) {
-
-        public Pose2d robotPose2d() {
-            return robotPose.toPose2d();
-        }
-
-        public boolean isSuccess() {
-            return status.isSuccess();
-        }
-    }
+  }
 }

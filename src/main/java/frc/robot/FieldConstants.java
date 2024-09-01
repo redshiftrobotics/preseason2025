@@ -17,14 +17,14 @@ import edu.wpi.first.math.util.Units;
  */
 public class FieldConstants {
 
-    public static final double FIELD_LENGTH = Units.inchesToMeters(651.25);
-    public static final double FIELD_WIDTH = Units.inchesToMeters(315.5);
+  public static final double FIELD_LENGTH = Units.inchesToMeters(651.25);
+  public static final double FIELD_WIDTH = Units.inchesToMeters(315.5);
 
-    public static final double APRIL_TAG_WIDTH = Units.inchesToMeters(6.50);
-    public static final AprilTagFieldLayout APRIL_TAG_FIELD_LAYOUT =
-            AprilTagFieldLayout.loadField(AprilTagFields.k2024Crescendo);
+  public static final double APRIL_TAG_WIDTH = Units.inchesToMeters(6.50);
+  public static final AprilTagFieldLayout APRIL_TAG_FIELD_LAYOUT =
+      AprilTagFieldLayout.loadField(AprilTagFields.k2024Crescendo);
 
-    static {
-        APRIL_TAG_FIELD_LAYOUT.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
-    }
+  static {
+    APRIL_TAG_FIELD_LAYOUT.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
+  }
 }
