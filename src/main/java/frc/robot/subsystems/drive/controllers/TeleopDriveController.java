@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.utility.LoggedTunableNumber;
 import frc.robot.utility.LoggedTunableNumberGroup;
@@ -68,6 +69,8 @@ public class TeleopDriveController {
    * @return translation x and y in meters per second
    */
   public Translation2d getTranslationMetersPerSecond() {
+    if (DriverStation.isAutonomous()) return new Translation2d();
+
     return TeleopDriveController.getTranslationMetersPerSecond(
         xSupplier.getAsDouble(),
         ySupplier.getAsDouble(),
@@ -81,6 +84,8 @@ public class TeleopDriveController {
    * @return rotation in unit per second
    */
   public Rotation2d getOmegaRadiansPerSecond() {
+    if (DriverStation.isAutonomous()) return new Rotation2d();
+
     return TeleopDriveController.getOmegaRadiansPerSecond(
         yAngleSupplier.getAsDouble(),
         drive.getMaxAngularSpeedRadPerSec()
@@ -93,6 +98,8 @@ public class TeleopDriveController {
    * @return heading angle
    */
   public Rotation2d getHeadingDirection() {
+    if (DriverStation.isAutonomous()) return new Rotation2d();
+
     return TeleopDriveController.getHeadingDirection(
         xAngleSupplier.getAsDouble(), yAngleSupplier.getAsDouble());
   }

@@ -173,9 +173,7 @@ public class RobotContainer {
     initSmartDashboardOutputs();
   }
 
-  /**
-   * Define button->command mappings.
-   */
+  /** Define button->command mappings. */
   private void configureControllerBindings() {
     CommandScheduler.getInstance().getActiveButtonLoop().clear();
     configureDriverControllerBindings();
@@ -264,6 +262,7 @@ public class RobotContainer {
                           headingController.setGoal(angle.getRadians());
                         })
                     .withName(String.format("PrepareLockedHeading %s\u00B0", pov)));
+
         // Then while it is held, if we are not at the angle turn to it, if we are at the
         // angle go forward at
         // the angle
