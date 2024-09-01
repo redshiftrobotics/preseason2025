@@ -265,7 +265,7 @@ public class Drive extends SubsystemBase {
    *     with an epoch since FPGA time startup.
    * @param standardDeviations standard deviations of the vision measurements. Increase these
    *     numbers to trust global measurements from vision less. This matrix is in the form [x, y,
-   *     theta]ᵀ, with units in meters and radians.
+   *     theta], with units in meters and radians.
    */
   public void addVisionMeasurement(
       Pose2d visionPose, double timestamp, Matrix<N3, N1> standardDeviations) {
