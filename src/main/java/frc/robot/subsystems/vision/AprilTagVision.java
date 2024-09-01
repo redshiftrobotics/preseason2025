@@ -37,15 +37,17 @@ public class AprilTagVision extends SubsystemBase {
     cameras().forEach(Camera::periodic);
 
     for (Camera camera : cameras) {
+      String root = "Vision/" + camera.getCameraName();
+
+      if (!camera.hasNewData()) {
+        Logger.recordOutput(root + "/tagsUsedPositions", new Pose3d[] {});
+        continue;
+      }
 
       VisionResultStatus status =
           robotPoseSupplier == null
               ? camera.getStatus()
               : camera.getStatus(robotPoseSupplier.get());
-
-      if (status == VisionResultStatus.NOT_A_NEW_RESULT) {
-        continue;
-      }
 
       // Get Data
       TimestampedRobotPoseEstimate visionEstimate =
@@ -57,13 +59,9 @@ public class AprilTagVision extends SubsystemBase {
 
       // Logging
 
-      String root = "Vision/" + camera.getCameraName();
-
       Logger.recordOutput(root + "/tagsUsedPositions", camera.getTagPositionsOnField());
 
-      if (visionEstimate.isSuccess()) {
-        Logger.recordOutput(root + "/positionEstimate", visionEstimate.robotPose());
-      }
+      Logger.recordOutput(root + "/positionEstimate", visionEstimate.robotPose());
 
       Logger.recordOutput(root + "/status", visionEstimate.status);
       Logger.recordOutput(root + "/statusIsSuccess", visionEstimate.status.isSuccess());

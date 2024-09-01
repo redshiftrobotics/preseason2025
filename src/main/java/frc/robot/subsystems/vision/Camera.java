@@ -91,6 +91,10 @@ public class Camera {
             .toArray(Pose3d[]::new);
   }
 
+  public boolean hasNewData() {
+    return inputs.hasNewData;
+  }
+
   public Pose3d[] getTagPositionsOnField() {
     return tagPositionsOnField;
   }
@@ -169,6 +173,11 @@ public class Camera {
   }
 
   public VisionResultStatus getStatus() {
+
+    if (!inputs.hasNewData) {
+      return VisionResultStatus.NO_DATA;
+    }
+
     if (inputs.timestampSecondsFPGA == this.lastTimestampSecondsFPGA) {
       return VisionResultStatus.NOT_A_NEW_RESULT;
     }
@@ -205,6 +214,8 @@ public class Camera {
   }
 
   public enum VisionResultStatus {
+    NO_DATA(false),
+
     NOT_A_NEW_RESULT(false),
     NO_TARGETS_VISIBLE(false),
     INVALID_TAG(false),

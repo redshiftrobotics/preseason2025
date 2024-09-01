@@ -59,6 +59,8 @@ public class CameraIOPhotonVision implements CameraIO {
           estimateRobotPose.targetsUsed.stream()
               .mapToInt(PhotonTrackedTarget::getFiducialId)
               .toArray();
+    } else {
+      inputs.hasNewData = false;
     }
 
     inputs.connected = camera.isConnected();

@@ -9,6 +9,8 @@ public interface CameraIO {
   @AutoLog
   public static class CameraIOInputs {
 
+    boolean hasNewData = false;
+
     Pose3d estimatedRobotPose = new Pose3d();
     double timestampSecondsFPGA = -1;
 

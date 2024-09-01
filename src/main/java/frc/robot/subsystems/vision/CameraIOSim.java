@@ -76,12 +76,15 @@ public class CameraIOSim implements CameraIO {
     if (estimatedRobotPoseOptional.isPresent()) {
       EstimatedRobotPose estimateRobotPose = estimatedRobotPoseOptional.get();
 
+      inputs.hasNewData = true;
       inputs.timestampSecondsFPGA = estimateRobotPose.timestampSeconds;
       inputs.estimatedRobotPose = estimateRobotPose.estimatedPose;
       inputs.tagsUsed =
           estimateRobotPose.targetsUsed.stream()
               .mapToInt(PhotonTrackedTarget::getFiducialId)
               .toArray();
+    } else {
+      inputs.hasNewData = false;
     }
 
     inputs.connected = camera.isConnected();
