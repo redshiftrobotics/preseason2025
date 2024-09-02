@@ -172,6 +172,7 @@ public class Drive extends SubsystemBase {
     odometryLock.unlock();
 
     Logger.processInputs("Drive/Gyro", gyroInputs);
+    modules().forEach(Module::periodic);
 
     // Stop moving when disabled
     if (DriverStation.isDisabled()) {
