@@ -1,9 +1,0 @@
-1. Why do motors do a bit less than requested always
-2. Speed up slow points to fix command loop overruns
-
-1. Set up PathWeaver, Create a Path On-the-fly, Pathfinding
-2. Learn how to calibrate PathWeaver on robot 
-3. Set up photonvision on personal raspberry pi with custom field layout and 2 cameras
-4. Choreo Interop?
-5. Object Detection?
-6. SysID?
