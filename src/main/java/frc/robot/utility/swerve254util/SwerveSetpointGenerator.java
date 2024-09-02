@@ -24,7 +24,8 @@ public class SwerveSetpointGenerator {
   private final SwerveDriveKinematics kinematics;
   private final Translation2d[] moduleLocations;
 
-  public SwerveSetpointGenerator(SwerveDriveKinematics kinematics, Translation2d[] moduleLocations) {
+  public SwerveSetpointGenerator(
+      SwerveDriveKinematics kinematics, Translation2d[] moduleLocations) {
     this.kinematics = kinematics;
     this.moduleLocations = moduleLocations;
   }
@@ -389,15 +390,14 @@ public class SwerveSetpointGenerator {
     return new SwerveSetpoint(retSpeeds, retStates);
   }
 
-
   public static boolean epsilonEquals(double a, double b) {
     return MathUtil.isNear(a, b, 1e-9);
   }
 
   public static boolean epsilonEquals(Twist2d twist, Twist2d other) {
     return epsilonEquals(twist.dx, other.dx)
-          && epsilonEquals(twist.dy, other.dy)
-          && epsilonEquals(twist.dtheta, other.dtheta);
+        && epsilonEquals(twist.dy, other.dy)
+        && epsilonEquals(twist.dtheta, other.dtheta);
   }
 
   public static Twist2d toTwist2d(ChassisSpeeds speeds) {
