@@ -2,43 +2,25 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.3,
-      "y": 5.45
+      "x": 1.36317777633667,
+      "y": 5.626431941986084
     },
-    "rotation": 180.0
+    "rotation": -5.883735582271749e-16
   },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "Shoot"
+            "pathName": "Four Note Center Choreo 1"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Four Note Center A"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Four Note Center B"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Four Note Center C"
+            "pathName": "Four Note Center Choreo 2"
           }
         },
         {
@@ -50,7 +32,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Four Note Center D"
+            "pathName": "Four Note Center Choreo 3"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Four Note Center Choreo 4"
           }
         },
         {
@@ -63,5 +57,5 @@
     }
   },
   "folder": null,
-  "choreoAuto": false
+  "choreoAuto": true
 }

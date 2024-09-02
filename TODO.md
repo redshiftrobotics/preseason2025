@@ -1,11 +1,9 @@
- 
-
 # PROJECTS TODO
 
 ## COMPLETED
 
 ### COMPLETE + TESTED ON BOT
-- 
+-
 
 ### COMPLETE + TESTED ON SIM
 - Drive subsystem (Both real and sim IOs)
@@ -14,12 +12,13 @@
 - Vision Pose Estimate filtering and standard deviations
 - PathWeaver Auto with FRC PathPlanner https://pathplanner.dev/pplib-build-an-auto.html#create-a-sendablechooser-with-certain-autos-in-project
 - Create Auto with PathPlanner GUI https://pathplanner.dev/pathplanner-gui.html
+- Choreo https://sleipnirgroup.github.io/Choreo/document-settings/robot-configuration/ https://pathplanner.dev/pplib-choreo-interop.html
 
 ### COMPLETE + UNTESTED
-- 
+-
 
 ## IN PROGRESS
-- Choreo https://sleipnirgroup.github.io/Choreo/document-settings/robot-configuration/ https://pathplanner.dev/pplib-choreo-interop.html
+-
 
 ## UPCOMING
 - Create path on fly with PathWeaver https://pathplanner.dev/pplib-create-a-path-on-the-fly.html

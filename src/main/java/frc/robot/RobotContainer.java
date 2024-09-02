@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.RobotType;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
@@ -123,7 +124,7 @@ public class RobotContainer {
     vision.setRobotPoseSupplier(drive::getPose);
     vision.addVisionEstimateConsumer(
         (visionEstimate) -> {
-          if (visionEstimate.isSuccess()) {
+          if (Constants.getRobot() != RobotType.SIM_BOT && visionEstimate.isSuccess()) {
             drive.addVisionMeasurement(
                 visionEstimate.robotPose2d(),
                 visionEstimate.timestampSeconds(),
@@ -131,8 +132,7 @@ public class RobotContainer {
           }
         });
 
-    // autoChooser = new LoggedDashboardChooser<>("Auto Chooser",
-    // AutoBuilder.buildAutoChooser());
+    // Can also use AutoBuilder.buildAutoChooser(); instead of SendableChooser to auto populate
     autoChooser = new LoggedDashboardChooser<>("Auto Chooser", new SendableChooser<Command>());
 
     // Set up SysId routines
@@ -160,6 +160,8 @@ public class RobotContainer {
     // Path planner Autos
     // https://pathplanner.dev/gui-editing-paths-and-autos.html#autos
     autoChooser.addOption("Four Note Center", new PathPlannerAuto("Four Note Center"));
+    autoChooser.addOption(
+        "Four Note Center Choreo", new PathPlannerAuto("Four Note Center Choreo"));
 
     // Alerts for constants to avoid using them in competition
     if (Constants.TUNING_MODE) {
