@@ -21,6 +21,7 @@
 -
 
 ## UPCOMING
+- Update Module and ModuleIOs to allow for use of PID controllers on motor controllers
 - Create path on fly with PathWeaver https://pathplanner.dev/pplib-create-a-path-on-the-fly.html
 - Pathfinding with PathWeaver https://pathplanner.dev/pplib-pathfinding.html
 - Swerve Module Kraken and Neo?

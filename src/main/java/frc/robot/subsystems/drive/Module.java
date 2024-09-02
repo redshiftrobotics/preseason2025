@@ -94,7 +94,7 @@ public class Module {
         hc,
         () ->
             driveFeedforward =
-                new SimpleMotorFeedforward(driveFeedForwardKs.get(), driveFeedForwardKv.get(), 0),
+                new SimpleMotorFeedforward(driveFeedForwardKs.get(), driveFeedForwardKv.get()),
         driveFeedForwardKs,
         driveFeedForwardKv);
     LoggedTunableNumber.ifChanged(
