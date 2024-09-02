@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.utility.LoggedTunableNumber;
 import frc.robot.utility.LoggedTunableNumberGroup;
+import java.util.LinkedList;
 import java.util.function.DoubleSupplier;
 
 /** Controller for converting joystick values to drive components */
@@ -26,7 +27,7 @@ public class TeleopDriveController {
 
   private final DoubleSupplier xSupplier, ySupplier, xAngleSupplier, yAngleSupplier;
 
-  private static SpeedLevel speedLevel = SpeedLevel.DEFAULT;
+  private static LinkedList<SpeedLevel> speedLevel = new LinkedList<>();
 
   public static enum SpeedLevel {
     PRECISE(0.25, 0.1),
@@ -75,7 +76,7 @@ public class TeleopDriveController {
         xSupplier.getAsDouble(),
         ySupplier.getAsDouble(),
         drive.getMaxLinearSpeedMetersPerSec()
-            * TeleopDriveController.speedLevel.translationCoefficient);
+            * TeleopDriveController.getSpeedLevel().translationCoefficient);
   }
 
   /**
@@ -89,7 +90,7 @@ public class TeleopDriveController {
     return TeleopDriveController.getOmegaRadiansPerSecond(
         yAngleSupplier.getAsDouble(),
         drive.getMaxAngularSpeedRadPerSec()
-            * TeleopDriveController.speedLevel.translationCoefficient);
+            * TeleopDriveController.getSpeedLevel().translationCoefficient);
   }
 
   /**
@@ -106,23 +107,17 @@ public class TeleopDriveController {
 
   /** Get translational and rotational speed coefficients level */
   public static SpeedLevel getSpeedLevel() {
-    return speedLevel;
+    return speedLevel.isEmpty() ? SpeedLevel.DEFAULT : speedLevel.peek();
   }
 
   /** Set translational and rotational speed coefficients level */
-  public static void setSpeedLevel(SpeedLevel speedLevel) {
-    TeleopDriveController.speedLevel = speedLevel;
+  public static void addSpeedLevel(SpeedLevel level) {
+    speedLevel.push(level);
   }
 
-  /** Increase translational and rotational speed coefficients up one level */
-  public void increaseSpeedLevel() {
-    TeleopDriveController.speedLevel =
-        SpeedLevel.values()[Math.min(speedLevel.ordinal() + 1, SpeedLevel.values().length - 1)];
-  }
-
-  /** Decrease translational and rotational speed coefficients down one level */
-  public void decreaseSpeedLevel() {
-    TeleopDriveController.speedLevel = SpeedLevel.values()[Math.max(speedLevel.ordinal() - 1, 0)];
+  /** Remove speed level modifier */
+  public static void removeSpeedLevel(SpeedLevel level) {
+    speedLevel.remove(level);
   }
 
   private static Translation2d getTranslationMetersPerSecond(
