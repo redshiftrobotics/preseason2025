@@ -127,7 +127,7 @@ public class PhoenixOdometryThread extends Thread {
     // Wait for updates from all signals
     signalsLock.lock();
     try {
-      final double odometryPeriodSeconds = 1 / DriveConstants.ODOMETRY_FREQUENCY;
+      final double odometryPeriodSeconds = 1 / DriveConstants.ODOMETRY_FREQUENCY_HERTZ;
       if (isCANFD) {
         BaseStatusSignal.waitForAll(2.0 * odometryPeriodSeconds, signals);
       } else {

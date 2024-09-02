@@ -99,10 +99,10 @@ public class RobotContainer {
         drive =
             new Drive(
                 new GyroIO() {},
-                new ModuleIOSim(),
-                new ModuleIOSim(),
-                new ModuleIOSim(),
-                new ModuleIOSim());
+                new ModuleIOSim(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
+                new ModuleIOSim(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
+                new ModuleIOSim(DriveConstants.BACK_LEFT_MODULE_CONFIG),
+                new ModuleIOSim(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
         flywheelExample = new Flywheel(new FlywheelIOSparkMax());
         vision = new AprilTagVision(new CameraIOSim(VisionConstants.FRONT_CAMERA, drive::getPose));
         break;

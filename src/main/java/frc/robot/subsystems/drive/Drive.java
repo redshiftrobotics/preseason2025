@@ -331,6 +331,25 @@ public class Drive extends SubsystemBase {
   // --- Wheel States ---
 
   /**
+   * Set desired swerve modules for each swerve module. Each wheel state is a turn angle and drive
+   * velocity in meters/second.
+   *
+   * @return a {@link SwerveDriveWheelStates} object which contains an array of all desired swerve
+   *     module states
+   */
+  public void setWheelSpeeds(SwerveDriveWheelStates speeds) {
+
+    SwerveDriveKinematics.desaturateWheelSpeeds(speeds.states, getMaxLinearSpeedMetersPerSec());
+
+    Logger.recordOutput("SwerveStates/DesiredWheelSpeeds", speeds.states);
+
+    for (int i = 0; i < modules.length; i++) {
+      modules[i].setSpeeds(speeds.states[i]);
+    }
+  }
+
+
+  /**
    * Get measured swerve module speeds for each swerve module. Each wheel state is a turn angle and
    * drive velocity in meters/second.
    *
@@ -355,25 +374,7 @@ public class Drive extends SubsystemBase {
                 .map(Module::getDesiredState)
                 .toArray(SwerveModuleState[]::new));
   }
-
-  /**
-   * Set desired swerve modules for each swerve module. Each wheel state is a turn angle and drive
-   * velocity in meters/second.
-   *
-   * @return a {@link SwerveDriveWheelStates} object which contains an array of all desired swerve
-   *     module states
-   */
-  public void setWheelSpeeds(SwerveDriveWheelStates speeds) {
-
-    SwerveDriveKinematics.desaturateWheelSpeeds(speeds.states, getMaxLinearSpeedMetersPerSec());
-
-    Logger.recordOutput("SwerveStates/DesiredWheelSpeeds", speeds.states);
-
-    for (int i = 0; i < modules.length; i++) {
-      modules[i].setSpeeds(speeds.states[i]);
-    }
-  }
-
+  
   // --- Wheel Positions ---
 
   /**

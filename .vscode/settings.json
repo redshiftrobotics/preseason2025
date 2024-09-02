@@ -31,7 +31,6 @@
 	"java.test.defaultConfig": "WPIlibUnitTests",
 	"spotlessGradle.format.enable": true,
 	"spotlessGradle.diagnostics.enable": false,
-	"editor.formatOnSave": true,
 	"editor.defaultFormatter": "richardwillis.vscode-spotless-gradle",
 	"editor.detectIndentation": true,
 	"cSpell.words": [

@@ -14,6 +14,8 @@ import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkPIDController;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.drive.DriveConstants.ModuleConfig;
@@ -37,6 +39,9 @@ public class ModuleIOSparkMax implements ModuleIO {
   private final RelativeEncoder driveRelativeEncoder;
   private final RelativeEncoder turnRelativeEncoder;
 
+  private final SparkPIDController driveFeedback;
+  private final SparkPIDController turnFeedback;
+
   private final StatusSignal<Double> turnAbsolutePosition;
 
   private final Queue<Double> timestampQueue;
@@ -54,6 +59,9 @@ public class ModuleIOSparkMax implements ModuleIO {
     cancoder = new CANcoder(config.absoluteEncoderChannel());
     absoluteEncoderOffset = config.absoluteEncoderOffset();
     isTurnMotorInverted = config.turnMotorInverted();
+
+    // --- Get Built In PID ---
+    driveSparkMax.getPIDController();
 
     // --- Configure absolute encoder ---
 
@@ -78,17 +86,19 @@ public class ModuleIOSparkMax implements ModuleIO {
     driveSparkMax.setCANTimeout(250);
     turnSparkMax.setCANTimeout(250);
 
-    // Change spark max settings
-    driveRelativeEncoder = driveSparkMax.getEncoder();
-    turnRelativeEncoder = turnSparkMax.getEncoder();
-
+    // Turn
     turnSparkMax.setInverted(isTurnMotorInverted);
-
+    
+    // Current
     driveSparkMax.setSmartCurrentLimit(40);
     turnSparkMax.setSmartCurrentLimit(30);
 
     driveSparkMax.enableVoltageCompensation(12.0);
     turnSparkMax.enableVoltageCompensation(12.0);
+
+    // Encoders
+    driveRelativeEncoder = driveSparkMax.getEncoder();
+    turnRelativeEncoder = turnSparkMax.getEncoder();
 
     driveRelativeEncoder.setPosition(0.0);
     driveRelativeEncoder.setMeasurementPeriod(10);
@@ -102,10 +112,12 @@ public class ModuleIOSparkMax implements ModuleIO {
     driveSparkMax.setCANTimeout(0);
     turnSparkMax.setCANTimeout(0);
 
+    // Set update period 
+    double odometryPeriodSeconds = 1.0 / DriveConstants.ODOMETRY_FREQUENCY_HERTZ;
     driveSparkMax.setPeriodicFramePeriod(
-        PeriodicFrame.kStatus2, (int) (1000.0 / DriveConstants.ODOMETRY_FREQUENCY));
+        PeriodicFrame.kStatus2, (int) (odometryPeriodSeconds * 1000));
     turnSparkMax.setPeriodicFramePeriod(
-        PeriodicFrame.kStatus2, (int) (1000.0 / DriveConstants.ODOMETRY_FREQUENCY));
+        PeriodicFrame.kStatus2, (int) (odometryPeriodSeconds * 1000));
 
     // --- Queues From Odometry ---
     timestampQueue = SparkMaxOdometryThread.getInstance().makeTimestampQueue();
@@ -144,7 +156,7 @@ public class ModuleIOSparkMax implements ModuleIO {
         Units.rotationsPerMinuteToRadiansPerSecond(driveRelativeEncoder.getVelocity())
             / MODULE_CONSTANTS.driveReduction();
     inputs.driveAppliedVolts = driveSparkMax.getAppliedOutput() * driveSparkMax.getBusVoltage();
-    inputs.driveCurrentAmps = new double[] {driveSparkMax.getOutputCurrent()};
+    inputs.driveSupplyCurrentAmps = driveSparkMax.getOutputCurrent();
 
     // --- Turn ---
     inputs.turnAbsolutePosition =
@@ -157,7 +169,7 @@ public class ModuleIOSparkMax implements ModuleIO {
         Units.rotationsPerMinuteToRadiansPerSecond(turnRelativeEncoder.getVelocity())
             / MODULE_CONSTANTS.turnReduction();
     inputs.turnAppliedVolts = turnSparkMax.getAppliedOutput() * turnSparkMax.getBusVoltage();
-    inputs.turnCurrentAmps = new double[] {turnSparkMax.getOutputCurrent()};
+    inputs.turnSupplyCurrentAmps = turnSparkMax.getOutputCurrent();
 
     // --- Odometry ---
     inputs.odometryTimestamps =
@@ -199,5 +211,11 @@ public class ModuleIOSparkMax implements ModuleIO {
   @Override
   public void setTurnBrakeMode(boolean enable) {
     turnSparkMax.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
+  }
+
+  @Override
+  public void stop() {
+    driveSparkMax.stopMotor();
+    turnSparkMax.stopMotor();
   }
 }

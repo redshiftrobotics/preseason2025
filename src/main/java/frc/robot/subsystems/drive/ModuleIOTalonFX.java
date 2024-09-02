@@ -91,7 +91,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     turnCurrent = turnTalon.getSupplyCurrent();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
-        DriveConstants.ODOMETRY_FREQUENCY, drivePosition, turnPosition);
+        DriveConstants.ODOMETRY_FREQUENCY_HERTZ, drivePosition, turnPosition);
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0,
         driveVelocity,
@@ -125,7 +125,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         Units.rotationsToRadians(driveVelocity.getValueAsDouble())
             / MODULE_CONSTANTS.driveReduction();
     inputs.driveAppliedVolts = driveAppliedVolts.getValueAsDouble();
-    inputs.driveCurrentAmps = new double[] {driveCurrent.getValueAsDouble()};
+    inputs.driveSupplyCurrentAmps = driveCurrent.getValueAsDouble();
 
     inputs.turnAbsolutePosition =
         Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble())
@@ -137,7 +137,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         Units.rotationsToRadians(turnVelocity.getValueAsDouble())
             / MODULE_CONSTANTS.turnReduction();
     inputs.turnAppliedVolts = turnAppliedVolts.getValueAsDouble();
-    inputs.turnCurrentAmps = new double[] {turnCurrent.getValueAsDouble()};
+    inputs.turnSupplyCurrentAmps = turnCurrent.getValueAsDouble();
 
     inputs.odometryTimestamps =
         timestampQueue.stream().mapToDouble((Double value) -> value).toArray();

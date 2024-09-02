@@ -3,11 +3,13 @@ package frc.robot.subsystems.drive;
 import static frc.robot.subsystems.drive.DriveConstants.MODULE_CONSTANTS;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants;
+import frc.robot.subsystems.drive.DriveConstants.ModuleConfig;
 
 /**
  * Physics sim implementation of module IO.
@@ -22,9 +24,22 @@ public class ModuleIOSim implements ModuleIO {
   private DCMotorSim turnSim =
       new DCMotorSim(DCMotor.getNEO(1), MODULE_CONSTANTS.turnReduction(), 0.004);
 
-  private final Rotation2d turnAbsoluteInitPosition = new Rotation2d(Math.random() * 2.0 * Math.PI);
+  private final Rotation2d turnAbsolutePositionInit;
   private double driveAppliedVolts = 0.0;
   private double turnAppliedVolts = 0.0;
+
+  private final PIDController driveFeedback;
+  private final PIDController turnFeedback;
+
+  public ModuleIOSim(ModuleConfig config) {
+    turnAbsolutePositionInit = config.absoluteEncoderOffset();
+
+    driveFeedback = new PIDController(0.0, 0.0, 0.0, Constants.LOOP_PERIOD_SECONDS);
+    turnFeedback = new PIDController(0.0, 0.0, 0.0, Constants.LOOP_PERIOD_SECONDS);
+
+    turnFeedback.enableContinuousInput(-Math.PI, Math.PI);
+  }
+
 
   @Override
   public void updateInputs(ModuleIOInputs inputs) {
@@ -35,15 +50,15 @@ public class ModuleIOSim implements ModuleIO {
     inputs.drivePositionRad = driveSim.getAngularPositionRad();
     inputs.driveVelocityRadPerSec = driveSim.getAngularVelocityRadPerSec();
     inputs.driveAppliedVolts = driveAppliedVolts;
-    inputs.driveCurrentAmps = new double[] {Math.abs(driveSim.getCurrentDrawAmps())};
+    inputs.driveSupplyCurrentAmps = Math.abs(driveSim.getCurrentDrawAmps());
 
     // --- Turn ---
     inputs.turnAbsolutePosition =
-        new Rotation2d(turnSim.getAngularPositionRad()).plus(turnAbsoluteInitPosition);
+        new Rotation2d(turnSim.getAngularPositionRad()).plus(turnAbsolutePositionInit);
     inputs.turnPosition = new Rotation2d(turnSim.getAngularPositionRad());
     inputs.turnVelocityRadPerSec = turnSim.getAngularVelocityRadPerSec();
     inputs.turnAppliedVolts = turnAppliedVolts;
-    inputs.turnCurrentAmps = new double[] {Math.abs(turnSim.getCurrentDrawAmps())};
+    inputs.turnSupplyCurrentAmps = Math.abs(turnSim.getCurrentDrawAmps());
 
     // --- Odometry ---
     inputs.odometryTimestamps = new double[] {Timer.getFPGATimestamp()};
@@ -61,5 +76,43 @@ public class ModuleIOSim implements ModuleIO {
   public void setTurnVoltage(double volts) {
     turnAppliedVolts = MathUtil.clamp(volts, -12.0, +12.0);
     turnSim.setInputVoltage(turnAppliedVolts);
+  }
+
+  @Override
+  public void setDriveVelocity(double velocityRadsPerSec, double feedForward) {
+    // NOTE this should be in a periodic since PID controller is expecting to be called every 20ms, not once
+    setDriveVoltage(driveFeedback.calculate(driveSim.getAngularVelocityRadPerSec(), velocityRadsPerSec) + feedForward);
+  }
+
+  @Override
+  public void setTurnPosition(double angleRads) {
+    // NOTE this should be in a periodic since PID controller is expecting to be called every 20ms, not once
+    setTurnVoltage(turnFeedback.calculate(turnSim.getAngularPositionRad(), angleRads));
+  }
+
+  @Override
+  public void setDrivePID(double kP, double kI, double kD) {
+    driveFeedback.setPID(kP, kI, kD);
+  }
+
+  @Override
+  public void setTurnPID(double kP, double kI, double kD) {
+    turnFeedback.setPID(kP, kI, kD);
+  }
+
+  @Override
+  public void setDriveBrakeMode(boolean enable) {
+      
+  }
+
+  @Override
+  public void setTurnBrakeMode(boolean enable) {
+    
+  }
+
+  @Override
+  public void stop() {
+    setDriveVoltage(0);
+    setTurnVoltage(0);
   }
 }
