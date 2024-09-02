@@ -23,6 +23,7 @@
 ## UPCOMING
 - Create path on fly with PathWeaver https://pathplanner.dev/pplib-create-a-path-on-the-fly.html
 - Pathfinding with PathWeaver https://pathplanner.dev/pplib-pathfinding.html
+- Swerve Module Kraken and Neo?
 
 ## ON HOLD
 - Photonvision Object Detection? https://docs.photonvision.org/en/latest/docs/objectDetection/index.html
