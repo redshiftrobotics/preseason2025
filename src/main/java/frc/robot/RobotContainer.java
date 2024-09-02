@@ -336,8 +336,8 @@ public class RobotContainer {
           .or(driverXbox.leftStick())
           .whileTrue(
               Commands.startEnd(
-                  () -> TeleopDriveController.setSpeedLevel(SpeedLevel.BOOST),
-                  () -> TeleopDriveController.setSpeedLevel(SpeedLevel.DEFAULT)));
+                  () -> TeleopDriveController.addSpeedLevel(SpeedLevel.BOOST),
+                  () -> TeleopDriveController.removeSpeedLevel(SpeedLevel.BOOST)));
 
       // When left (Brake) trigger is held down or right stick (crouch) is pressed, put in
       // precise (slow) mode
@@ -346,8 +346,8 @@ public class RobotContainer {
           .or(driverXbox.rightStick())
           .whileTrue(
               Commands.startEnd(
-                  () -> TeleopDriveController.setSpeedLevel(SpeedLevel.PRECISE),
-                  () -> TeleopDriveController.setSpeedLevel(SpeedLevel.DEFAULT)));
+                  () -> TeleopDriveController.addSpeedLevel(SpeedLevel.PRECISE),
+                  () -> TeleopDriveController.removeSpeedLevel(SpeedLevel.PRECISE)));
 
     } else if (driverController instanceof CommandJoystick) {
       final CommandJoystick driverJoystick = (CommandJoystick) driverController;
