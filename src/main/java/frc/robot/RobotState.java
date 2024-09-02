@@ -2,7 +2,6 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.subsystems.drive.DriveConstants.ModuleLimits;
 import org.littletonrobotics.junction.AutoLogOutput;
 
 /** Singleton to store global state of robot, try to use sparingly */
@@ -23,7 +22,7 @@ public class RobotState {
 
   @AutoLogOutput public boolean flywheelAccelerating = false;
 
-  public ModuleLimits getModuleLimits() {
+  public frc.robot.utility.swerve254util.ModuleLimits getModuleLimits() {
     return flywheelAccelerating && !DriverStation.isAutonomousEnabled()
         ? DriveConstants.MODULE_LIMITS_FLYWHEEL_SPIN_UP
         : DriveConstants.MODULE_LIMITS_FREE;

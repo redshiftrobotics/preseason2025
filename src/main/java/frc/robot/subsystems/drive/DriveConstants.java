@@ -3,6 +3,7 @@ package frc.robot.subsystems.drive;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
+import frc.robot.utility.swerve254util.ModuleLimits;
 
 /**
  * Constants for drivetrain/chassis. All constants should be in meters and radians (m/s, m/s^2,
@@ -130,9 +131,6 @@ public class DriveConstants {
       };
 
   // --- Module Limit Config ---
-
-  public record ModuleLimits(
-      double maxDriveVelocity, double maxDriveAcceleration, double maxSteeringVelocity) {}
 
   public static final ModuleLimits MODULE_LIMITS_FREE =
       new ModuleLimits(
