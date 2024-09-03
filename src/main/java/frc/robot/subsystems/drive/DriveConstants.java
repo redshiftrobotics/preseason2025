@@ -121,7 +121,7 @@ public class DriveConstants {
             Mk4iReductions.TURN.reduction);
         case SIM_BOT -> new ModuleConstants(
             0.014,
-            0.134,
+            0.934,
             1,
             0.0,
             10.0,

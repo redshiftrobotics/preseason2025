@@ -1,6 +1,7 @@
 package frc.robot.subsystems.drive;
 
 import static frc.robot.subsystems.drive.DriveConstants.MODULE_CONSTANTS;
+import static frc.robot.subsystems.drive.DriveConstants.MODULE_LIMITS_FREE;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -8,6 +9,7 @@ import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
+import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
@@ -15,7 +17,6 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
-
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.drive.DriveConstants.ModuleConfig;
@@ -32,38 +33,44 @@ import java.util.Queue;
  * "/Drive/ModuleX/TurnAbsolutePositionRad". Update these values in DriveConstants.
  */
 public class ModuleIOSparkMax implements ModuleIO {
+
+  // Hardware
   private final CANSparkMax driveSparkMax;
   private final CANSparkMax turnSparkMax;
   private final CANcoder cancoder;
 
+  // Built In Encoders
   private final RelativeEncoder driveRelativeEncoder;
   private final RelativeEncoder turnRelativeEncoder;
 
+  // Build In PID
   private final SparkPIDController driveFeedback;
   private final SparkPIDController turnFeedback;
 
-  private final StatusSignal<Double> turnAbsolutePosition;
-
+  // Odometry queues
   private final Queue<Double> timestampQueue;
   private final Queue<Double> drivePositionQueue;
   private final Queue<Double> turnPositionQueue;
 
-  private final boolean isTurnMotorInverted;
-  private final Rotation2d absoluteEncoderOffset;
+  private final StatusSignal<Double> turnAbsolutePosition;
 
   public ModuleIOSparkMax(ModuleConfig config) {
 
-    // --- Save config ---
+    // Create motor controllers
     driveSparkMax = new CANSparkMax(config.driveID(), MotorType.kBrushless);
     turnSparkMax = new CANSparkMax(config.turnID(), MotorType.kBrushless);
+
     cancoder = new CANcoder(config.absoluteEncoderChannel());
-    absoluteEncoderOffset = config.absoluteEncoderOffset();
-    isTurnMotorInverted = config.turnMotorInverted();
 
-    // --- Get Built In PID ---
-    driveSparkMax.getPIDController();
+    // Relative Encoder
+    driveRelativeEncoder = driveSparkMax.getEncoder();
+    turnRelativeEncoder = turnSparkMax.getEncoder();
 
-    // --- Configure absolute encoder ---
+    // PID
+    driveFeedback = driveSparkMax.getPIDController();
+    turnFeedback = turnSparkMax.getPIDController();
+
+    // Cancoder config
 
     cancoder
         .getConfigurator()
@@ -72,12 +79,13 @@ public class ModuleIOSparkMax implements ModuleIO {
                 .withMagnetSensor(
                     new MagnetSensorConfigs()
                         .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
-                        .withAbsoluteSensorRange(AbsoluteSensorRangeValue.Unsigned_0To1)));
+                        .withAbsoluteSensorRange(AbsoluteSensorRangeValue.Unsigned_0To1)
+                        .withMagnetOffset(config.absoluteEncoderOffset().getRotations())));
 
     turnAbsolutePosition = cancoder.getAbsolutePosition();
     turnAbsolutePosition.setUpdateFrequency(50);
 
-    // --- Configure spark maxes ---
+    // Configure spark maxes
 
     // Prepare for changing spark max settings
     driveSparkMax.restoreFactoryDefaults();
@@ -86,9 +94,25 @@ public class ModuleIOSparkMax implements ModuleIO {
     driveSparkMax.setCANTimeout(250);
     turnSparkMax.setCANTimeout(250);
 
-    // Turn
-    turnSparkMax.setInverted(isTurnMotorInverted);
-    
+    // Invert
+    turnSparkMax.setInverted(config.turnMotorInverted());
+
+    // Gear Ratio
+    driveRelativeEncoder.setPositionConversionFactor(1 / MODULE_CONSTANTS.driveReduction());
+    driveRelativeEncoder.setVelocityConversionFactor(1 / MODULE_CONSTANTS.driveReduction());
+
+    turnRelativeEncoder.setPositionConversionFactor(1 / MODULE_CONSTANTS.turnReduction());
+    turnRelativeEncoder.setVelocityConversionFactor(1 / MODULE_CONSTANTS.turnReduction());
+
+    // Feedback
+    driveFeedback.setOutputRange(-1, 1);
+
+    turnFeedback.setPositionPIDWrappingEnabled(true);
+    turnFeedback.setPositionPIDWrappingMaxInput(1);
+    turnFeedback.setPositionPIDWrappingMinInput(0);
+
+    turnFeedback.setSmartMotionMaxAccel(MODULE_LIMITS_FREE.maxSteeringVelocity(), 0);
+
     // Current
     driveSparkMax.setSmartCurrentLimit(40);
     turnSparkMax.setSmartCurrentLimit(30);
@@ -97,9 +121,6 @@ public class ModuleIOSparkMax implements ModuleIO {
     turnSparkMax.enableVoltageCompensation(12.0);
 
     // Encoders
-    driveRelativeEncoder = driveSparkMax.getEncoder();
-    turnRelativeEncoder = turnSparkMax.getEncoder();
-
     driveRelativeEncoder.setPosition(0.0);
     driveRelativeEncoder.setMeasurementPeriod(10);
     driveRelativeEncoder.setAverageDepth(2);
@@ -108,18 +129,20 @@ public class ModuleIOSparkMax implements ModuleIO {
     turnRelativeEncoder.setMeasurementPeriod(10);
     turnRelativeEncoder.setAverageDepth(2);
 
+    turnRelativeEncoder.setPosition(turnAbsolutePosition.getValueAsDouble());
+
     // Complete changing spark max settings
     driveSparkMax.setCANTimeout(0);
     turnSparkMax.setCANTimeout(0);
 
-    // Set update period 
+    // Set update period
     double odometryPeriodSeconds = 1.0 / DriveConstants.ODOMETRY_FREQUENCY_HERTZ;
     driveSparkMax.setPeriodicFramePeriod(
         PeriodicFrame.kStatus2, (int) (odometryPeriodSeconds * 1000));
     turnSparkMax.setPeriodicFramePeriod(
         PeriodicFrame.kStatus2, (int) (odometryPeriodSeconds * 1000));
 
-    // --- Queues From Odometry ---
+    // Odometry Queues
     timestampQueue = SparkMaxOdometryThread.getInstance().makeTimestampQueue();
 
     drivePositionQueue =
@@ -149,43 +172,26 @@ public class ModuleIOSparkMax implements ModuleIO {
     turnAbsolutePosition.refresh();
 
     // --- Drive ---
-    inputs.drivePositionRad =
-        Units.rotationsToRadians(driveRelativeEncoder.getPosition())
-            / MODULE_CONSTANTS.driveReduction();
+    inputs.drivePositionRad = Units.rotationsToRadians(driveRelativeEncoder.getPosition());
     inputs.driveVelocityRadPerSec =
-        Units.rotationsPerMinuteToRadiansPerSecond(driveRelativeEncoder.getVelocity())
-            / MODULE_CONSTANTS.driveReduction();
+        Units.rotationsPerMinuteToRadiansPerSecond(driveRelativeEncoder.getVelocity());
     inputs.driveAppliedVolts = driveSparkMax.getAppliedOutput() * driveSparkMax.getBusVoltage();
     inputs.driveSupplyCurrentAmps = driveSparkMax.getOutputCurrent();
 
     // --- Turn ---
-    inputs.turnAbsolutePosition =
-        Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble())
-            .minus(absoluteEncoderOffset);
-    inputs.turnPosition =
-        Rotation2d.fromRotations(
-            turnRelativeEncoder.getPosition() / MODULE_CONSTANTS.turnReduction());
+    inputs.turnAbsolutePosition = Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble());
+    inputs.turnPosition = Rotation2d.fromRotations(turnRelativeEncoder.getPosition());
     inputs.turnVelocityRadPerSec =
-        Units.rotationsPerMinuteToRadiansPerSecond(turnRelativeEncoder.getVelocity())
-            / MODULE_CONSTANTS.turnReduction();
+        Units.rotationsPerMinuteToRadiansPerSecond(turnRelativeEncoder.getVelocity());
     inputs.turnAppliedVolts = turnSparkMax.getAppliedOutput() * turnSparkMax.getBusVoltage();
     inputs.turnSupplyCurrentAmps = turnSparkMax.getOutputCurrent();
 
     // --- Odometry ---
-    inputs.odometryTimestamps =
-        timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+    inputs.odometryTimestamps = timestampQueue.stream().mapToDouble(Double::doubleValue).toArray();
     inputs.odometryDrivePositionsRad =
-        drivePositionQueue.stream()
-            .mapToDouble(
-                (Double value) ->
-                    Units.rotationsToRadians(value) / MODULE_CONSTANTS.driveReduction())
-            .toArray();
+        drivePositionQueue.stream().mapToDouble(Units::rotationsToRadians).toArray();
     inputs.odometryTurnPositions =
-        turnPositionQueue.stream()
-            .map(
-                (Double value) ->
-                    Rotation2d.fromRotations(value / MODULE_CONSTANTS.turnReduction()))
-            .toArray(Rotation2d[]::new);
+        turnPositionQueue.stream().map(Rotation2d::fromRotations).toArray(Rotation2d[]::new);
 
     // --- Clear queues after use ---
     timestampQueue.clear();
@@ -201,6 +207,31 @@ public class ModuleIOSparkMax implements ModuleIO {
   @Override
   public void setTurnVoltage(double volts) {
     turnSparkMax.setVoltage(volts);
+  }
+
+  @Override
+  public void setDriveVelocity(double velocityRadsPerSec, double feedForward) {
+    driveFeedback.setReference(velocityRadsPerSec, ControlType.kSmartVelocity, 0, feedForward);
+  }
+
+  @Override
+  public void setTurnPosition(double angleRads) {
+    turnRelativeEncoder.setPosition(turnAbsolutePosition.getValueAsDouble());
+    turnFeedback.setReference(angleRads, ControlType.kSmartMotion);
+  }
+
+  @Override
+  public void setDrivePID(double kP, double kI, double kD) {
+    driveFeedback.setP(kP, 0);
+    driveFeedback.setI(kI, 0);
+    driveFeedback.setD(kD, 0);
+  }
+
+  @Override
+  public void setTurnPID(double kP, double kI, double kD) {
+    turnFeedback.setP(kP, 0);
+    turnFeedback.setI(kI, 0);
+    turnFeedback.setD(kD, 0);
   }
 
   @Override

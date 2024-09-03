@@ -19,27 +19,33 @@ import frc.robot.subsystems.drive.DriveConstants.ModuleConfig;
  * approximation for the behavior of the module.
  */
 public class ModuleIOSim implements ModuleIO {
+
+  // --- Sim Hardware ---
   private DCMotorSim driveSim =
       new DCMotorSim(DCMotor.getNEO(1), MODULE_CONSTANTS.driveReduction(), 0.025);
   private DCMotorSim turnSim =
       new DCMotorSim(DCMotor.getNEO(1), MODULE_CONSTANTS.turnReduction(), 0.004);
 
+  // Absolute Encoder
   private final Rotation2d turnAbsolutePositionInit;
+
+  // Volts
   private double driveAppliedVolts = 0.0;
   private double turnAppliedVolts = 0.0;
 
+  // PID
   private final PIDController driveFeedback;
   private final PIDController turnFeedback;
 
   public ModuleIOSim(ModuleConfig config) {
     turnAbsolutePositionInit = config.absoluteEncoderOffset();
 
+    // Create PID
     driveFeedback = new PIDController(0.0, 0.0, 0.0, Constants.LOOP_PERIOD_SECONDS);
     turnFeedback = new PIDController(0.0, 0.0, 0.0, Constants.LOOP_PERIOD_SECONDS);
 
     turnFeedback.enableContinuousInput(-Math.PI, Math.PI);
   }
-
 
   @Override
   public void updateInputs(ModuleIOInputs inputs) {
@@ -80,13 +86,13 @@ public class ModuleIOSim implements ModuleIO {
 
   @Override
   public void setDriveVelocity(double velocityRadsPerSec, double feedForward) {
-    // NOTE this should be in a periodic since PID controller is expecting to be called every 20ms, not once
-    setDriveVoltage(driveFeedback.calculate(driveSim.getAngularVelocityRadPerSec(), velocityRadsPerSec) + feedForward);
+    setDriveVoltage(
+        driveFeedback.calculate(driveSim.getAngularVelocityRadPerSec(), velocityRadsPerSec)
+            + feedForward);
   }
 
   @Override
   public void setTurnPosition(double angleRads) {
-    // NOTE this should be in a periodic since PID controller is expecting to be called every 20ms, not once
     setTurnVoltage(turnFeedback.calculate(turnSim.getAngularPositionRad(), angleRads));
   }
 
@@ -101,14 +107,10 @@ public class ModuleIOSim implements ModuleIO {
   }
 
   @Override
-  public void setDriveBrakeMode(boolean enable) {
-      
-  }
+  public void setDriveBrakeMode(boolean enable) {}
 
   @Override
-  public void setTurnBrakeMode(boolean enable) {
-    
-  }
+  public void setTurnBrakeMode(boolean enable) {}
 
   @Override
   public void stop() {

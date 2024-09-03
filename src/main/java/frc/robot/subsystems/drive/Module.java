@@ -94,7 +94,7 @@ public class Module {
     SwerveModulePosition[] odometryPositions = new SwerveModulePosition[sampleCount];
 
     for (int i = 0; i < sampleCount; i++) {
-      
+
       double positionMeters = inputs.odometryDrivePositionsRad[i] * DRIVE_CONFIG.wheelRadius();
       Rotation2d angle = inputs.odometryTurnPositions[i];
 
@@ -109,7 +109,6 @@ public class Module {
     return inputs.odometryTimestamps;
   }
 
-
   // --- Speeds ---
 
   /** Runs the module with the specified setpoint state. */
@@ -121,7 +120,8 @@ public class Module {
     double velocityRadiansPerSecond = state.speedMetersPerSecond / DRIVE_CONFIG.wheelRadius();
     double angleRadians = state.angle.getRadians();
 
-    io.setDriveVelocity(velocityRadiansPerSecond, driveFeedforward.calculate(state.speedMetersPerSecond));
+    io.setDriveVelocity(
+        velocityRadiansPerSecond, driveFeedforward.calculate(state.speedMetersPerSecond));
     io.setTurnPosition(angleRadians);
 
     desiredState = state;

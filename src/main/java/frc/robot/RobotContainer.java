@@ -28,7 +28,6 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSparkMax;
-import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.drive.controllers.HeadingController;
 import frc.robot.subsystems.drive.controllers.TeleopDriveController;
 import frc.robot.subsystems.drive.controllers.TeleopDriveController.SpeedLevel;
@@ -73,10 +72,10 @@ public class RobotContainer {
         drive =
             new Drive(
                 new GyroIOPigeon2(true),
-                new ModuleIOTalonFX(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
-                new ModuleIOTalonFX(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
-                new ModuleIOTalonFX(DriveConstants.BACK_LEFT_MODULE_CONFIG),
-                new ModuleIOTalonFX(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
+                new ModuleIOSparkMax(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
+                new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
+                new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
+                new ModuleIOSparkMax(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
         flywheelExample = new Flywheel(new FlywheelIOSparkMax());
         vision = new AprilTagVision();
         break;
