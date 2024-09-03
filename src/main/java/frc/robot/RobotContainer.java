@@ -196,8 +196,7 @@ public class RobotContainer {
               new OverrideSwitch(
                   driverXbox.rightBumper(), "Angle Driven", OverrideSwitch.Mode.HOLD, true));
 
-      RobotModeTriggers.disabled().onTrue(drive.run(drive::stop));
-
+      // Controllers
       final TeleopDriveController input =
           new TeleopDriveController(
               drive,
@@ -206,6 +205,9 @@ public class RobotContainer {
               () -> -driverXbox.getRightY(),
               () -> -driverXbox.getRightX());
 
+      final HeadingController headingController = new HeadingController(drive);
+
+      // Default command
       drive.setDefaultCommand(
           drive
               .runEnd(
@@ -221,17 +223,14 @@ public class RobotContainer {
               .withName("DefaultDrive"));
 
       boolean includeDiagonalPOV = true;
-
-      final HeadingController headingController = new HeadingController(drive);
-
       for (int pov = 0; pov < 360; pov += includeDiagonalPOV ? 45 : 90) {
 
-        // POV angles are in Clock Wise Degrees, convert to standard Rotation
+        // POV angles are in Clock Wise degrees, needs to be flipped to get correct rotation2d
         final Rotation2d angle = Rotation2d.fromDegrees(-pov);
+        final String name = String.format("%d\u00B0", pov);
 
-        // While the POV is being pressed and we are not in angle control mode,
-        // set the chassis speeds to the Cos and Sin of the angle (so at 0 degrees forward
-        // by 1 left by 0, etc)
+        // While the POV is being pressed and we are not in angle control mode, set the chassis
+        // speeds to the Cos and Sin of the angle
         driverXbox
             .pov(pov)
             .and(useAngleControlMode.negate())
@@ -249,7 +248,7 @@ public class RobotContainer {
                                             .translationCoefficient,
                                     0)),
                         drive::stop)
-                    .withName(String.format("DriveRobotRelative %s\u00B0", pov)));
+                    .withName(String.format("DriveRobotRelative %s", name)));
 
         // While the POV is being pressed and we are angle control mode
         // Start by resetting the controller and setting the goal angle to the pov angle
@@ -263,11 +262,10 @@ public class RobotContainer {
                           headingController.reset();
                           headingController.setGoal(angle.getRadians());
                         })
-                    .withName(String.format("PrepareLockedHeading %s\u00B0", pov)));
+                    .withName(String.format("PrepareLockedHeading %s", name)));
 
         // Then while it is held, if we are not at the angle turn to it, if we are at the
-        // angle go forward at
-        // the angle
+        // angle go forward at the angle
         driverXbox
             .pov(pov)
             .and(useAngleControlMode)
@@ -284,10 +282,10 @@ public class RobotContainer {
                                   0,
                                   headingController.atGoal() ? 0 : rotationRadians));
                         })
-                    .withName(String.format("ForwardLockedHeading %s\u00B0", pov)));
+                    .withName(String.format("ForwardLockedHeading %s", name)));
+
         // Then once the pov is let go, if we are not at the angle continue turn to it,
-        // while also accepting x
-        // and y input to drive
+        // while also accepting x and y input to drive
         driverXbox
             .pov(pov)
             .and(useAngleControlMode)
@@ -305,11 +303,10 @@ public class RobotContainer {
                               useFieldRelative.getAsBoolean());
                         })
                     .until(() -> input.getOmegaRadiansPerSecond().getRadians() != 0)
-                    .withName(String.format("DriveLockedHeading %s\u00B0", pov)));
+                    .withName(String.format("DriveLockedHeading %s", name)));
       }
 
-      // While X is held down go into stop and go into the cross position to resistent
-      // movement,
+      // While X is held down go into stop and go into the cross position to resistent movement,
       // then once X button is let go put modules forward
       driverXbox
           .x()
@@ -318,10 +315,11 @@ public class RobotContainer {
                   .startEnd(drive::stopUsingBrakeArrangement, drive::stopUsingForwardArrangement)
                   .withName("StopWithX"));
 
-      // When be is pressed stop the drivetrain then idle it,
-      // cancelling all incoming commands
+      // When be is pressed stop the drivetrain then idle it, cancelling all incoming commands.
+      // Also do this when robot is disabled
       driverXbox
           .b()
+          .or(RobotModeTriggers.disabled())
           .whileTrue(
               drive
                   .runOnce(drive::stop)
@@ -339,8 +337,8 @@ public class RobotContainer {
                   () -> TeleopDriveController.addSpeedLevel(SpeedLevel.BOOST),
                   () -> TeleopDriveController.removeSpeedLevel(SpeedLevel.BOOST)));
 
-      // When left (Brake) trigger is held down or right stick (crouch) is pressed, put in
-      // precise (slow) mode
+      // When left (Brake) trigger is held down or right stick (crouch) is pressed, put in precise
+      // (slow) mode
       driverXbox
           .leftTrigger(0.5)
           .or(driverXbox.rightStick())
