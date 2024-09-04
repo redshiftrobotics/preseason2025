@@ -18,7 +18,7 @@ public class RobotState {
     return instance;
   }
 
-  // --- State  Example---
+  // --- State Example---
 
   @AutoLogOutput public boolean flywheelAccelerating = false;
 

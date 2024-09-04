@@ -9,6 +9,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.RobotState;
+
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -26,6 +28,7 @@ public class Flywheel extends SubsystemBase {
     ffModel =
         new SimpleMotorFeedforward(
             FEED_FORWARD_CONFIG.Ks(), FEED_FORWARD_CONFIG.Kv(), FEED_FORWARD_CONFIG.Ka());
+
     io.configurePID(PID_CONFIG.Kp(), PID_CONFIG.Ki(), PID_CONFIG.Kd());
 
     // Configure SysId
@@ -43,6 +46,8 @@ public class Flywheel extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Flywheel", inputs);
+
+    RobotState.getInstance().flywheelAccelerating = Math.abs(inputs.currentAmps) > 50.0 && Math.abs(inputs.velocityRadPerSec) > 2;
   }
 
   /** Run open loop at the specified voltage. */
