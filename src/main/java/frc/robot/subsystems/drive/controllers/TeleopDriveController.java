@@ -9,7 +9,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.utility.LoggedTunableNumber;
 import frc.robot.utility.LoggedTunableNumberGroup;
-import java.util.LinkedList;
 import java.util.function.DoubleSupplier;
 
 /** Controller for converting joystick values to drive components */
@@ -26,21 +25,6 @@ public class TeleopDriveController {
   private final Drive drive;
 
   private final DoubleSupplier xSupplier, ySupplier, xAngleSupplier, yAngleSupplier;
-
-  private static LinkedList<SpeedLevel> speedLevel = new LinkedList<>();
-
-  public static enum SpeedLevel {
-    PRECISE(0.25, 0.1),
-    DEFAULT(0.90, 0.60),
-    BOOST(1, 0.75),
-    MAX_BOOST(1, 1);
-    public final double translationCoefficient, rotationCoefficient;
-
-    private SpeedLevel(double translationCoefficient, double rotationCoefficient) {
-      this.translationCoefficient = translationCoefficient;
-      this.rotationCoefficient = rotationCoefficient;
-    }
-  }
 
   /**
    * Creates a new TeleopDriveController object
@@ -75,8 +59,7 @@ public class TeleopDriveController {
     return TeleopDriveController.getTranslationMetersPerSecond(
         xSupplier.getAsDouble(),
         ySupplier.getAsDouble(),
-        drive.getMaxLinearSpeedMetersPerSec()
-            * TeleopDriveController.getSpeedLevel().translationCoefficient);
+        drive.getMaxLinearSpeedMetersPerSec());
   }
 
   /**
@@ -89,8 +72,7 @@ public class TeleopDriveController {
 
     return TeleopDriveController.getOmegaRadiansPerSecond(
         yAngleSupplier.getAsDouble(),
-        drive.getMaxAngularSpeedRadPerSec()
-            * TeleopDriveController.getSpeedLevel().translationCoefficient);
+        drive.getMaxAngularSpeedRadPerSec());
   }
 
   /**
@@ -103,21 +85,6 @@ public class TeleopDriveController {
 
     return TeleopDriveController.getHeadingDirection(
         xAngleSupplier.getAsDouble(), yAngleSupplier.getAsDouble());
-  }
-
-  /** Get translational and rotational speed coefficients level */
-  public static SpeedLevel getSpeedLevel() {
-    return speedLevel.isEmpty() ? SpeedLevel.DEFAULT : speedLevel.peek();
-  }
-
-  /** Set translational and rotational speed coefficients level */
-  public static void addSpeedLevel(SpeedLevel level) {
-    speedLevel.push(level);
-  }
-
-  /** Remove speed level modifier */
-  public static void removeSpeedLevel(SpeedLevel level) {
-    speedLevel.remove(level);
   }
 
   private static Translation2d getTranslationMetersPerSecond(

@@ -31,7 +31,6 @@ import frc.robot.subsystems.drive.ModuleIOSparkMax;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.drive.controllers.HeadingController;
 import frc.robot.subsystems.drive.controllers.TeleopDriveController;
-import frc.robot.subsystems.drive.controllers.TeleopDriveController.SpeedLevel;
 import frc.robot.subsystems.examples.flywheel.Flywheel;
 import frc.robot.subsystems.examples.flywheel.FlywheelIO;
 import frc.robot.subsystems.examples.flywheel.FlywheelIOSparkMax;
@@ -42,6 +41,8 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.utility.Alert;
 import frc.robot.utility.Alert.AlertType;
 import frc.robot.utility.OverrideSwitch;
+import frc.robot.utility.SpeedController;
+import frc.robot.utility.SpeedController.SpeedLevel;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -61,6 +62,7 @@ public class RobotContainer {
   // Controller
   private final CommandGenericHID driverController = new CommandXboxController(0);
   private final CommandGenericHID operatorController = new CommandXboxController(1);
+  private final SpeedController speedController = new SpeedController(SpeedLevel.DEFAULT);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -215,8 +217,9 @@ public class RobotContainer {
                     Translation2d translation = input.getTranslationMetersPerSecond();
                     Rotation2d rotation = input.getOmegaRadiansPerSecond();
                     drive.setRobotSpeeds(
-                        new ChassisSpeeds(
-                            translation.getX(), translation.getY(), rotation.getRadians()),
+                        speedController.applyTo(
+                            new ChassisSpeeds(
+                                translation.getX(), translation.getY(), rotation.getRadians())),
                         useFieldRelative.getAsBoolean());
                   },
                   drive::stop)
@@ -239,14 +242,8 @@ public class RobotContainer {
                     .startEnd(
                         () ->
                             drive.setRobotSpeeds(
-                                new ChassisSpeeds(
-                                    angle.getCos()
-                                        * TeleopDriveController.getSpeedLevel()
-                                            .translationCoefficient,
-                                    angle.getSin()
-                                        * TeleopDriveController.getSpeedLevel()
-                                            .translationCoefficient,
-                                    0)),
+                                speedController.applyTo(
+                                    new ChassisSpeeds(angle.getCos(), angle.getSin(), 0))),
                         drive::stop)
                     .withName(String.format("DriveRobotRelative %s", name)));
 
@@ -275,12 +272,11 @@ public class RobotContainer {
                         () -> {
                           double rotationRadians = headingController.calculate();
                           drive.setRobotSpeeds(
-                              new ChassisSpeeds(
-                                  (headingController.atGoal() ? 1 : 0)
-                                      * TeleopDriveController.getSpeedLevel()
-                                          .translationCoefficient,
-                                  0,
-                                  headingController.atGoal() ? 0 : rotationRadians));
+                              speedController.applyTo(
+                                  new ChassisSpeeds(
+                                      (headingController.atGoal() ? 1 : 0),
+                                      0,
+                                      headingController.atGoal() ? 0 : rotationRadians)));
                         })
                     .withName(String.format("ForwardLockedHeading %s", name)));
 
@@ -296,10 +292,11 @@ public class RobotContainer {
                           Translation2d translation = input.getTranslationMetersPerSecond();
                           double rotationRadians = headingController.calculate();
                           drive.setRobotSpeeds(
-                              new ChassisSpeeds(
-                                  translation.getX(),
-                                  translation.getY(),
-                                  headingController.atGoal() ? 0 : rotationRadians),
+                              speedController.applyTo(
+                                  new ChassisSpeeds(
+                                      translation.getX(),
+                                      translation.getY(),
+                                      headingController.atGoal() ? 0 : rotationRadians)),
                               useFieldRelative.getAsBoolean());
                         })
                     .until(() -> input.getOmegaRadiansPerSecond().getRadians() != 0)
@@ -334,8 +331,8 @@ public class RobotContainer {
           .or(driverXbox.leftStick())
           .whileTrue(
               Commands.startEnd(
-                  () -> TeleopDriveController.addSpeedLevel(SpeedLevel.BOOST),
-                  () -> TeleopDriveController.removeSpeedLevel(SpeedLevel.BOOST)));
+                  () -> speedController.pushSpeedLevel(SpeedLevel.BOOST),
+                  () -> speedController.removeSpeedLevel(SpeedLevel.BOOST)));
 
       // When left (Brake) trigger is held down or right stick (crouch) is pressed, put in precise
       // (slow) mode
@@ -344,8 +341,8 @@ public class RobotContainer {
           .or(driverXbox.rightStick())
           .whileTrue(
               Commands.startEnd(
-                  () -> TeleopDriveController.addSpeedLevel(SpeedLevel.PRECISE),
-                  () -> TeleopDriveController.removeSpeedLevel(SpeedLevel.PRECISE)));
+                  () -> speedController.pushSpeedLevel(SpeedLevel.PRECISE),
+                  () -> speedController.removeSpeedLevel(SpeedLevel.PRECISE)));
 
     } else if (driverController instanceof CommandJoystick) {
       final CommandJoystick driverJoystick = (CommandJoystick) driverController;
@@ -419,14 +416,15 @@ public class RobotContainer {
     SmartDashboard.putNumber(
         "Speed MPH", Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond) * 2.2369);
 
-    SmartDashboard.putString("Speed Level", TeleopDriveController.getSpeedLevel().name());
+    SmartDashboard.putString("Speed Level", speedController.getCurrentSpeedLevel().name());
     SmartDashboard.putString(
         "Speed Transl",
         String.format(
-            "%.2f%%", TeleopDriveController.getSpeedLevel().translationCoefficient * 100));
+            "%.2f%%", speedController.getCurrentSpeedLevel().getTranslationCoefficient() * 100));
     SmartDashboard.putString(
         "Speed Rot",
-        String.format("%.2f%%", TeleopDriveController.getSpeedLevel().rotationCoefficient * 100));
+        String.format(
+            "%.2f%%", speedController.getCurrentSpeedLevel().getRotationCoefficient() * 100));
   }
 
   /**
