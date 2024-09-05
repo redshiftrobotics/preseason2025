@@ -57,9 +57,7 @@ public class TeleopDriveController {
     if (DriverStation.isAutonomous()) return new Translation2d();
 
     return TeleopDriveController.getTranslationMetersPerSecond(
-        xSupplier.getAsDouble(),
-        ySupplier.getAsDouble(),
-        drive.getMaxLinearSpeedMetersPerSec());
+        xSupplier.getAsDouble(), ySupplier.getAsDouble(), drive.getMaxLinearSpeedMetersPerSec());
   }
 
   /**
@@ -71,8 +69,7 @@ public class TeleopDriveController {
     if (DriverStation.isAutonomous()) return new Rotation2d();
 
     return TeleopDriveController.getOmegaRadiansPerSecond(
-        yAngleSupplier.getAsDouble(),
-        drive.getMaxAngularSpeedRadPerSec());
+        yAngleSupplier.getAsDouble(), drive.getMaxAngularSpeedRadPerSec());
   }
 
   /**

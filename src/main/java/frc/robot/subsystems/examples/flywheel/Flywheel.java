@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.RobotState;
-
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -47,7 +46,8 @@ public class Flywheel extends SubsystemBase {
     io.updateInputs(inputs);
     Logger.processInputs("Flywheel", inputs);
 
-    RobotState.getInstance().flywheelAccelerating = Math.abs(inputs.currentAmps) > 50.0 && Math.abs(inputs.velocityRadPerSec) > 2;
+    RobotState.getInstance().flywheelAccelerating =
+        Math.abs(inputs.currentAmps) > 50.0 && Math.abs(inputs.velocityRadPerSec) > 2;
   }
 
   /** Run open loop at the specified voltage. */
