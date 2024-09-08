@@ -10,7 +10,11 @@ import edu.wpi.first.math.util.Units;
 import java.util.OptionalDouble;
 import java.util.Queue;
 
-/** IO implementation for Pigeon2 */
+/**
+ * IO implementation for Pigeon2 IMU
+ *
+ * <p>https://store.ctr-electronics.com/pigeon-2/
+ */
 public class GyroIOPigeon2 implements GyroIO {
   private static final int ID = 0;
 
@@ -22,6 +26,11 @@ public class GyroIOPigeon2 implements GyroIO {
   private final Queue<Double> yawPositionQueue;
   private final Queue<Double> yawTimestampQueue;
 
+  /**
+   * Create a new Pigeon2 IMU
+   *
+   * @param phoenixDrive true if drivetrain is using Phoenix, false for SparkMax
+   */
   public GyroIOPigeon2(boolean phoenixDrive) {
     pigeon = new Pigeon2(ID);
     yaw = pigeon.getYaw();
@@ -44,14 +53,10 @@ public class GyroIOPigeon2 implements GyroIO {
       yawPositionQueue =
           SparkMaxOdometryThread.getInstance()
               .registerSignal(
-                  () -> {
-                    boolean valid = yaw.refresh().getStatus().isOK();
-                    if (valid) {
-                      return OptionalDouble.of(yaw.getValueAsDouble());
-                    } else {
-                      return OptionalDouble.empty();
-                    }
-                  });
+                  () ->
+                      yaw.refresh().getStatus().isOK()
+                          ? OptionalDouble.of(yaw.getValueAsDouble())
+                          : OptionalDouble.empty());
     }
   }
 
@@ -63,7 +68,7 @@ public class GyroIOPigeon2 implements GyroIO {
     inputs.yawVelocityRadPerSec = Units.degreesToRadians(yawVelocity.getValueAsDouble());
 
     inputs.odometryYawTimestamps =
-        yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+        yawTimestampQueue.stream().mapToDouble(Double::doubleValue).toArray();
     inputs.odometryYawPositions =
         yawPositionQueue.stream().map(Rotation2d::fromDegrees).toArray(Rotation2d[]::new);
 

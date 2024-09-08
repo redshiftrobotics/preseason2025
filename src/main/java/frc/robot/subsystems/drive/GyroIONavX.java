@@ -7,7 +7,11 @@ import edu.wpi.first.wpilibj.SPI;
 import java.util.OptionalDouble;
 import java.util.Queue;
 
-/** IO implementation for AHRS */
+/**
+ * IO implementation for AHRS
+ *
+ * <p>https://www.andymark.com/products/navx2-mxp-robotics-navigation-sensor
+ */
 public class GyroIONavX implements GyroIO {
   private static final SPI.Port SERIAL_PORT_ID = SPI.Port.kMXP;
 
@@ -16,6 +20,7 @@ public class GyroIONavX implements GyroIO {
   private final Queue<Double> yawPositionQueue;
   private final Queue<Double> yawTimestampQueue;
 
+  /** Create a new NaxX IMU */
   public GyroIONavX() {
     navX = new AHRS(SERIAL_PORT_ID);
 
@@ -32,7 +37,7 @@ public class GyroIONavX implements GyroIO {
     inputs.yawVelocityRadPerSec = Units.degreesToRadians(navX.getAngleAdjustment());
 
     inputs.odometryYawTimestamps =
-        yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+        yawTimestampQueue.stream().mapToDouble(Double::doubleValue).toArray();
     inputs.odometryYawPositions =
         yawPositionQueue.stream().map(Rotation2d::fromDegrees).toArray(Rotation2d[]::new);
 
