@@ -30,7 +30,6 @@ import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSparkMax;
 import frc.robot.subsystems.drive.controllers.HeadingController;
 import frc.robot.subsystems.drive.controllers.TeleopDriveController;
-import frc.robot.subsystems.drive.controllers.TeleopDriveController.SpeedLevel;
 import frc.robot.subsystems.examples.flywheel.Flywheel;
 import frc.robot.subsystems.examples.flywheel.FlywheelIO;
 import frc.robot.subsystems.examples.flywheel.FlywheelIOSparkMax;
@@ -41,6 +40,8 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.utility.Alert;
 import frc.robot.utility.Alert.AlertType;
 import frc.robot.utility.OverrideSwitch;
+import frc.robot.utility.SpeedController;
+import frc.robot.utility.SpeedController.SpeedLevel;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -60,6 +61,7 @@ public class RobotContainer {
   // Controller
   private final CommandGenericHID driverController = new CommandXboxController(0);
   private final CommandGenericHID operatorController = new CommandXboxController(1);
+  private final SpeedController speedController = new SpeedController(SpeedLevel.DEFAULT);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -195,8 +197,7 @@ public class RobotContainer {
               new OverrideSwitch(
                   driverXbox.rightBumper(), "Angle Driven", OverrideSwitch.Mode.HOLD, true));
 
-      RobotModeTriggers.disabled().onTrue(drive.run(drive::stop));
-
+      // Controllers
       final TeleopDriveController input =
           new TeleopDriveController(
               drive,
@@ -205,6 +206,9 @@ public class RobotContainer {
               () -> -driverXbox.getRightY(),
               () -> -driverXbox.getRightX());
 
+      final HeadingController headingController = new HeadingController(drive);
+
+      // Default command
       drive.setDefaultCommand(
           drive
               .runEnd(
@@ -212,25 +216,23 @@ public class RobotContainer {
                     Translation2d translation = input.getTranslationMetersPerSecond();
                     Rotation2d rotation = input.getOmegaRadiansPerSecond();
                     drive.setRobotSpeeds(
-                        new ChassisSpeeds(
-                            translation.getX(), translation.getY(), rotation.getRadians()),
+                        speedController.applyTo(
+                            new ChassisSpeeds(
+                                translation.getX(), translation.getY(), rotation.getRadians())),
                         useFieldRelative.getAsBoolean());
                   },
                   drive::stop)
               .withName("DefaultDrive"));
 
       boolean includeDiagonalPOV = true;
-
-      final HeadingController headingController = new HeadingController(drive);
-
       for (int pov = 0; pov < 360; pov += includeDiagonalPOV ? 45 : 90) {
 
-        // POV angles are in Clock Wise Degrees, convert to standard Rotation
+        // POV angles are in Clock Wise degrees, needs to be flipped to get correct rotation2d
         final Rotation2d angle = Rotation2d.fromDegrees(-pov);
+        final String name = String.format("%d\u00B0", pov);
 
-        // While the POV is being pressed and we are not in angle control mode,
-        // set the chassis speeds to the Cos and Sin of the angle (so at 0 degrees forward
-        // by 1 left by 0, etc)
+        // While the POV is being pressed and we are not in angle control mode, set the chassis
+        // speeds to the Cos and Sin of the angle
         driverXbox
             .pov(pov)
             .and(useAngleControlMode.negate())
@@ -239,16 +241,10 @@ public class RobotContainer {
                     .startEnd(
                         () ->
                             drive.setRobotSpeeds(
-                                new ChassisSpeeds(
-                                    angle.getCos()
-                                        * TeleopDriveController.getSpeedLevel()
-                                            .translationCoefficient,
-                                    angle.getSin()
-                                        * TeleopDriveController.getSpeedLevel()
-                                            .translationCoefficient,
-                                    0)),
+                                speedController.applyTo(
+                                    new ChassisSpeeds(angle.getCos(), angle.getSin(), 0))),
                         drive::stop)
-                    .withName(String.format("DriveRobotRelative %s\u00B0", pov)));
+                    .withName(String.format("DriveRobotRelative %s", name)));
 
         // While the POV is being pressed and we are angle control mode
         // Start by resetting the controller and setting the goal angle to the pov angle
@@ -262,11 +258,10 @@ public class RobotContainer {
                           headingController.reset();
                           headingController.setGoal(angle.getRadians());
                         })
-                    .withName(String.format("PrepareLockedHeading %s\u00B0", pov)));
+                    .withName(String.format("PrepareLockedHeading %s", name)));
 
         // Then while it is held, if we are not at the angle turn to it, if we are at the
-        // angle go forward at
-        // the angle
+        // angle go forward at the angle
         driverXbox
             .pov(pov)
             .and(useAngleControlMode)
@@ -276,17 +271,16 @@ public class RobotContainer {
                         () -> {
                           double rotationRadians = headingController.calculate();
                           drive.setRobotSpeeds(
-                              new ChassisSpeeds(
-                                  (headingController.atGoal() ? 1 : 0)
-                                      * TeleopDriveController.getSpeedLevel()
-                                          .translationCoefficient,
-                                  0,
-                                  headingController.atGoal() ? 0 : rotationRadians));
+                              speedController.applyTo(
+                                  new ChassisSpeeds(
+                                      (headingController.atGoal() ? 1 : 0),
+                                      0,
+                                      headingController.atGoal() ? 0 : rotationRadians)));
                         })
-                    .withName(String.format("ForwardLockedHeading %s\u00B0", pov)));
+                    .withName(String.format("ForwardLockedHeading %s", name)));
+
         // Then once the pov is let go, if we are not at the angle continue turn to it,
-        // while also accepting x
-        // and y input to drive
+        // while also accepting x and y input to drive
         driverXbox
             .pov(pov)
             .and(useAngleControlMode)
@@ -297,18 +291,18 @@ public class RobotContainer {
                           Translation2d translation = input.getTranslationMetersPerSecond();
                           double rotationRadians = headingController.calculate();
                           drive.setRobotSpeeds(
-                              new ChassisSpeeds(
-                                  translation.getX(),
-                                  translation.getY(),
-                                  headingController.atGoal() ? 0 : rotationRadians),
+                              speedController.applyTo(
+                                  new ChassisSpeeds(
+                                      translation.getX(),
+                                      translation.getY(),
+                                      headingController.atGoal() ? 0 : rotationRadians)),
                               useFieldRelative.getAsBoolean());
                         })
                     .until(() -> input.getOmegaRadiansPerSecond().getRadians() != 0)
-                    .withName(String.format("DriveLockedHeading %s\u00B0", pov)));
+                    .withName(String.format("DriveLockedHeading %s", name)));
       }
 
-      // While X is held down go into stop and go into the cross position to resistent
-      // movement,
+      // While X is held down go into stop and go into the cross position to resistent movement,
       // then once X button is let go put modules forward
       driverXbox
           .x()
@@ -317,10 +311,11 @@ public class RobotContainer {
                   .startEnd(drive::stopUsingBrakeArrangement, drive::stopUsingForwardArrangement)
                   .withName("StopWithX"));
 
-      // When be is pressed stop the drivetrain then idle it,
-      // cancelling all incoming commands
+      // When be is pressed stop the drivetrain then idle it, cancelling all incoming commands.
+      // Also do this when robot is disabled
       driverXbox
           .b()
+          .or(RobotModeTriggers.disabled())
           .whileTrue(
               drive
                   .runOnce(drive::stop)
@@ -335,18 +330,18 @@ public class RobotContainer {
           .or(driverXbox.leftStick())
           .whileTrue(
               Commands.startEnd(
-                  () -> TeleopDriveController.addSpeedLevel(SpeedLevel.BOOST),
-                  () -> TeleopDriveController.removeSpeedLevel(SpeedLevel.BOOST)));
+                  () -> speedController.pushSpeedLevel(SpeedLevel.BOOST),
+                  () -> speedController.removeSpeedLevel(SpeedLevel.BOOST)));
 
-      // When left (Brake) trigger is held down or right stick (crouch) is pressed, put in
-      // precise (slow) mode
+      // When left (Brake) trigger is held down or right stick (crouch) is pressed, put in precise
+      // (slow) mode
       driverXbox
           .leftTrigger(0.5)
           .or(driverXbox.rightStick())
           .whileTrue(
               Commands.startEnd(
-                  () -> TeleopDriveController.addSpeedLevel(SpeedLevel.PRECISE),
-                  () -> TeleopDriveController.removeSpeedLevel(SpeedLevel.PRECISE)));
+                  () -> speedController.pushSpeedLevel(SpeedLevel.PRECISE),
+                  () -> speedController.removeSpeedLevel(SpeedLevel.PRECISE)));
 
     } else if (driverController instanceof CommandJoystick) {
       final CommandJoystick driverJoystick = (CommandJoystick) driverController;
@@ -420,14 +415,15 @@ public class RobotContainer {
     SmartDashboard.putNumber(
         "Speed MPH", Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond) * 2.2369);
 
-    SmartDashboard.putString("Speed Level", TeleopDriveController.getSpeedLevel().name());
+    SmartDashboard.putString("Speed Level", speedController.getCurrentSpeedLevel().name());
     SmartDashboard.putString(
         "Speed Transl",
         String.format(
-            "%.2f%%", TeleopDriveController.getSpeedLevel().translationCoefficient * 100));
+            "%.2f%%", speedController.getCurrentSpeedLevel().getTranslationCoefficient() * 100));
     SmartDashboard.putString(
         "Speed Rot",
-        String.format("%.2f%%", TeleopDriveController.getSpeedLevel().rotationCoefficient * 100));
+        String.format(
+            "%.2f%%", speedController.getCurrentSpeedLevel().getRotationCoefficient() * 100));
   }
 
   /**

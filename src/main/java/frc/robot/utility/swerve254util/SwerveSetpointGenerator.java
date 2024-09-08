@@ -10,6 +10,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.DoubleBinaryOperator;
 
 /**
  * "Inspired" by FRC team 254. See the license file in the root directory of this project.
@@ -54,11 +55,6 @@ public class SwerveSetpointGenerator {
     }
   }
 
-  @FunctionalInterface
-  private interface Function2d {
-    double f(double x, double y);
-  }
-
   /**
    * Find the root of the generic 2D parametric function 'func' using the regula falsi technique.
    * This is a pretty naive way to do root finding, but it's usually faster than simple bisection
@@ -78,7 +74,7 @@ public class SwerveSetpointGenerator {
    *     (approximate) root.
    */
   private double findRoot(
-      Function2d func,
+      DoubleBinaryOperator func,
       double x_0,
       double y_0,
       double f_0,
@@ -92,7 +88,7 @@ public class SwerveSetpointGenerator {
     var s_guess = Math.max(0.0, Math.min(1.0, -f_0 / (f_1 - f_0)));
     var x_guess = (x_1 - x_0) * s_guess + x_0;
     var y_guess = (y_1 - y_0) * s_guess + y_0;
-    var f_guess = func.f(x_guess, y_guess);
+    var f_guess = func.applyAsDouble(x_guess, y_guess);
     if (Math.signum(f_0) == Math.signum(f_guess)) {
       // 0 and guess on same side of root, so use upper bracket.
       return s_guess
@@ -121,11 +117,15 @@ public class SwerveSetpointGenerator {
       return 1.0;
     }
     double offset = f_0 + Math.signum(diff) * max_deviation;
-    Function2d func =
-        (x, y) -> {
-          return unwrapAngle(f_0, Math.atan2(y, x)) - offset;
-        };
-    return findRoot(func, x_0, y_0, f_0 - offset, x_1, y_1, f_1 - offset, max_iterations);
+    return findRoot(
+        (x, y) -> unwrapAngle(f_0, Math.atan2(y, x)) - offset,
+        x_0,
+        y_0,
+        f_0 - offset,
+        x_1,
+        y_1,
+        f_1 - offset,
+        max_iterations);
   }
 
   protected double findDriveMaxS(
@@ -143,11 +143,15 @@ public class SwerveSetpointGenerator {
       return 1.0;
     }
     double offset = f_0 + Math.signum(diff) * max_vel_step;
-    Function2d func =
-        (x, y) -> {
-          return Math.hypot(x, y) - offset;
-        };
-    return findRoot(func, x_0, y_0, f_0 - offset, x_1, y_1, f_1 - offset, max_iterations);
+    return findRoot(
+        (x, y) -> Math.hypot(x, y) - offset,
+        x_0,
+        y_0,
+        f_0 - offset,
+        x_1,
+        y_1,
+        f_1 - offset,
+        max_iterations);
   }
 
   // protected double findDriveMaxS(

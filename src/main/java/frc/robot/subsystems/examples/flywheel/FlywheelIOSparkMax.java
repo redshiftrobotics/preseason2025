@@ -38,17 +38,19 @@ public class FlywheelIOSparkMax implements FlywheelIO {
     leader.restoreFactoryDefaults();
     follower.restoreFactoryDefaults();
 
-    // Controls
+    // Set follower to copy leader
     leader.setInverted(FLYWHEEL_CONFIG.leaderInverted());
     follower.follow(leader, FLYWHEEL_CONFIG.followerInverted());
 
-    // Disable voltage
+    // Disable brake
     leader.setIdleMode(IdleMode.kCoast);
     follower.setIdleMode(IdleMode.kCoast);
 
+    // Voltage
     leader.enableVoltageCompensation(12.0);
     leader.setSmartCurrentLimit(30);
 
+    // Save config
     leader.burnFlash();
     follower.burnFlash();
   }
@@ -59,7 +61,7 @@ public class FlywheelIOSparkMax implements FlywheelIO {
     inputs.velocityRadPerSec =
         Units.rotationsPerMinuteToRadiansPerSecond(encoder.getVelocity() / GEAR_RATIO);
     inputs.appliedVolts = leader.getAppliedOutput() * leader.getBusVoltage();
-    inputs.currentAmps = new double[] {leader.getOutputCurrent(), follower.getOutputCurrent()};
+    inputs.currentAmps = leader.getOutputCurrent();
   }
 
   @Override
