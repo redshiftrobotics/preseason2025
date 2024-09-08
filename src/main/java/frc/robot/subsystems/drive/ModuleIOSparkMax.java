@@ -71,7 +71,6 @@ public class ModuleIOSparkMax implements ModuleIO {
     turnFeedback = turnSparkMax.getPIDController();
 
     // Cancoder config
-
     cancoder
         .getConfigurator()
         .apply(
@@ -129,8 +128,6 @@ public class ModuleIOSparkMax implements ModuleIO {
     turnRelativeEncoder.setMeasurementPeriod(10);
     turnRelativeEncoder.setAverageDepth(2);
 
-    turnRelativeEncoder.setPosition(turnAbsolutePosition.getValueAsDouble());
-
     // Complete changing spark max settings
     driveSparkMax.setCANTimeout(0);
     turnSparkMax.setCANTimeout(0);
@@ -160,6 +157,9 @@ public class ModuleIOSparkMax implements ModuleIO {
                     turnSparkMax.getLastError() == REVLibError.kOk
                         ? OptionalDouble.of(turnRelativeEncoder.getPosition())
                         : OptionalDouble.empty());
+    
+    // Reset turn position to absolute encoder position
+    turnRelativeEncoder.setPosition(turnAbsolutePosition.getValueAsDouble());
 
     // Write all spark max settings to flash
     driveSparkMax.burnFlash();
@@ -216,7 +216,6 @@ public class ModuleIOSparkMax implements ModuleIO {
 
   @Override
   public void setTurnPosition(double angleRads) {
-    turnRelativeEncoder.setPosition(turnAbsolutePosition.getValueAsDouble());
     turnFeedback.setReference(angleRads, ControlType.kSmartMotion);
   }
 

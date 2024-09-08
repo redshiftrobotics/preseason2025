@@ -24,8 +24,11 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 /**
- * Module IO implementation for Talon FX drive motor controller, Talon FX turn motor controller, and
- * CANcoder. Specifically for Krakens
+ * TODO: Check that this will work. FULLY UNTESTED.
+ *
+ * <p>Module IO implementation for Talon FX drive motor controller, Talon FX turn motor controller,
+ * and CANcoder. Specifically for Krakens motors with Talons, with added power and efficiency
+ * benefits of Field Oriented Control (FOC)
  *
  * <p>To calibrate the absolute encoder offsets, point the modules straight (such that forward
  * motion on the drive motor will propel the robot forward) and copy the reported values from the
@@ -152,7 +155,10 @@ public class ModuleIOKrakenFOC implements ModuleIO {
         turnCurrent,
         turnTorqueCurrent);
 
-    // --- Disable unused StatusSignals
+    // Reset turn position to absolute encoder position
+    turnTalon.setPosition(turnAbsolutePosition.getValue(), 1.0);
+
+    // Optimize bus utilization
     driveTalon.optimizeBusUtilization(0, 1.0);
     turnTalon.optimizeBusUtilization(0, 1.0);
   }
