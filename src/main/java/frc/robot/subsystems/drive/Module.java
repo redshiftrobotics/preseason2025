@@ -121,8 +121,7 @@ public class Module {
         // Scale velocity based on turn error
 
         // When the error is 90 degrees, the velocity setpoint should be 0. As the wheel
-        // turns
-        // towards the setpoint, its velocity should increase. This is achieved by
+        // turns towards the setpoint, its velocity should increase. This is achieved by
         // taking the component of the velocity in the direction of the setpoint.
 
         // https://cdn1.byjus.com/wp-content/uploads/2019/05/Cosine-Graph.png
