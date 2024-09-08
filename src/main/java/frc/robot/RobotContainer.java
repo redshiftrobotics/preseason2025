@@ -184,6 +184,9 @@ public class RobotContainer {
   }
 
   private void configureDriverControllerBindings() {
+
+    SmartDashboard.putData(Commands.runOnce(drive::zeroGyro).withName("Zero Gyro"));
+
     if (driverController instanceof CommandXboxController) {
       final CommandXboxController driverXbox = (CommandXboxController) driverController;
 

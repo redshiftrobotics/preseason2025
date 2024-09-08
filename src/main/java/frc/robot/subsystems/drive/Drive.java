@@ -240,6 +240,11 @@ public class Drive extends SubsystemBase {
     poseEstimator.resetPosition(rawGyroRotation, getWheelPositions(), pose);
   }
 
+  /** Reset heading/yaw to zero. */
+  public void zeroGyro() {
+    gyroIO.zeroGyro();
+  }
+
   /**
    * Adds a vision measurement to the pose estimator.
    *

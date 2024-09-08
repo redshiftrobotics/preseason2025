@@ -16,4 +16,7 @@ public interface GyroIO {
 
   /** Updates the set of loggable inputs. */
   public default void updateInputs(GyroIOInputs inputs) {}
+
+  /** Reset heading/yaw of gyro to zero. */
+  public default void zeroGyro() {}
 }
