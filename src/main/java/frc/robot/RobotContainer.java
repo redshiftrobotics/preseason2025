@@ -27,7 +27,6 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSparkMax;
-import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.drive.controllers.HeadingController;
 import frc.robot.subsystems.drive.controllers.TeleopDriveController;
 import frc.robot.subsystems.examples.flywheel.Flywheel;
@@ -73,11 +72,11 @@ public class RobotContainer {
         // Real robot, instantiate hardware IO implementations
         drive =
             new Drive(
-                new GyroIOPigeon2(false),
-                new ModuleIOTalonFX(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
-                new ModuleIOTalonFX(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
-                new ModuleIOTalonFX(DriveConstants.BACK_LEFT_MODULE_CONFIG),
-                new ModuleIOTalonFX(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
+                new GyroIOPigeon2(true),
+                new ModuleIOSparkMax(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
+                new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
+                new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
+                new ModuleIOSparkMax(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
         flywheelExample = new Flywheel(new FlywheelIOSparkMax());
         vision = new AprilTagVision();
         break;
@@ -100,10 +99,10 @@ public class RobotContainer {
         drive =
             new Drive(
                 new GyroIO() {},
-                new ModuleIOSim(),
-                new ModuleIOSim(),
-                new ModuleIOSim(),
-                new ModuleIOSim());
+                new ModuleIOSim(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
+                new ModuleIOSim(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
+                new ModuleIOSim(DriveConstants.BACK_LEFT_MODULE_CONFIG),
+                new ModuleIOSim(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
         flywheelExample = new Flywheel(new FlywheelIOSparkMax());
         vision = new AprilTagVision(new CameraIOSim(VisionConstants.FRONT_CAMERA, drive::getPose));
         break;
@@ -184,6 +183,9 @@ public class RobotContainer {
   }
 
   private void configureDriverControllerBindings() {
+
+    SmartDashboard.putData(Commands.runOnce(drive::zeroGyro).withName("Zero Gyro"));
+
     if (driverController instanceof CommandXboxController) {
       final CommandXboxController driverXbox = (CommandXboxController) driverController;
 
@@ -238,7 +240,7 @@ public class RobotContainer {
             .and(useAngleControlMode.negate())
             .whileTrue(
                 drive
-                    .startEnd(
+                    .runEnd(
                         () ->
                             drive.setRobotSpeeds(
                                 speedController.applyTo(
@@ -260,10 +262,11 @@ public class RobotContainer {
                         })
                     .withName(String.format("PrepareLockedHeading %s", name)));
 
-        // Then while it is held, if we are not at the angle turn to it, if we are at the
-        // angle go forward at the angle
+        // Then if the button is held for more than 0.2 seconds, drive forward at the angle once the
+        // chassis reaches it
         driverXbox
             .pov(pov)
+            .debounce(0.2)
             .and(useAngleControlMode)
             .whileTrue(
                 drive

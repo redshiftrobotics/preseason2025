@@ -31,7 +31,6 @@ import frc.robot.Constants;
 import frc.robot.utility.AllianceFlipUtil;
 import frc.robot.utility.LocalADStarAK;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
@@ -172,7 +171,6 @@ public class Drive extends SubsystemBase {
     odometryLock.unlock();
 
     Logger.processInputs("Drive/Gyro", gyroInputs);
-    modules().forEach(Module::periodic);
 
     // Stop moving when disabled
     if (DriverStation.isDisabled()) {
@@ -181,11 +179,7 @@ public class Drive extends SubsystemBase {
 
     // Log current wheel speeds
     Logger.recordOutput("SwerveStates/MeasuredWheelSpeeds", getWheelSpeeds().states);
-    Logger.recordOutput(
-        "SwerveStates/ModuleDesiredWheelSpeeds",
-        getDesiredWheelSpeeds()
-            .orElse(new SwerveDriveWheelStates(new SwerveModuleState[] {}))
-            .states);
+    Logger.recordOutput("SwerveStates/ModuleDesiredWheelSpeeds", getDesiredWheelSpeeds().states);
 
     // Update odometry
     double[] sampleTimestamps =
@@ -244,6 +238,11 @@ public class Drive extends SubsystemBase {
    */
   public void resetPose(Pose2d pose) {
     poseEstimator.resetPosition(rawGyroRotation, getWheelPositions(), pose);
+  }
+
+  /** Reset heading/yaw to zero. */
+  public void zeroGyro() {
+    gyroIO.zeroGyro();
   }
 
   /**
@@ -337,37 +336,6 @@ public class Drive extends SubsystemBase {
   // --- Wheel States ---
 
   /**
-   * Get measured swerve module speeds for each swerve module. Each wheel state is a turn angle and
-   * drive velocity in meters/second.
-   *
-   * @return a {@link SwerveDriveWheelStates} object which contains an array of all swerve module
-   *     states
-   */
-  public SwerveDriveWheelStates getWheelSpeeds() {
-    return new SwerveDriveWheelStates(
-        modules().map(Module::getSpeeds).toArray(SwerveModuleState[]::new));
-  }
-
-  /**
-   * Get desired swerve module desired speeds for each swerve module. Each wheel state is a turn
-   * angle and drive velocity in meters/second.
-   *
-   * @return optional {@link SwerveDriveWheelStates} object which contains an array of all desired
-   *     swerve module states.
-   */
-  public Optional<SwerveDriveWheelStates> getDesiredWheelSpeeds() {
-    if (modules().map(Module::getDesiredSpeeds).anyMatch(Optional::isEmpty)) {
-      return Optional.empty();
-    }
-    return Optional.of(
-        new SwerveDriveWheelStates(
-            modules()
-                .map(Module::getDesiredSpeeds)
-                .map(Optional::get)
-                .toArray(SwerveModuleState[]::new)));
-  }
-
-  /**
    * Set desired swerve modules for each swerve module. Each wheel state is a turn angle and drive
    * velocity in meters/second.
    *
@@ -383,6 +351,30 @@ public class Drive extends SubsystemBase {
     for (int i = 0; i < modules.length; i++) {
       modules[i].setSpeeds(speeds.states[i]);
     }
+  }
+
+  /**
+   * Get measured swerve module speeds for each swerve module. Each wheel state is a turn angle and
+   * drive velocity in meters/second.
+   *
+   * @return a {@link SwerveDriveWheelStates} object which contains an array of all swerve module
+   *     states
+   */
+  public SwerveDriveWheelStates getWheelSpeeds() {
+    return new SwerveDriveWheelStates(
+        modules().map(Module::getSpeeds).toArray(SwerveModuleState[]::new));
+  }
+
+  /**
+   * Get desired swerve module desired speeds for each swerve module. Each wheel state is a turn
+   * angle and drive velocity in meters/second.
+   *
+   * @return a {@link SwerveDriveWheelStates} object which contains an array of all desired swerve
+   *     module states.
+   */
+  public SwerveDriveWheelStates getDesiredWheelSpeeds() {
+    return new SwerveDriveWheelStates(
+        modules().map(Module::getDesiredState).toArray(SwerveModuleState[]::new));
   }
 
   // --- Wheel Positions ---
