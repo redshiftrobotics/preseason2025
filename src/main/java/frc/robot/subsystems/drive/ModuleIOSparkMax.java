@@ -17,6 +17,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
+import com.revrobotics.SparkPIDController.ArbFFUnits;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.drive.DriveConstants.ModuleConfig;
@@ -157,7 +158,7 @@ public class ModuleIOSparkMax implements ModuleIO {
                     turnSparkMax.getLastError() == REVLibError.kOk
                         ? OptionalDouble.of(turnRelativeEncoder.getPosition())
                         : OptionalDouble.empty());
-    
+
     // Reset turn position to absolute encoder position
     turnRelativeEncoder.setPosition(turnAbsolutePosition.getValueAsDouble());
 
@@ -210,13 +211,14 @@ public class ModuleIOSparkMax implements ModuleIO {
   }
 
   @Override
-  public void setDriveVelocity(double velocityRadsPerSec, double feedForward) {
-    driveFeedback.setReference(velocityRadsPerSec, ControlType.kSmartVelocity, 0, feedForward);
+  public void setDriveVelocity(double velocityRadsPerSec, double feedForwardVoltage) {
+    driveFeedback.setReference(
+        velocityRadsPerSec, ControlType.kPosition, 0, feedForwardVoltage, ArbFFUnits.kVoltage);
   }
 
   @Override
   public void setTurnPosition(double angleRads) {
-    turnFeedback.setReference(angleRads, ControlType.kSmartMotion);
+    turnFeedback.setReference(angleRads, ControlType.kVelocity);
   }
 
   @Override
