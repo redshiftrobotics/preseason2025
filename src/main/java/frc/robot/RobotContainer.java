@@ -241,7 +241,7 @@ public class RobotContainer {
             .and(useAngleControlMode.negate())
             .whileTrue(
                 drive
-                    .startEnd(
+                    .runEnd(
                         () ->
                             drive.setRobotSpeeds(
                                 speedController.applyTo(
@@ -263,10 +263,11 @@ public class RobotContainer {
                         })
                     .withName(String.format("PrepareLockedHeading %s", name)));
 
-        // Then while it is held, if we are not at the angle turn to it, if we are at the
-        // angle go forward at the angle
+        // Then if the button is held for more than 0.2 seconds, drive forward at the angle once the
+        // chassis reaches it
         driverXbox
             .pov(pov)
+            .debounce(0.2)
             .and(useAngleControlMode)
             .whileTrue(
                 drive
