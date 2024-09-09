@@ -159,8 +159,8 @@ public class ModuleIOKrakenFOC implements ModuleIO {
     turnTalon.setPosition(turnAbsolutePosition.getValue(), 1.0);
 
     // Optimize bus utilization
-    driveTalon.optimizeBusUtilization(0, 1.0);
-    turnTalon.optimizeBusUtilization(0, 1.0);
+    driveTalon.optimizeBusUtilization(1.0);
+    turnTalon.optimizeBusUtilization(1.0);
   }
 
   @Override
