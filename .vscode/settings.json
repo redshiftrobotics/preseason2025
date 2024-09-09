@@ -52,7 +52,9 @@
 		"setpoints",
 		"teleop",
 		"teleoperated",
-		"wpilibj"
+		"wpilibj",
+		"CANivore",
+		"CANFD"
 	],
 	"wpilib.selectDefaultSimulateExtension": true,
 }
