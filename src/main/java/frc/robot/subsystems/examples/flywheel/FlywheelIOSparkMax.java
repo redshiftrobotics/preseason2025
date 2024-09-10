@@ -13,82 +13,84 @@ import com.revrobotics.SparkPIDController.ArbFFUnits;
 import edu.wpi.first.math.util.Units;
 
 /**
- * NOTE: To use the Spark Flex / NEO Vortex, replace all instances of "CANSparkMax" with
- * "CANSparkFlex".
+ * NOTE: To use the Spark Flex / NEO Vortex, replace all instances of
+ * "CANSparkMax" with "CANSparkFlex".
  */
 public class FlywheelIOSparkMax implements FlywheelIO {
-  private final CANSparkMax leader;
-  private final CANSparkMax follower;
-  private final RelativeEncoder encoder;
-  private final SparkPIDController pid;
+	private final CANSparkMax leader;
+	private final CANSparkMax follower;
+	private final RelativeEncoder encoder;
+	private final SparkPIDController pid;
 
-  public FlywheelIOSparkMax() {
+	public FlywheelIOSparkMax() {
 
-    // --- Save config ---
-    leader = new CANSparkMax(FLYWHEEL_CONFIG.followerID(), MotorType.kBrushless);
-    follower = new CANSparkMax(FLYWHEEL_CONFIG.leaderID(), MotorType.kBrushless);
+		// --- Save config ---
+		leader =
+			new CANSparkMax(FLYWHEEL_CONFIG.followerID(), MotorType.kBrushless);
+		follower =
+			new CANSparkMax(FLYWHEEL_CONFIG.leaderID(), MotorType.kBrushless);
 
-    // --- Set up leader controller ---
-    encoder = leader.getEncoder();
-    pid = leader.getPIDController();
+		// --- Set up leader controller ---
+		encoder = leader.getEncoder();
+		pid = leader.getPIDController();
 
-    // --- Configure Hardware ---
+		// --- Configure Hardware ---
 
-    // Defaults
-    leader.restoreFactoryDefaults();
-    follower.restoreFactoryDefaults();
+		// Defaults
+		leader.restoreFactoryDefaults();
+		follower.restoreFactoryDefaults();
 
-    // Set follower to copy leader
-    leader.setInverted(FLYWHEEL_CONFIG.leaderInverted());
-    follower.follow(leader, FLYWHEEL_CONFIG.followerInverted());
+		// Set follower to copy leader
+		leader.setInverted(FLYWHEEL_CONFIG.leaderInverted());
+		follower.follow(leader, FLYWHEEL_CONFIG.followerInverted());
 
-    // Disable brake
-    leader.setIdleMode(IdleMode.kCoast);
-    follower.setIdleMode(IdleMode.kCoast);
+		// Disable brake
+		leader.setIdleMode(IdleMode.kCoast);
+		follower.setIdleMode(IdleMode.kCoast);
 
-    // Voltage
-    leader.enableVoltageCompensation(12.0);
-    leader.setSmartCurrentLimit(30);
+		// Voltage
+		leader.enableVoltageCompensation(12.0);
+		leader.setSmartCurrentLimit(30);
 
-    // Save config
-    leader.burnFlash();
-    follower.burnFlash();
-  }
+		// Save config
+		leader.burnFlash();
+		follower.burnFlash();
+	}
 
-  @Override
-  public void updateInputs(FlywheelIOInputs inputs) {
-    inputs.positionRad = Units.rotationsToRadians(encoder.getPosition() / GEAR_RATIO);
-    inputs.velocityRadPerSec =
-        Units.rotationsPerMinuteToRadiansPerSecond(encoder.getVelocity() / GEAR_RATIO);
-    inputs.appliedVolts = leader.getAppliedOutput() * leader.getBusVoltage();
-    inputs.currentAmps = leader.getOutputCurrent();
-  }
+	@Override
+	public void updateInputs(FlywheelIOInputs inputs) {
+		inputs.positionRad =
+			Units.rotationsToRadians(encoder.getPosition() / GEAR_RATIO);
+		inputs.velocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(
+			encoder.getVelocity() / GEAR_RATIO);
+		inputs.appliedVolts =
+			leader.getAppliedOutput() * leader.getBusVoltage();
+		inputs.currentAmps = leader.getOutputCurrent();
+	}
 
-  @Override
-  public void setVoltage(double volts) {
-    leader.setVoltage(volts);
-  }
+	@Override
+	public void setVoltage(double volts) {
+		leader.setVoltage(volts);
+	}
 
-  @Override
-  public void setVelocity(double velocityRadPerSec, double ffVolts) {
-    pid.setReference(
-        Units.radiansPerSecondToRotationsPerMinute(velocityRadPerSec) * GEAR_RATIO,
-        ControlType.kVelocity,
-        0,
-        ffVolts,
-        ArbFFUnits.kVoltage);
-  }
+	@Override
+	public void setVelocity(double velocityRadPerSec, double ffVolts) {
+		pid.setReference(
+			Units.radiansPerSecondToRotationsPerMinute(velocityRadPerSec) *
+				GEAR_RATIO,
+			ControlType.kVelocity, 0, ffVolts, ArbFFUnits.kVoltage);
+	}
 
-  @Override
-  public void stop() {
-    leader.stopMotor();
-  }
+	@Override
+	public void stop() {
+		leader.stopMotor();
+	}
 
-  @Override
-  public void configurePID(double kP, double kI, double kD) {
-    pid.setP(kP, 0);
-    pid.setI(kI, 0);
-    pid.setD(kD, 0);
-    pid.setFF(0, 0);
-  }
+	@Override
+	public void configurePID(double kP, double kI, double kD) {
+		pid.setP(kP, 0);
+		pid.setI(kI, 0);
+		pid.setD(kD, 0);
+		pid.setFF(0, 0);
+	}
 }

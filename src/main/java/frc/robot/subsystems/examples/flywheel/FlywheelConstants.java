@@ -4,14 +4,14 @@ import frc.robot.Constants;
 
 public class FlywheelConstants {
 
-  // --- Flywheel config ---
+	// --- Flywheel config ---
 
-  public record FlywheelConfig(
-      int leaderID, int followerID, boolean leaderInverted, Boolean followerInverted) {}
+	public record FlywheelConfig(int leaderID, int followerID,
+		boolean leaderInverted, Boolean followerInverted) {}
 
-  public static final FlywheelConfig FLYWHEEL_CONFIG =
-      switch (Constants.getRobot()) {
-        case COMP_BOT -> new FlywheelConfig(0, 1, false, false);
+	public static final FlywheelConfig FLYWHEEL_CONFIG =
+		switch(Constants.getRobot()) {
+		case COMP_BOT -> new FlywheelConfig(0, 1, false, false);
         case DEV_BOT -> new FlywheelConfig(0, 1, false, false);
         case SIM_BOT -> new FlywheelConfig(0, 1, false, false);
       };

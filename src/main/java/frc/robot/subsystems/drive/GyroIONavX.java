@@ -13,40 +13,44 @@ import java.util.Queue;
  * <p>https://www.andymark.com/products/navx2-mxp-robotics-navigation-sensor
  */
 public class GyroIONavX implements GyroIO {
-  private static final SPI.Port SERIAL_PORT_ID = SPI.Port.kMXP;
+	private static final SPI.Port SERIAL_PORT_ID = SPI.Port.kMXP;
 
-  private final AHRS navX;
+	private final AHRS navX;
 
-  private final Queue<Double> yawPositionQueue;
-  private final Queue<Double> yawTimestampQueue;
+	private final Queue<Double> yawPositionQueue;
+	private final Queue<Double> yawTimestampQueue;
 
-  /** Create a new NaxX IMU */
-  public GyroIONavX() {
-    navX = new AHRS(SERIAL_PORT_ID);
+	/** Create a new NaxX IMU */
+	public GyroIONavX() {
+		navX = new AHRS(SERIAL_PORT_ID);
 
-    yawTimestampQueue = SparkMaxOdometryThread.getInstance().makeTimestampQueue();
-    yawPositionQueue =
-        SparkMaxOdometryThread.getInstance().registerSignal(() -> OptionalDouble.of(navX.getYaw()));
-  }
+		yawTimestampQueue =
+			SparkMaxOdometryThread.getInstance().makeTimestampQueue();
+		yawPositionQueue = SparkMaxOdometryThread.getInstance().registerSignal(
+			() -> OptionalDouble.of(navX.getYaw()));
+	}
 
-  @Override
-  public void updateInputs(GyroIOInputs inputs) {
-    inputs.connected = navX.isConnected();
+	@Override
+	public void updateInputs(GyroIOInputs inputs) {
+		inputs.connected = navX.isConnected();
 
-    inputs.yawPosition = navX.getRotation2d();
-    inputs.yawVelocityRadPerSec = Units.degreesToRadians(navX.getAngleAdjustment());
+		inputs.yawPosition = navX.getRotation2d();
+		inputs.yawVelocityRadPerSec =
+			Units.degreesToRadians(navX.getAngleAdjustment());
 
-    inputs.odometryYawTimestamps =
-        yawTimestampQueue.stream().mapToDouble(Double::doubleValue).toArray();
-    inputs.odometryYawPositions =
-        yawPositionQueue.stream().map(Rotation2d::fromDegrees).toArray(Rotation2d[]::new);
+		inputs.odometryYawTimestamps = yawTimestampQueue.stream()
+										   .mapToDouble(Double::doubleValue)
+										   .toArray();
+		inputs.odometryYawPositions = yawPositionQueue.stream()
+										  .map(Rotation2d::fromDegrees)
+										  .toArray(Rotation2d[] ::new);
 
-    yawTimestampQueue.clear();
-    yawPositionQueue.clear();
-  }
+		yawTimestampQueue.clear();
+		yawPositionQueue.clear();
+	}
 
-  @Override
-  public void zeroGyro() {
-    navX.reset();
-  }
+	@Override
+	public void zeroGyro() {
+		navX.reset();
+	}
 }
