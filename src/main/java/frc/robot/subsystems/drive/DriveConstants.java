@@ -6,29 +6,33 @@ import frc.robot.Constants;
 import frc.robot.utility.swerve254util.ModuleLimits;
 
 /**
- * Constants for drivetrain/chassis. All constants should be in meters and
- * radians (m/s, m/s^2, rad/s, rad/s^2). Switch expressions must cover all
- * cases.
+ * Constants for drivetrain/chassis. All constants should be in meters and radians (m/s, m/s^2,
+ * rad/s, rad/s^2). Switch expressions must cover all cases.
  *
- * <p>in the future find builder pattern like way to make records, I think there
- * is a library?
+ * <p>in the future find builder pattern like way to make records, I think there is a library?
  */
 public class DriveConstants {
 
-	// --- Drive Config ---
+  // --- Drive Config ---
 
-	public record DriveConfig(double wheelRadius, double trackWidthX,
-		double trackWidthY, double bumperWidthX, double bumperWidthY,
-		double maxLinearVelocity, double maxLinearAcceleration,
-		double maxAngularVelocity, double maxAngularAcceleration) {
-		public double driveBaseRadius() {
-			return Math.hypot(trackWidthX / 2.0, trackWidthY / 2.0);
-		}
-	}
+  public record DriveConfig(
+      double wheelRadius,
+      double trackWidthX,
+      double trackWidthY,
+      double bumperWidthX,
+      double bumperWidthY,
+      double maxLinearVelocity,
+      double maxLinearAcceleration,
+      double maxAngularVelocity,
+      double maxAngularAcceleration) {
+    public double driveBaseRadius() {
+      return Math.hypot(trackWidthX / 2.0, trackWidthY / 2.0);
+    }
+  }
 
-	public static final DriveConfig DRIVE_CONFIG =
-		switch(Constants.getRobot()) {
-		case SIM_BOT, COMP_BOT -> new DriveConfig(
+  public static final DriveConfig DRIVE_CONFIG =
+      switch (Constants.getRobot()) {
+        case SIM_BOT, COMP_BOT -> new DriveConfig(
             Units.inchesToMeters(2), 0.885, 0.885, 0.9612, 0.9612, 3.81, 14.5, 6.0883, 14.5);
         case DEV_BOT -> new DriveConfig(
             Units.inchesToMeters(2), 0.885, 0.885, 0.9612, 0.9612, 3.81, 14.5, 6.0883, 14.5);
@@ -51,51 +55,53 @@ public class DriveConstants {
   static {
     switch (Constants.getRobot()) {
       case SIM_BOT: // SIM ONLY
-			FRONT_LEFT_MODULE_CONFIG =
-				new ModuleConfig(0, 0, 0, new Rotation2d(), false);
-			FRONT_RIGHT_MODULE_CONFIG =
-				new ModuleConfig(0, 0, 0, new Rotation2d(), false);
-			BACK_LEFT_MODULE_CONFIG =
-				new ModuleConfig(0, 0, 0, new Rotation2d(), false);
-			BACK_RIGHT_MODULE_CONFIG =
-				new ModuleConfig(0, 0, 0, new Rotation2d(), false);
-			break;
+        FRONT_LEFT_MODULE_CONFIG = new ModuleConfig(0, 0, 0, new Rotation2d(), false);
+        FRONT_RIGHT_MODULE_CONFIG = new ModuleConfig(0, 0, 0, new Rotation2d(), false);
+        BACK_LEFT_MODULE_CONFIG = new ModuleConfig(0, 0, 0, new Rotation2d(), false);
+        BACK_RIGHT_MODULE_CONFIG = new ModuleConfig(0, 0, 0, new Rotation2d(), false);
+        break;
 
-		case DEV_BOT:// DEV ONLY
-			FRONT_LEFT_MODULE_CONFIG = new ModuleConfig(
-				2, 3, 3, Rotation2d.fromRotations(0.631591796875), false);
-			FRONT_RIGHT_MODULE_CONFIG = new ModuleConfig(
-				14, 17, 4, Rotation2d.fromRotations(-0.77758789062), false);
-			BACK_LEFT_MODULE_CONFIG = new ModuleConfig(
-				8, 9, 2, Rotation2d.fromRotations(-0.641357421875), false);
-			BACK_RIGHT_MODULE_CONFIG = new ModuleConfig(
-				10, 11, 1, Rotation2d.fromRotations(0.453857421875), false);
-			break;
+      case DEV_BOT: // DEV ONLY
+        FRONT_LEFT_MODULE_CONFIG =
+            new ModuleConfig(2, 3, 3, Rotation2d.fromRotations(0.631591796875), false);
+        FRONT_RIGHT_MODULE_CONFIG =
+            new ModuleConfig(14, 17, 4, Rotation2d.fromRotations(-0.77758789062), false);
+        BACK_LEFT_MODULE_CONFIG =
+            new ModuleConfig(8, 9, 2, Rotation2d.fromRotations(-0.641357421875), false);
+        BACK_RIGHT_MODULE_CONFIG =
+            new ModuleConfig(10, 11, 1, Rotation2d.fromRotations(0.453857421875), false);
+        break;
 
-		default:
-		case COMP_BOT:// COMP ONLY - REAL USED BOT
-			FRONT_LEFT_MODULE_CONFIG = new ModuleConfig(
-				2, 3, 3, Rotation2d.fromRotations(0.631591796875), false);
-			FRONT_RIGHT_MODULE_CONFIG = new ModuleConfig(
-				14, 17, 4, Rotation2d.fromRotations(-0.77587890), false);
-			BACK_LEFT_MODULE_CONFIG = new ModuleConfig(
-				8, 9, 2, Rotation2d.fromRotations(-0.641357421875), false);
-			BACK_RIGHT_MODULE_CONFIG = new ModuleConfig(
-				10, 11, 1, Rotation2d.fromRotations(0.453857421), false);
-			break;
-	}
-}
+      default:
+      case COMP_BOT: // COMP ONLY - REAL USED BOT
+        FRONT_LEFT_MODULE_CONFIG =
+            new ModuleConfig(2, 3, 3, Rotation2d.fromRotations(0.631591796875), false);
+        FRONT_RIGHT_MODULE_CONFIG =
+            new ModuleConfig(14, 17, 4, Rotation2d.fromRotations(-0.77587890), false);
+        BACK_LEFT_MODULE_CONFIG =
+            new ModuleConfig(8, 9, 2, Rotation2d.fromRotations(-0.641357421875), false);
+        BACK_RIGHT_MODULE_CONFIG =
+            new ModuleConfig(10, 11, 1, Rotation2d.fromRotations(0.453857421), false);
+        break;
+    }
+  }
 
-// --- Module Constants ---
+  // --- Module Constants ---
 
-public record ModuleConstants(double feedForwardKs, double feedForwardKv,
-	// double feedForwardKt,
-	double driveKp, double driveKd, double turnKp, double turnKd,
-	double driveReduction, double turnReduction) {}
+  public record ModuleConstants(
+      double feedForwardKs,
+      double feedForwardKv,
+      // double feedForwardKt,
+      double driveKp,
+      double driveKd,
+      double turnKp,
+      double turnKd,
+      double driveReduction,
+      double turnReduction) {}
 
-public static final ModuleConstants MODULE_CONSTANTS =
-	switch(Constants.getRobot()) {
-		case COMP_BOT -> new ModuleConstants(
+  public static final ModuleConstants MODULE_CONSTANTS =
+      switch (Constants.getRobot()) {
+        case COMP_BOT -> new ModuleConstants(
             0.1,
             0.13,
             0.1,

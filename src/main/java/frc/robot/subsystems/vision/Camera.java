@@ -22,229 +22,221 @@ import org.littletonrobotics.junction.Logger;
 /** Wrapper for CameraIO layer */
 public class Camera {
 
-	private static final LoggedTunableNumberGroup group =
-		new LoggedTunableNumberGroup("VisionResultsStatus");
+  private static final LoggedTunableNumberGroup group =
+      new LoggedTunableNumberGroup("VisionResultsStatus");
 
-	private static final LoggedTunableNumber thetaStdDevCoefficient =
-		group.build("thetaStdDevCoefficient", 0.075);
-	private static final LoggedTunableNumber xyStdDevCoefficient =
-		group.build("xyStdDevCoefficient", 0.075);
+  private static final LoggedTunableNumber thetaStdDevCoefficient =
+      group.build("thetaStdDevCoefficient", 0.075);
+  private static final LoggedTunableNumber xyStdDevCoefficient =
+      group.build("xyStdDevCoefficient", 0.075);
 
-	private static final LoggedTunableNumber zHeightToleranceMeters =
-		group.build("zHeightToleranceMeters", 0.5);
-	private static final LoggedTunableNumber pitchAndRollToleranceDegrees =
-		group.build("pitchToleranceDegrees", 10.0);
+  private static final LoggedTunableNumber zHeightToleranceMeters =
+      group.build("zHeightToleranceMeters", 0.5);
+  private static final LoggedTunableNumber pitchAndRollToleranceDegrees =
+      group.build("pitchToleranceDegrees", 10.0);
 
-	private static final LoggedTunableNumber
-		maxValidDistanceAwayFromCurrentEstimateMeters =
-			group.build("MaxValidDistanceFromCurrentEstimateMeters", 30.0);
-	private static final LoggedTunableNumber
-		maxValidDistanceAwayFromCurrentHeadingDegrees =
-			group.build("GyroFilteringToleranceDegrees", 30.0);
+  private static final LoggedTunableNumber maxValidDistanceAwayFromCurrentEstimateMeters =
+      group.build("MaxValidDistanceFromCurrentEstimateMeters", 30.0);
+  private static final LoggedTunableNumber maxValidDistanceAwayFromCurrentHeadingDegrees =
+      group.build("GyroFilteringToleranceDegrees", 30.0);
 
-	private final CameraIO io;
-	private final CameraIOInputsAutoLogged inputs =
-		new CameraIOInputsAutoLogged();
+  private final CameraIO io;
+  private final CameraIOInputsAutoLogged inputs = new CameraIOInputsAutoLogged();
 
-	private double lastTimestampSecondsFPGA = -1;
-	private Pose3d[] tagPositionsOnField = new Pose3d[] {};
+  private double lastTimestampSecondsFPGA = -1;
+  private Pose3d[] tagPositionsOnField = new Pose3d[] {};
 
-	private AprilTagFieldLayout aprilTagFieldLayout;
-	private Set<Integer> tagsIdsOnField;
+  private AprilTagFieldLayout aprilTagFieldLayout;
+  private Set<Integer> tagsIdsOnField;
 
-	private final Alert missingCameraAlert;
+  private final Alert missingCameraAlert;
 
-	/**
-	 * Create a new robot camera with IO layer
-	 *
-	 * @param io camera implantation
-	 */
-	public Camera(CameraIO io, AprilTagFieldLayout aprilTagFieldLayout) {
-		this.io = io;
+  /**
+   * Create a new robot camera with IO layer
+   *
+   * @param io camera implantation
+   */
+  public Camera(CameraIO io, AprilTagFieldLayout aprilTagFieldLayout) {
+    this.io = io;
 
-		io.setAprilTagFieldLayout(aprilTagFieldLayout);
+    io.setAprilTagFieldLayout(aprilTagFieldLayout);
 
-		this.aprilTagFieldLayout = aprilTagFieldLayout;
-		this.tagsIdsOnField = aprilTagFieldLayout.getTags()
-								  .stream()
-								  .map((tag) -> tag.ID)
-								  .collect(Collectors.toSet());
+    this.aprilTagFieldLayout = aprilTagFieldLayout;
+    this.tagsIdsOnField =
+        aprilTagFieldLayout.getTags().stream().map((tag) -> tag.ID).collect(Collectors.toSet());
 
-		this.missingCameraAlert = new Alert(
-			"Missing Camera: " + this.getCameraName(), Alert.AlertType.ERROR);
-	}
+    this.missingCameraAlert =
+        new Alert("Missing Camera: " + this.getCameraName(), Alert.AlertType.ERROR);
+  }
 
-	/** Get name of camera as specified by IO */
-	public String getCameraName() {
-		return io.getCameraName();
-	}
+  /** Get name of camera as specified by IO */
+  public String getCameraName() {
+    return io.getCameraName();
+  }
 
-	/**
-	 * Run periodic of module. Updates the set of loggable inputs, updating
-	 * vision result.
-	 */
-	public void periodic() {
-		lastTimestampSecondsFPGA = inputs.timestampSecondsFPGA;
-		Logger.processInputs("Vision/" + getCameraName(), inputs);
-		io.updateInputs(inputs);
-		missingCameraAlert.set(inputs.connected);
+  /** Run periodic of module. Updates the set of loggable inputs, updating vision result. */
+  public void periodic() {
+    lastTimestampSecondsFPGA = inputs.timestampSecondsFPGA;
+    Logger.processInputs("Vision/" + getCameraName(), inputs);
+    io.updateInputs(inputs);
+    missingCameraAlert.set(inputs.connected);
 
-		// Logging
+    // Logging
 
-		tagPositionsOnField = Arrays.stream(inputs.tagsUsed)
-								  .mapToObj(aprilTagFieldLayout::getTagPose)
-								  .filter(Optional::isPresent)
-								  .map(Optional::get)
-								  .toArray(Pose3d[] ::new);
-	}
+    tagPositionsOnField =
+        Arrays.stream(inputs.tagsUsed)
+            .mapToObj(aprilTagFieldLayout::getTagPose)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .toArray(Pose3d[]::new);
+  }
 
-	public boolean hasNewData() {
-		return inputs.hasNewData;
-	}
+  public boolean hasNewData() {
+    return inputs.hasNewData;
+  }
 
-	public Pose3d[] getTagPositionsOnField() {
-		return tagPositionsOnField;
-	}
+  public Pose3d[] getTagPositionsOnField() {
+    return tagPositionsOnField;
+  }
 
-	/** Get the pose of the robot as measured by the vision camera. */
-	public Pose3d getEstimatedRobotPose() {
-		return inputs.estimatedRobotPose;
-	}
+  /** Get the pose of the robot as measured by the vision camera. */
+  public Pose3d getEstimatedRobotPose() {
+    return inputs.estimatedRobotPose;
+  }
 
-	/**
-	 * Get the timestamp of the vision measurement in seconds. The timestamp has
-	 * an epoch since FPGA time startup
-	 */
-	public double getTimestampSeconds() {
-		return inputs.timestampSecondsFPGA;
-	}
+  /**
+   * Get the timestamp of the vision measurement in seconds. The timestamp has an epoch since FPGA
+   * time startup
+   */
+  public double getTimestampSeconds() {
+    return inputs.timestampSecondsFPGA;
+  }
 
-	/**
-	 * Get standard deviations of the vision measurements. Higher values numbers
-	 * here means trust global measurements from this camera less. The matrix is
-	 * in the form [x, y, theta], with units in meters and radians.
-	 */
-	public Matrix<N3, N1> getStandardDeviations() {
+  /**
+   * Get standard deviations of the vision measurements. Higher values numbers here means trust
+   * global measurements from this camera less. The matrix is in the form [x, y, theta], with units
+   * in meters and radians.
+   */
+  public Matrix<N3, N1> getStandardDeviations() {
 
-		// Get data about distance to each tag that is present on field
-		DoubleSummaryStatistics distanceToTagsUsedSummary =
-			Arrays.stream(getTagPositionsOnField())
-				.mapToDouble((tagPose3d)
-								 -> tagPose3d.getTranslation().getDistance(
-									 getEstimatedRobotPose().getTranslation()))
-				.summaryStatistics();
+    // Get data about distance to each tag that is present on field
+    DoubleSummaryStatistics distanceToTagsUsedSummary =
+        Arrays.stream(getTagPositionsOnField())
+            .mapToDouble(
+                (tagPose3d) ->
+                    tagPose3d
+                        .getTranslation()
+                        .getDistance(getEstimatedRobotPose().getTranslation()))
+            .summaryStatistics();
 
-		// This equation is heuristic, good enough but can probably be improved
-		// Larger distances to tags and fewer observed tags result in higher
-		// uncertainty (larger standard deviations). Average distance increases
-		// uncertainty exponentially while more tags decreases uncertainty
-		// linearly
-		double standardDeviation =
-			distanceToTagsUsedSummary.getCount() > 0 ?
-				Math.pow(distanceToTagsUsedSummary.getAverage(), 2) *
-					Math.pow(distanceToTagsUsedSummary.getCount(), -1) :
-				Double.POSITIVE_INFINITY;
+    // This equation is heuristic, good enough but can probably be improved
+    // Larger distances to tags and fewer observed tags result in higher uncertainty (larger
+    // standard deviations). Average distance increases uncertainty exponentially while more
+    // tags decreases uncertainty linearly
+    double standardDeviation =
+        distanceToTagsUsedSummary.getCount() > 0
+            ? Math.pow(distanceToTagsUsedSummary.getAverage(), 2)
+                * Math.pow(distanceToTagsUsedSummary.getCount(), -1)
+            : Double.POSITIVE_INFINITY;
 
-		double xyStandardDeviation =
-			xyStdDevCoefficient.get() * standardDeviation;
+    double xyStandardDeviation = xyStdDevCoefficient.get() * standardDeviation;
 
-		double thetaStandardDeviation =
-			thetaStdDevCoefficient.get() * standardDeviation;
+    double thetaStandardDeviation = thetaStdDevCoefficient.get() * standardDeviation;
 
-		// x, y, theta
-		return VecBuilder.fill(
-			xyStandardDeviation, xyStandardDeviation, thetaStandardDeviation);
-	}
+    // x, y, theta
+    return VecBuilder.fill(xyStandardDeviation, xyStandardDeviation, thetaStandardDeviation);
+  }
 
-	/** Get the status of the vision measurement */
-	public VisionResultStatus getStatus(Pose2d lastRobotPose) {
-		VisionResultStatus status = getStatus();
+  /** Get the status of the vision measurement */
+  public VisionResultStatus getStatus(Pose2d lastRobotPose) {
+    VisionResultStatus status = getStatus();
 
-		if(!status.isSuccess()) { return status; }
+    if (!status.isSuccess()) {
+      return status;
+    }
 
-		Pose2d estimatedRobotPose2d = inputs.estimatedRobotPose.toPose2d();
+    Pose2d estimatedRobotPose2d = inputs.estimatedRobotPose.toPose2d();
 
-		if(!MathUtil.isNear(estimatedRobotPose2d.getRotation().getDegrees(),
-			   lastRobotPose.getRotation().getDegrees(),
-			   maxValidDistanceAwayFromCurrentHeadingDegrees.get())) {
-			return VisionResultStatus.NOT_CLOSE_ENOUGH_TO_GYRO_ROTATION;
-		}
+    if (!MathUtil.isNear(
+        estimatedRobotPose2d.getRotation().getDegrees(),
+        lastRobotPose.getRotation().getDegrees(),
+        maxValidDistanceAwayFromCurrentHeadingDegrees.get())) {
+      return VisionResultStatus.NOT_CLOSE_ENOUGH_TO_GYRO_ROTATION;
+    }
 
-		if(estimatedRobotPose2d.getTranslation().getDistance(
-			   lastRobotPose.getTranslation()) >
-			maxValidDistanceAwayFromCurrentEstimateMeters.get()) {
-			return VisionResultStatus.TOO_FAR_FROM_EXISTING_ESTIMATE;
-		}
+    if (estimatedRobotPose2d.getTranslation().getDistance(lastRobotPose.getTranslation())
+        > maxValidDistanceAwayFromCurrentEstimateMeters.get()) {
+      return VisionResultStatus.TOO_FAR_FROM_EXISTING_ESTIMATE;
+    }
 
-		return status;
-	}
+    return status;
+  }
 
-	public VisionResultStatus getStatus() {
+  public VisionResultStatus getStatus() {
 
-		if(!inputs.hasNewData) { return VisionResultStatus.NO_DATA; }
+    if (!inputs.hasNewData) {
+      return VisionResultStatus.NO_DATA;
+    }
 
-		if(inputs.timestampSecondsFPGA == this.lastTimestampSecondsFPGA) {
-			return VisionResultStatus.NOT_A_NEW_RESULT;
-		}
+    if (inputs.timestampSecondsFPGA == this.lastTimestampSecondsFPGA) {
+      return VisionResultStatus.NOT_A_NEW_RESULT;
+    }
 
-		if(inputs.tagsUsed.length == 0) {
-			return VisionResultStatus.NO_TARGETS_VISIBLE;
-		}
+    if (inputs.tagsUsed.length == 0) {
+      return VisionResultStatus.NO_TARGETS_VISIBLE;
+    }
 
-		if(!Arrays.stream(inputs.tagsUsed).allMatch(tagsIdsOnField::contains)) {
-			return VisionResultStatus.INVALID_TAG;
-		}
+    if (!Arrays.stream(inputs.tagsUsed).allMatch(tagsIdsOnField::contains)) {
+      return VisionResultStatus.INVALID_TAG;
+    }
 
-		if(inputs.estimatedRobotPose.getX() < 0 ||
-			inputs.estimatedRobotPose.getY() < 0 ||
-			inputs.estimatedRobotPose.getX() >
-				aprilTagFieldLayout.getFieldLength() ||
-			inputs.estimatedRobotPose.getY() >
-				aprilTagFieldLayout.getFieldWidth()) {
-			return VisionResultStatus.INVALID_POSE_OUTSIDE_FIELD;
-		}
+    if (inputs.estimatedRobotPose.getX() < 0
+        || inputs.estimatedRobotPose.getY() < 0
+        || inputs.estimatedRobotPose.getX() > aprilTagFieldLayout.getFieldLength()
+        || inputs.estimatedRobotPose.getY() > aprilTagFieldLayout.getFieldWidth()) {
+      return VisionResultStatus.INVALID_POSE_OUTSIDE_FIELD;
+    }
 
-		if(!MathUtil.isNear(0, inputs.estimatedRobotPose.getZ(),
-			   zHeightToleranceMeters.get())) {
-			return VisionResultStatus.Z_HEIGHT_BAD;
-		}
+    if (!MathUtil.isNear(0, inputs.estimatedRobotPose.getZ(), zHeightToleranceMeters.get())) {
+      return VisionResultStatus.Z_HEIGHT_BAD;
+    }
 
-		double pitchAndRollToleranceValueRadians =
-			Units.degreesToRadians(pitchAndRollToleranceDegrees.get());
-		if(!MathUtil.isNear(0, inputs.estimatedRobotPose.getRotation().getX(),
-			   pitchAndRollToleranceValueRadians) &&
-			!MathUtil.isNear(0, inputs.estimatedRobotPose.getRotation().getY(),
-				pitchAndRollToleranceValueRadians)) {
-			return VisionResultStatus.PITCH_OR_ROLL_BAD;
-		}
+    double pitchAndRollToleranceValueRadians =
+        Units.degreesToRadians(pitchAndRollToleranceDegrees.get());
+    if (!MathUtil.isNear(
+            0, inputs.estimatedRobotPose.getRotation().getX(), pitchAndRollToleranceValueRadians)
+        && !MathUtil.isNear(
+            0, inputs.estimatedRobotPose.getRotation().getY(), pitchAndRollToleranceValueRadians)) {
+      return VisionResultStatus.PITCH_OR_ROLL_BAD;
+    }
 
-		return VisionResultStatus.SUCCESSFUL;
-	}
+    return VisionResultStatus.SUCCESSFUL;
+  }
 
-	public enum VisionResultStatus {
-		NO_DATA(false),
+  public enum VisionResultStatus {
+    NO_DATA(false),
 
-		NOT_A_NEW_RESULT(false),
-		NO_TARGETS_VISIBLE(false),
-		INVALID_TAG(false),
+    NOT_A_NEW_RESULT(false),
+    NO_TARGETS_VISIBLE(false),
+    INVALID_TAG(false),
 
-		INVALID_POSE_OUTSIDE_FIELD(false),
-		Z_HEIGHT_BAD(false),
-		PITCH_OR_ROLL_BAD(false),
+    INVALID_POSE_OUTSIDE_FIELD(false),
+    Z_HEIGHT_BAD(false),
+    PITCH_OR_ROLL_BAD(false),
 
-		NOT_CLOSE_ENOUGH_TO_GYRO_ROTATION(false),
-		TOO_FAR_FROM_EXISTING_ESTIMATE(false),
+    NOT_CLOSE_ENOUGH_TO_GYRO_ROTATION(false),
+    TOO_FAR_FROM_EXISTING_ESTIMATE(false),
 
-		SUCCESSFUL(true);
+    SUCCESSFUL(true);
 
-		public final boolean success;
+    public final boolean success;
 
-		private VisionResultStatus(boolean success) {
-			this.success = success;
-		}
+    private VisionResultStatus(boolean success) {
+      this.success = success;
+    }
 
-		public boolean isSuccess() {
-			return success;
-		}
-	}
+    public boolean isSuccess() {
+      return success;
+    }
+  }
 }

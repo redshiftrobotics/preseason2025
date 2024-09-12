@@ -12,62 +12,62 @@ import org.photonvision.common.hardware.VisionLEDMode;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class CameraIOPhotonVision implements CameraIO {
-	private final PhotonCamera camera;
-	private final PhotonPoseEstimator photonPoseEstimator;
+  private final PhotonCamera camera;
+  private final PhotonPoseEstimator photonPoseEstimator;
 
-	public CameraIOPhotonVision(CameraConfig config) {
+  public CameraIOPhotonVision(CameraConfig config) {
 
-		// --- Setup Camera ---
-		camera = new PhotonCamera(config.cameraName());
+    // --- Setup Camera ---
+    camera = new PhotonCamera(config.cameraName());
 
-		camera.setDriverMode(false);
-		camera.setLED(VisionLEDMode.kOff);
+    camera.setDriverMode(false);
+    camera.setLED(VisionLEDMode.kOff);
 
-		// --- Setup Pose Estimator ---
+    // --- Setup Pose Estimator ---
 
-		// MULTI_TAG_PNP_ON_COPROCESSOR:
-		// https://docs.photonvision.org/en/latest/docs/apriltag-pipelines/multitag.html#enabling-multitag
+    // MULTI_TAG_PNP_ON_COPROCESSOR:
+    // https://docs.photonvision.org/en/latest/docs/apriltag-pipelines/multitag.html#enabling-multitag
 
-		// PhotonPoseEstimator:
-		// https://docs.photonvision.org/en/latest/docs/programming/photonlib/robot-pose-estimator.html#using-a-photonposeestimator
+    // PhotonPoseEstimator:
+    // https://docs.photonvision.org/en/latest/docs/programming/photonlib/robot-pose-estimator.html#using-a-photonposeestimator
 
-		photonPoseEstimator = new PhotonPoseEstimator(
-			AprilTagFields.kDefaultField.loadAprilTagLayoutField(),
-			PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, camera,
-			config.robotToCamera());
+    photonPoseEstimator =
+        new PhotonPoseEstimator(
+            AprilTagFields.kDefaultField.loadAprilTagLayoutField(),
+            PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+            camera,
+            config.robotToCamera());
 
-		photonPoseEstimator.setMultiTagFallbackStrategy(
-			PoseStrategy.LOWEST_AMBIGUITY);
-	}
+    photonPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
+  }
 
-	@Override
-	public void setAprilTagFieldLayout(AprilTagFieldLayout fieldTags) {
-		photonPoseEstimator.setFieldTags(fieldTags);
-	}
+  @Override
+  public void setAprilTagFieldLayout(AprilTagFieldLayout fieldTags) {
+    photonPoseEstimator.setFieldTags(fieldTags);
+  }
 
-	@Override
-	public void updateInputs(CameraIOInputs inputs) {
-		Optional<EstimatedRobotPose> estimatedRobotPoseOptional =
-			photonPoseEstimator.update();
+  @Override
+  public void updateInputs(CameraIOInputs inputs) {
+    Optional<EstimatedRobotPose> estimatedRobotPoseOptional = photonPoseEstimator.update();
 
-		if(estimatedRobotPoseOptional.isPresent()) {
-			EstimatedRobotPose estimateRobotPose =
-				estimatedRobotPoseOptional.get();
+    if (estimatedRobotPoseOptional.isPresent()) {
+      EstimatedRobotPose estimateRobotPose = estimatedRobotPoseOptional.get();
 
-			inputs.timestampSecondsFPGA = estimateRobotPose.timestampSeconds;
-			inputs.estimatedRobotPose = estimateRobotPose.estimatedPose;
-			inputs.tagsUsed = estimateRobotPose.targetsUsed.stream()
-								  .mapToInt(PhotonTrackedTarget::getFiducialId)
-								  .toArray();
-		} else {
-			inputs.hasNewData = false;
-		}
+      inputs.timestampSecondsFPGA = estimateRobotPose.timestampSeconds;
+      inputs.estimatedRobotPose = estimateRobotPose.estimatedPose;
+      inputs.tagsUsed =
+          estimateRobotPose.targetsUsed.stream()
+              .mapToInt(PhotonTrackedTarget::getFiducialId)
+              .toArray();
+    } else {
+      inputs.hasNewData = false;
+    }
 
-		inputs.connected = camera.isConnected();
-	}
+    inputs.connected = camera.isConnected();
+  }
 
-	@Override
-	public String getCameraName() {
-		return camera.getName();
-	}
+  @Override
+  public String getCameraName() {
+    return camera.getName();
+  }
 }

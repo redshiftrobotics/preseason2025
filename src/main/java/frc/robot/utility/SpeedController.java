@@ -4,79 +4,69 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-/**
- * Manages speed levels with a stack-based system, where the most recent state
- * is active.
- */
+/** Manages speed levels with a stack-based system, where the most recent state is active. */
 public class SpeedController {
 
-	private final Deque<SpeedLevel> speedLevels;
-	private final SpeedLevel defaultSpeedLevel;
+  private final Deque<SpeedLevel> speedLevels;
+  private final SpeedLevel defaultSpeedLevel;
 
-	/** Creates a new SpeedController with the default speed level. */
-	public SpeedController() {
-		this(SpeedLevel.DEFAULT);
-	}
+  /** Creates a new SpeedController with the default speed level. */
+  public SpeedController() {
+    this(SpeedLevel.DEFAULT);
+  }
 
-	/** Creates a new SpeedController with a specified default speed level. */
-	public SpeedController(SpeedLevel defaultLevel) {
-		this.speedLevels = new ArrayDeque<>();
-		this.defaultSpeedLevel = defaultLevel;
-	}
+  /** Creates a new SpeedController with a specified default speed level. */
+  public SpeedController(SpeedLevel defaultLevel) {
+    this.speedLevels = new ArrayDeque<>();
+    this.defaultSpeedLevel = defaultLevel;
+  }
 
-	/** Returns the current speed level. */
-	public SpeedLevel getCurrentSpeedLevel() {
-		return speedLevels.isEmpty() ? this.defaultSpeedLevel :
-									   speedLevels.peek();
-	}
+  /** Returns the current speed level. */
+  public SpeedLevel getCurrentSpeedLevel() {
+    return speedLevels.isEmpty() ? this.defaultSpeedLevel : speedLevels.peek();
+  }
 
-	/** Adds a speed level, making it the current active level. */
-	public void pushSpeedLevel(SpeedLevel level) {
-		speedLevels.push(level);
-	}
+  /** Adds a speed level, making it the current active level. */
+  public void pushSpeedLevel(SpeedLevel level) {
+    speedLevels.push(level);
+  }
 
-	/** Removes the specified speed level if it exists in the stack. */
-	public void removeSpeedLevel(SpeedLevel level) {
-		speedLevels.remove(level);
-	}
+  /** Removes the specified speed level if it exists in the stack. */
+  public void removeSpeedLevel(SpeedLevel level) {
+    speedLevels.remove(level);
+  }
 
-	/** Applies this speed level to the given chassis speeds. */
-	public ChassisSpeeds applyTo(ChassisSpeeds speeds) {
-		return new ChassisSpeeds(
-			speeds.vxMetersPerSecond *
-				getCurrentSpeedLevel().translationCoefficient,
-			speeds.vyMetersPerSecond *
-				getCurrentSpeedLevel().translationCoefficient,
-			speeds.omegaRadiansPerSecond *
-				getCurrentSpeedLevel().rotationCoefficient);
-	}
+  /** Applies this speed level to the given chassis speeds. */
+  public ChassisSpeeds applyTo(ChassisSpeeds speeds) {
+    return new ChassisSpeeds(
+        speeds.vxMetersPerSecond * getCurrentSpeedLevel().translationCoefficient,
+        speeds.vyMetersPerSecond * getCurrentSpeedLevel().translationCoefficient,
+        speeds.omegaRadiansPerSecond * getCurrentSpeedLevel().rotationCoefficient);
+  }
 
-	/**
-	 * Enum representing different speed levels with translational and
-	 * rotational coefficients.
-	 */
-	public enum SpeedLevel {
-		PRECISE(0.25, 0.1),
-		DEFAULT(0.90, 0.60),
-		BOOST(1.0, 0.75),
-		MAX_BOOST(1.0, 1.0);
+  /** Enum representing different speed levels with translational and rotational coefficients. */
+  public enum SpeedLevel {
+    PRECISE(0.25, 0.1),
+    DEFAULT(0.90, 0.60),
+    BOOST(1.0, 0.75),
+    MAX_BOOST(1.0, 1.0);
 
-		private final double translationCoefficient;
-		private final double rotationCoefficient;
+    private final double translationCoefficient;
+    private final double rotationCoefficient;
 
-		SpeedLevel(double translationCoefficient, double rotationCoefficient) {
-			this.translationCoefficient = translationCoefficient;
-			this.rotationCoefficient = rotationCoefficient;
-		}
+    SpeedLevel(double translationCoefficient, double rotationCoefficient) {
+      this.translationCoefficient = translationCoefficient;
+      this.rotationCoefficient = rotationCoefficient;
+    }
 
-		/** Returns the translational coefficient for this speed level. */
-		public double getTranslationCoefficient() {
-			return translationCoefficient;
-		}
+    /** Returns the translational coefficient for this speed level. */
+    public double getTranslationCoefficient() {
+      return translationCoefficient;
+    }
 
-		/** Returns the rotational coefficient for this speed level. */
-		public double getRotationCoefficient() {
-			return rotationCoefficient;
-		}
-	}
+    /** Returns the rotational coefficient for this speed level. */
+    public double getRotationCoefficient() {
+      return rotationCoefficient;
+    }
+  }
 }
