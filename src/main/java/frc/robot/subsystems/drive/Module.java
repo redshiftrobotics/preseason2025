@@ -22,19 +22,21 @@ public class Module {
       new LoggedTunableNumberGroup("Drive/Module");
 
   private static final LoggedTunableNumber driveFeedForwardKs =
-      group.build("DriveFfKs", MODULE_CONSTANTS.feedForwardKs());
+      group.build("DriveFfKs", MODULE_CONSTANTS.driveFeedforward().kS());
   private static final LoggedTunableNumber driveFeedForwardKv =
-      group.build("DriveFfKv", MODULE_CONSTANTS.feedForwardKv());
+      group.build("DriveFfKv", MODULE_CONSTANTS.driveFeedforward().kV());
+  private static final LoggedTunableNumber driveFeedForwardKa =
+      group.build("DriveFfKa", MODULE_CONSTANTS.driveFeedforward().kA());
 
   private static final LoggedTunableNumber driveKp =
-      group.build("DriveKp", MODULE_CONSTANTS.driveKp());
+      group.build("DriveKp", MODULE_CONSTANTS.driveFeedback().kP());
   private static final LoggedTunableNumber driveKd =
-      group.build("DriveKd", MODULE_CONSTANTS.driveKd());
+      group.build("DriveKd", MODULE_CONSTANTS.driveFeedback().kD());
 
   private static final LoggedTunableNumber turnKp =
-      group.build("TurnKp", MODULE_CONSTANTS.turnKp());
+      group.build("TurnKp", MODULE_CONSTANTS.driveFeedback().kP());
   private static final LoggedTunableNumber turnKd =
-      group.build("TurnKd", MODULE_CONSTANTS.turnKd());
+      group.build("TurnKd", MODULE_CONSTANTS.driveFeedback().kD());
 
   private final ModuleIO io;
   private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
@@ -55,7 +57,7 @@ public class Module {
     this.distanceFromCenter = distanceFromCenter;
 
     driveFeedforward =
-        new SimpleMotorFeedforward(driveFeedForwardKs.get(), driveFeedForwardKv.get(), 0);
+        new SimpleMotorFeedforward(driveFeedForwardKs.get(), driveFeedForwardKv.get(), driveFeedForwardKa.get());
 
     io.setDrivePID(driveKp.get(), 0, driveKd.get());
     io.setTurnPID(turnKp.get(), 0, turnKd.get());

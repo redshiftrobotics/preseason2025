@@ -91,6 +91,19 @@ public class RobotContainer {
                 new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
         flywheelExample = new Flywheel(new FlywheelIOSparkMax());
+        vision = new AprilTagVision();
+        break;
+
+      case OLD_DEV_BOT:
+        // Real robot, instantiate hardware IO implementations
+        drive =
+            new Drive(
+                new GyroIOPigeon2(false),
+                new ModuleIOSparkMax(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
+                new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
+                new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
+                new ModuleIOSparkMax(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
+        flywheelExample = new Flywheel(new FlywheelIOSparkMax());
         vision = new AprilTagVision(new CameraIOPhotonVision(VisionConstants.FRONT_CAMERA));
         break;
 

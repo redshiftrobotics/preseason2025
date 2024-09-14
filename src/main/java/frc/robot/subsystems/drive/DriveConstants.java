@@ -1,15 +1,16 @@
 package frc.robot.subsystems.drive;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
+import frc.robot.utility.FeedForwardConstants;
+import frc.robot.utility.PIDConstants;
 import frc.robot.utility.swerve254util.ModuleLimits;
 
 /**
  * Constants for drivetrain/chassis. All constants should be in meters and radians (m/s, m/s^2,
  * rad/s, rad/s^2). Switch expressions must cover all cases.
- *
- * <p>in the future find builder pattern like way to make records, I think there is a library?
  */
 public class DriveConstants {
 
@@ -17,25 +18,47 @@ public class DriveConstants {
 
   public record DriveConfig(
       double wheelRadius,
-      double trackWidthX,
-      double trackWidthY,
-      double bumperWidthX,
-      double bumperWidthY,
+      Translation2d trackCornerToCorner,
+      Translation2d bumperCornerToCorner,
       double maxLinearVelocity,
-      double maxLinearAcceleration,
-      double maxAngularVelocity,
-      double maxAngularAcceleration) {
+      double maxLinearAcceleration) {
     public double driveBaseRadius() {
-      return Math.hypot(trackWidthX / 2.0, trackWidthY / 2.0);
+      return trackCornerToCorner.getNorm() * 0.5;
+    }
+    public double maxAngularVelocity() {
+      return maxLinearVelocity / driveBaseRadius();
+    }
+    public double maxAngularAcceleration() {
+      return maxLinearAcceleration / driveBaseRadius();
     }
   }
 
   public static final DriveConfig DRIVE_CONFIG =
       switch (Constants.getRobot()) {
-        case SIM_BOT, COMP_BOT -> new DriveConfig(
-            Units.inchesToMeters(2), 0.885, 0.885, 0.9612, 0.9612, 3.81, 14.5, 6.0883, 14.5);
+        case COMP_BOT -> new DriveConfig(
+            Units.inchesToMeters(2),
+            new Translation2d(0.885, 0.885),
+            new Translation2d(0.9612, 0.9612),
+            3.81,
+            14.5);
         case DEV_BOT -> new DriveConfig(
-            Units.inchesToMeters(2), 0.885, 0.885, 0.9612, 0.9612, 3.81, 14.5, 6.0883, 14.5);
+            Units.inchesToMeters(2),
+            new Translation2d(0.885, 0.885),
+            new Translation2d(0.9612, 0.9612),
+            3.81,
+            14.5);
+        case OLD_DEV_BOT -> new DriveConfig(
+            Units.inchesToMeters(2),
+            new Translation2d(0.885, 0.885),
+            new Translation2d(0.9612, 0.9612),
+            3.81,
+            14.5);
+        case SIM_BOT -> new DriveConfig(
+            Units.inchesToMeters(2),
+            new Translation2d(0.885, 0.885),
+            new Translation2d(0.9612, 0.9612),
+            3.81,
+            14.5);
       };
 
   // --- Module Config ---
@@ -89,43 +112,18 @@ public class DriveConstants {
   // --- Module Constants ---
 
   public record ModuleConstants(
-      double feedForwardKs,
-      double feedForwardKv,
-      // double feedForwardKt,
-      double driveKp,
-      double driveKd,
-      double turnKp,
-      double turnKd,
+      FeedForwardConstants driveFeedforward,
+      PIDConstants driveFeedback,
+      PIDConstants turnFeedback,
       double driveReduction,
       double turnReduction) {}
 
   public static final ModuleConstants MODULE_CONSTANTS =
       switch (Constants.getRobot()) {
-        case COMP_BOT -> new ModuleConstants(
-            0.1,
-            0.13,
-            0.1,
-            0.0,
-            10.0,
-            0.0,
-            Mk4iReductions.L1.reduction,
-            Mk4iReductions.TURN.reduction);
-        case DEV_BOT -> new ModuleConstants(
-            0.1,
-            0.13,
-            0.1,
-            0.0,
-            10.0,
-            0.0,
-            Mk4iReductions.L1.reduction,
-            Mk4iReductions.TURN.reduction);
-        case SIM_BOT -> new ModuleConstants(
-            0.014,
-            0.934,
-            1,
-            0.0,
-            10.0,
-            0.0,
+        default -> new ModuleConstants(
+            new FeedForwardConstants(0.1, 0.13, 0.0),
+            new PIDConstants(0.1, 0.0, 0.0),
+            new PIDConstants(10.0, 0.0, 0.0),
             Mk4iReductions.L1.reduction,
             Mk4iReductions.TURN.reduction);
       };
@@ -149,8 +147,7 @@ public class DriveConstants {
   public static final double ODOMETRY_FREQUENCY_HERTZ =
       switch (Constants.getRobot()) {
         case SIM_BOT -> 50.0;
-        case DEV_BOT -> 100.0;
-        case COMP_BOT -> 250.0;
+        default -> 100.0;
       };
 
   // --- Heading Controller Config ---
@@ -185,7 +182,7 @@ public class DriveConstants {
     L2((50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0)),
     L3((50.0 / 14.0) * (16.0 / 28.0) * (45.0 / 15.0)),
     L4((48.0 / 16.0) * (16.0 / 28.0) * (45.0 / 15.0)),
-    TURN(12.8 / 1.0);
+    TURN((12.8 / 1.0));
 
     final double reduction;
 
