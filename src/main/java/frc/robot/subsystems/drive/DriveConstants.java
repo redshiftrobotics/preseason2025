@@ -25,9 +25,11 @@ public class DriveConstants {
     public double driveBaseRadius() {
       return trackCornerToCorner.getNorm() * 0.5;
     }
+
     public double maxAngularVelocity() {
       return maxLinearVelocity / driveBaseRadius();
     }
+
     public double maxAngularAcceleration() {
       return maxLinearAcceleration / driveBaseRadius();
     }
