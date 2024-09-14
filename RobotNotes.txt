@@ -1,0 +1,18 @@
+Quick Notes on robot
+
+Used in drive/DriveConstants.java, PathPlanner settings, Choreo document settings robot config, and advantage scope swerve drive display
+
+New Bots (Mk4i, L3 ratio):
+- Drive Swerve Gear Ratio: 6.122448979591837
+- Max module speed: 5.05968 Meters/Second
+- Motor Current Limit (Amps): 40 Amps
+
+2024 Old Dev Bot (Mk4, ratio)
+- Drivetrain base width (left-right): X meters
+- Drivetrain base length (front-back): X meters
+- Full (with bumper) width (left-right): X meters
+- Full (with bumper) length (front-back): X meters
+- Full weight with battery and bumper: X kilograms
+- Drive Swerve Gear Ratio: 8.142857142857142
+- Max module speed: 3.81 Meters/Second
+- Motor Current Limit: 40A

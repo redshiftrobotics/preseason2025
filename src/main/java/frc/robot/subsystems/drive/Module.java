@@ -57,7 +57,8 @@ public class Module {
     this.distanceFromCenter = distanceFromCenter;
 
     driveFeedforward =
-        new SimpleMotorFeedforward(driveFeedForwardKs.get(), driveFeedForwardKv.get(), driveFeedForwardKa.get());
+        new SimpleMotorFeedforward(
+            driveFeedForwardKs.get(), driveFeedForwardKv.get(), driveFeedForwardKa.get());
 
     io.setDrivePID(driveKp.get(), 0, driveKd.get());
     io.setTurnPID(turnKp.get(), 0, turnKd.get());
@@ -148,9 +149,10 @@ public class Module {
 
   // --- Characterization ---
 
-  /** Runs the module with the specified voltage while controlling to zero degrees. */
-  public void runCharacterization(double volts) {
-    // TODO
+  /** Runs characterization volts at voltage. */
+  public void runCharacterization(double turnSetpointRads, double volts) {
+    io.setTurnPosition(turnSetpointRads);
+    io.setDriveVoltage(volts);
   }
 
   /** Returns the drive velocity in radians/sec. */

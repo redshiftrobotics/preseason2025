@@ -148,9 +148,7 @@ public class Drive extends SubsystemBase {
                 null,
                 state -> Logger.recordOutput("Drive/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
-                voltage ->
-                    modules()
-                        .forEach((module) -> module.runCharacterization(voltage.in(Units.Volts))),
+                (voltage) -> runCharacterization(voltage.in(Units.Volts)),
                 null,
                 this));
   }
@@ -447,6 +445,13 @@ public class Drive extends SubsystemBase {
   /** Returns a command to run a dynamic test in the specified direction. */
   public Command sysIdDynamic(SysIdRoutine.Direction direction) {
     return sysId.dynamic(direction);
+  }
+
+  /** Runs forwards at the commanded voltage. */
+  public void runCharacterization(double volts) {
+    for (Module module : modules) {
+      module.runCharacterization(0, volts);
+    }
   }
 
   // --- Module Util ---
