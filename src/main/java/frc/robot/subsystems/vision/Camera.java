@@ -31,7 +31,7 @@ public class Camera {
       group.build("thetaStdDevCoefficient", 0.085);
 
   private static final LoggedTunableNumber zHeightToleranceMeters =
-      group.build("zHeightToleranceMeters", 0.5);
+      group.build("zHeightToleranceMeters", 0.6);
   private static final LoggedTunableNumber pitchAndRollToleranceDegrees =
       group.build("pitchToleranceDegrees", 10.0);
 
