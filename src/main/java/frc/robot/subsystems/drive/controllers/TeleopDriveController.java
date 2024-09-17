@@ -9,6 +9,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.utility.LoggedTunableNumber;
 import frc.robot.utility.LoggedTunableNumberGroup;
+
+import java.util.Optional;
 import java.util.function.DoubleSupplier;
 
 /** Controller for converting joystick values to drive components */
@@ -77,8 +79,8 @@ public class TeleopDriveController {
    *
    * @return heading angle
    */
-  public Rotation2d getHeadingDirection() {
-    if (DriverStation.isAutonomous()) return new Rotation2d();
+  public Optional<Rotation2d> getHeadingDirection() {
+    if (DriverStation.isAutonomous()) return Optional.empty();
 
     return TeleopDriveController.getHeadingDirection(
         xAngleSupplier.getAsDouble(), yAngleSupplier.getAsDouble());
@@ -121,15 +123,15 @@ public class TeleopDriveController {
     return new Rotation2d(omegaSquared * maxAngularSpeedRadPerSec);
   }
 
-  private static Rotation2d getHeadingDirection(double xInput, double yInput) {
+  private static Optional<Rotation2d> getHeadingDirection(double xInput, double yInput) {
     // Get desired angle as a vector
     final Translation2d desiredAngle = new Translation2d(xInput, yInput);
 
     // If the vector length is longer then our deadband update the heading controller
     if (desiredAngle.getNorm() > stickDirectionDeadband.get()) {
-      return desiredAngle.getAngle();
+      return Optional.of(desiredAngle.getAngle());
     }
 
-    return null;
+    return Optional.empty();
   }
 }

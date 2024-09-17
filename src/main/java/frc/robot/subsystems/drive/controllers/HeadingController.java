@@ -3,6 +3,7 @@ package frc.robot.subsystems.drive.controllers;
 import static frc.robot.subsystems.drive.DriveConstants.HEADING_CONTROLLER_CONSTANTS;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
@@ -64,16 +65,16 @@ public class HeadingController {
   }
 
   /**
-   * Set goal heading in radians. Calculate will now give values to get to this heading.
+   * Set goal heading. Calculate will now give values to get to this heading.
    *
-   * @param headingRadians desired heading of chassis in radians
+   * @param headingRadians desired heading of chassis
    */
-  public void setGoal(double headingRadians) {
-    headingControllerRadians.setGoal(headingRadians);
+  public void setGoal(Rotation2d headingRadians) {
+    headingControllerRadians.setGoal(headingRadians.getRadians());
   }
 
   /**
-   * Get goal heading in radians.
+   * Get goal heading.
    *
    * @return desired heading of chassis
    */
@@ -84,10 +85,10 @@ public class HeadingController {
   /**
    * Get speed chassis needs to rotation at to reach heading goal
    *
-   * @param goalHeadingRadians desired heading of chassis in radians
+   * @param goalHeadingRadians desired heading of chassis
    * @return rotation speed to reach heading goal, omega radians per second
    */
-  public double calculate(double goalHeadingRadians) {
+  public double calculate(Rotation2d goalHeadingRadians) {
     setGoal(goalHeadingRadians);
     return calculate();
   }
