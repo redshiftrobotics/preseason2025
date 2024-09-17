@@ -47,7 +47,7 @@ public class SpeedController {
   /** Enum representing different speed levels with translational and rotational coefficients. */
   public enum SpeedLevel {
     PRECISE(0.25, 0.1),
-    DEFAULT(0.90, 0.60),
+    DEFAULT(0.75, 0.60),
     BOOST(1.0, 0.75),
     MAX_BOOST(1.0, 1.0);
 

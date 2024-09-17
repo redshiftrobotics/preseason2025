@@ -343,15 +343,16 @@ public class Drive extends SubsystemBase {
     currentSetpoint =
         setpointGenerator.generateSetpoint(
             currentModuleLimits, currentSetpoint, speeds, Constants.LOOP_PERIOD_SECONDS);
-    SwerveDriveWheelStates cheesyWheelSpeeds =
+    SwerveDriveWheelStates swerveGenerator =
         new SwerveDriveWheelStates(currentSetpoint.moduleStates());
-    Logger.recordOutput("SwerveStates/254/CheesyPoofsDesiredWheelSpeeds", cheesyWheelSpeeds.states);
+    Logger.recordOutput(
+        "SwerveStates/swerveGen/CheesyPoofsDesiredWheelSpeeds", swerveGenerator.states);
 
     speeds = ChassisSpeeds.discretize(speeds, Constants.LOOP_PERIOD_SECONDS);
     SwerveDriveWheelStates wheelSpeeds = kinematics.toWheelSpeeds(speeds);
-    Logger.recordOutput("SwerveStates/254/DefaultDesiredWheelSpeeds", wheelSpeeds.states);
+    Logger.recordOutput("SwerveStates/swerveGen/DefaultDesiredWheelSpeeds", wheelSpeeds.states);
 
-    setWheelSpeeds(DriveConstants.USE_254_SWERVE_SETPOINT ? cheesyWheelSpeeds : wheelSpeeds);
+    setWheelSpeeds(DriveConstants.USE_SWERVE_SETPOINT_GENERATOR ? swerveGenerator : wheelSpeeds);
   }
 
   // --- Wheel States ---
