@@ -83,7 +83,7 @@ public class AprilTagVision extends SubsystemBase {
     timestampRobotPoseEstimateConsumers.add(timestampRobotPoseEstimateConsumer);
   }
 
-  public Stream<Camera> cameras() {
+  private Stream<Camera> cameras() {
     return Arrays.stream(cameras);
   }
 

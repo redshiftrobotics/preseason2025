@@ -25,13 +25,13 @@ public class Camera {
   private static final LoggedTunableNumberGroup group =
       new LoggedTunableNumberGroup("VisionResultsStatus");
 
-  private static final LoggedTunableNumber thetaStdDevCoefficient =
-      group.build("thetaStdDevCoefficient", 0.075);
   private static final LoggedTunableNumber xyStdDevCoefficient =
       group.build("xyStdDevCoefficient", 0.075);
+  private static final LoggedTunableNumber thetaStdDevCoefficient =
+      group.build("thetaStdDevCoefficient", 0.085);
 
   private static final LoggedTunableNumber zHeightToleranceMeters =
-      group.build("zHeightToleranceMeters", 0.5);
+      group.build("zHeightToleranceMeters", 0.6);
   private static final LoggedTunableNumber pitchAndRollToleranceDegrees =
       group.build("pitchToleranceDegrees", 10.0);
 
