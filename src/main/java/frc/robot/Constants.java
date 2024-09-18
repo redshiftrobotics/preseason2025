@@ -17,7 +17,7 @@ public final class Constants {
 
   public static final boolean TUNING_MODE = false;
 
-  private static RobotType robotType = RobotType.SIM_BOT;
+  private static RobotType robotType = RobotType.OLD_DEV_BOT;
 
   public static RobotType getRobot() {
     if (RobotBase.isReal() && robotType == RobotType.SIM_BOT) {

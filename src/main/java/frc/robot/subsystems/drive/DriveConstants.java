@@ -197,7 +197,6 @@ public class DriveConstants {
   }
 
   // https://www.swervedrivespecialties.com/products/mk4-swerve-module
-  @SuppressWarnings("unused")
   private enum Mk4Reductions {
     L1((50.0 / 14.0) * (19.0 / 25.0) * (45.0 / 15.0)),
     L2((50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0)),

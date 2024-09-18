@@ -23,6 +23,7 @@ import frc.robot.Constants.RobotType;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
+import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
@@ -33,7 +34,6 @@ import frc.robot.subsystems.examples.flywheel.Flywheel;
 import frc.robot.subsystems.examples.flywheel.FlywheelIO;
 import frc.robot.subsystems.examples.flywheel.FlywheelIOSparkMax;
 import frc.robot.subsystems.vision.AprilTagVision;
-import frc.robot.subsystems.vision.CameraIOPhotonVision;
 import frc.robot.subsystems.vision.CameraIOSim;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.utility.Alert;
@@ -98,13 +98,13 @@ public class RobotContainer {
         // Real robot, instantiate hardware IO implementations
         drive =
             new Drive(
-                new GyroIOPigeon2(false),
+                new GyroIONavX(),
                 new ModuleIOSparkMax(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
-        flywheelExample = new Flywheel(new FlywheelIOSparkMax());
-        vision = new AprilTagVision(new CameraIOPhotonVision(VisionConstants.FRONT_CAMERA));
+        flywheelExample = new Flywheel(new FlywheelIO() {});
+        vision = new AprilTagVision();
         break;
 
       case SIM_BOT:

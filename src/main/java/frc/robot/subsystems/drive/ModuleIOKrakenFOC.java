@@ -24,7 +24,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 /**
- * TODO: Check that this will work. FULLY UNTESTED.
+ * Check that this will work. FULLY UNTESTED.
  *
  * <p>Module IO implementation for Talon FX drive motor controller, Talon FX turn motor controller,
  * and CANcoder. Specifically for Krakens motors with Talons, with added power and efficiency
