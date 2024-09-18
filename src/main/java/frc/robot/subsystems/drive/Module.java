@@ -34,9 +34,9 @@ public class Module {
       group.build("DriveKd", MODULE_CONSTANTS.driveFeedback().kD());
 
   private static final LoggedTunableNumber turnKp =
-      group.build("TurnKp", MODULE_CONSTANTS.driveFeedback().kP());
+      group.build("TurnKp", MODULE_CONSTANTS.turnFeedback().kP());
   private static final LoggedTunableNumber turnKd =
-      group.build("TurnKd", MODULE_CONSTANTS.driveFeedback().kD());
+      group.build("TurnKd", MODULE_CONSTANTS.turnFeedback().kD());
 
   private final ModuleIO io;
   private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();

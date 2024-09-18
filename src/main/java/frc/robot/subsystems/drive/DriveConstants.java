@@ -14,7 +14,7 @@ import frc.robot.utility.swerve254util.ModuleLimits;
  */
 public class DriveConstants {
 
-  public static final boolean USE_254_SWERVE_SETPOINT = true;
+  public static final boolean USE_SWERVE_SETPOINT_GENERATOR = true;
 
   // --- Drive Config ---
 
@@ -141,6 +141,12 @@ public class DriveConstants {
             new PIDConstants(10.0, 0.0, 0.0),
             Mk4Reductions.L1.reduction,
             Mk4Reductions.TURN.reduction);
+        case SIM_BOT -> new ModuleConstants(
+            new FeedForwardConstants(0.1, 3.12, 0.40),
+            new PIDConstants(0.1, 0.0, 0.0),
+            new PIDConstants(10.0, 0.0, 0.0),
+            Mk4iReductions.L3.reduction,
+            Mk4iReductions.TURN.reduction);
         default -> new ModuleConstants(
             new FeedForwardConstants(0.1, 2.35, 0.53),
             new PIDConstants(0.1, 0.0, 0.0),

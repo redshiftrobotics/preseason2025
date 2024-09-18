@@ -271,7 +271,7 @@ public class RobotContainer {
                     .runOnce(
                         () -> {
                           headingController.reset();
-                          headingController.setGoal(angle.getRadians());
+                          headingController.setGoal(angle);
                         })
                     .withName(String.format("PrepareLockedHeading %s", name)));
 

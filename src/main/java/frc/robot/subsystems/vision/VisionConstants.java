@@ -11,7 +11,5 @@ public class VisionConstants {
 
   public static final CameraConfig FRONT_CAMERA =
       new CameraConfig(
-          "frontCam",
-          new Transform3d(
-              new Translation3d(0.805, 0, 0), new Rotation3d(0, Math.toRadians(-30), 0)));
+          "frontCam", new Transform3d(new Translation3d(0, 0, 0.1), new Rotation3d(0, 0, 0)));
 }
