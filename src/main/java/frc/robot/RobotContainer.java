@@ -41,6 +41,7 @@ import frc.robot.utility.Alert.AlertType;
 import frc.robot.utility.OverrideSwitch;
 import frc.robot.utility.SpeedController;
 import frc.robot.utility.SpeedController.SpeedLevel;
+import java.util.Optional;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -210,7 +211,7 @@ public class RobotContainer {
       final Trigger useAngleControlMode =
           new Trigger(
               new OverrideSwitch(
-                  driverXbox.rightBumper(), "Angle Driven", OverrideSwitch.Mode.HOLD, true));
+                  driverXbox.rightBumper(), "Angle Driven", OverrideSwitch.Mode.HOLD, false));
 
       // Controllers
       final TeleopDriveController input =
@@ -239,6 +240,29 @@ public class RobotContainer {
                   drive::stop)
               .withName("DefaultDrive"));
 
+      useAngleControlMode
+          .onTrue(Commands.runOnce(() -> {
+            headingController.reset();
+            headingController.setGoal(drive.getPose().getRotation());
+          }).withName("PrepareAngleDrive"))
+          .whileTrue(
+              drive
+                  .runEnd(
+                      () -> {
+                        Translation2d translation = input.getTranslationMetersPerSecond();
+                        Optional<Rotation2d> rotation = input.getHeadingDirection();
+                        rotation.ifPresent(headingController::setGoal);
+                        drive.setRobotSpeeds(
+                            speedController.applyTo(
+                                new ChassisSpeeds(
+                                    translation.getX(),
+                                    translation.getY(),
+                                    headingController.calculate())),
+                            useFieldRelative.getAsBoolean());
+                      },
+                      drive::stop)
+                  .withName("RotationAngleDrive"));
+
       boolean includeDiagonalPOV = true;
       for (int pov = 0; pov < 360; pov += includeDiagonalPOV ? 45 : 90) {
 
@@ -250,7 +274,7 @@ public class RobotContainer {
         // speeds to the Cos and Sin of the angle
         driverXbox
             .pov(pov)
-            .and(useAngleControlMode.negate())
+            .and(useAngleControlMode)
             .whileTrue(
                 drive
                     .runEnd(
@@ -265,7 +289,7 @@ public class RobotContainer {
         // Start by resetting the controller and setting the goal angle to the pov angle
         driverXbox
             .pov(pov)
-            .and(useAngleControlMode)
+            .and(useAngleControlMode.negate())
             .onTrue(
                 drive
                     .runOnce(
@@ -280,7 +304,7 @@ public class RobotContainer {
         driverXbox
             .pov(pov)
             .debounce(0.2)
-            .and(useAngleControlMode)
+            .and(useAngleControlMode.negate())
             .whileTrue(
                 drive
                     .run(
@@ -299,7 +323,7 @@ public class RobotContainer {
         // while also accepting x and y input to drive
         driverXbox
             .pov(pov)
-            .and(useAngleControlMode)
+            .and(useAngleControlMode.negate())
             .onFalse(
                 drive
                     .run(
