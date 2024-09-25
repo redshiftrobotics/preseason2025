@@ -39,13 +39,7 @@ public class DriveConstants {
 
   public static final DriveConfig DRIVE_CONFIG =
       switch (Constants.getRobot()) {
-        case COMP_BOT -> new DriveConfig(
-            Units.inchesToMeters(2),
-            new Translation2d(0.885, 0.885),
-            new Translation2d(0.9612, 0.9612),
-            5.05968,
-            14.5);
-        case DEV_BOT -> new DriveConfig(
+        case COMP_BOT, DEV_BOT -> new DriveConfig(
             Units.inchesToMeters(2),
             new Translation2d(0.885, 0.885),
             new Translation2d(0.9612, 0.9612),
@@ -88,17 +82,6 @@ public class DriveConstants {
         BACK_RIGHT_MODULE_CONFIG = new ModuleConfig(0, 0, 0, new Rotation2d(), false);
         break;
 
-      case DEV_BOT:
-        FRONT_LEFT_MODULE_CONFIG =
-            new ModuleConfig(2, 3, 3, Rotation2d.fromRotations(0.631591796875), false);
-        FRONT_RIGHT_MODULE_CONFIG =
-            new ModuleConfig(14, 17, 4, Rotation2d.fromRotations(-0.77758789062), false);
-        BACK_LEFT_MODULE_CONFIG =
-            new ModuleConfig(8, 9, 2, Rotation2d.fromRotations(-0.641357421875), false);
-        BACK_RIGHT_MODULE_CONFIG =
-            new ModuleConfig(10, 11, 1, Rotation2d.fromRotations(0.453857421875), false);
-        break;
-
       case OLD_DEV_BOT:
         FRONT_LEFT_MODULE_CONFIG =
             new ModuleConfig(2, 3, 3, Rotation2d.fromRotations(0.631591796875), false);
@@ -110,8 +93,9 @@ public class DriveConstants {
             new ModuleConfig(10, 11, 1, Rotation2d.fromRotations(0.453857421875), false);
         break;
 
-      default:
+      case DEV_BOT:
       case COMP_BOT:
+      default:
         FRONT_LEFT_MODULE_CONFIG =
             new ModuleConfig(2, 3, 3, Rotation2d.fromRotations(0.631591796875), false);
         FRONT_RIGHT_MODULE_CONFIG =
@@ -147,7 +131,7 @@ public class DriveConstants {
             new PIDConstants(10.0, 0.0, 0.0),
             Mk4iReductions.L3.reduction,
             Mk4iReductions.TURN.reduction);
-        default -> new ModuleConstants(
+        case COMP_BOT, DEV_BOT -> new ModuleConstants(
             new FeedForwardConstants(0.1, 2.35, 0.53),
             new PIDConstants(0.1, 0.0, 0.0),
             new PIDConstants(10.0, 0.0, 0.0),
