@@ -213,7 +213,11 @@ public class ModuleIOSparkMax implements ModuleIO {
   @Override
   public void setDriveVelocity(double velocityRadsPerSec, double feedForwardVoltage) {
     driveFeedback.setReference(
-        Units.radiansToRotations(velocityRadsPerSec), ControlType.kVelocity, 0, feedForwardVoltage, ArbFFUnits.kVoltage);
+        Units.radiansToRotations(velocityRadsPerSec),
+        ControlType.kVelocity,
+        0,
+        feedForwardVoltage,
+        ArbFFUnits.kVoltage);
   }
 
   @Override
