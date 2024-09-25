@@ -241,10 +241,13 @@ public class RobotContainer {
               .withName("DefaultDrive"));
 
       useAngleControlMode
-          .onTrue(Commands.runOnce(() -> {
-            headingController.reset();
-            headingController.setGoal(drive.getPose().getRotation());
-          }).withName("PrepareAngleDrive"))
+          .onTrue(
+              Commands.runOnce(
+                      () -> {
+                        headingController.reset();
+                        headingController.setGoal(drive.getPose().getRotation());
+                      })
+                  .withName("PrepareAngleDrive"))
           .whileTrue(
               drive
                   .runEnd(

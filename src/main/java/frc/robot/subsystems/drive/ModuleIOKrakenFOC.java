@@ -8,6 +8,7 @@ import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.NeutralOut;
+import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -219,7 +220,7 @@ public class ModuleIOKrakenFOC implements ModuleIO {
   @Override
   public void setTurnPosition(double angleRads) {
     driveTalon.setControl(
-        new VelocityDutyCycle(Units.radiansToRotations(angleRads)).withUpdateFreqHz(0));
+        new PositionDutyCycle(Units.radiansToRotations(angleRads)).withUpdateFreqHz(0));
   }
 
   @Override
