@@ -105,7 +105,7 @@ public class ModuleIOSparkMax implements ModuleIO {
     turnRelativeEncoder.setVelocityConversionFactor(1 / MODULE_CONSTANTS.turnReduction());
 
     // Feedback
-    driveFeedback.setOutputRange(-1, 1);
+    driveFeedback.setOutputRange(-1, +1);
 
     turnFeedback.setPositionPIDWrappingEnabled(true);
     turnFeedback.setPositionPIDWrappingMaxInput(1);

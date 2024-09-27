@@ -100,6 +100,7 @@ public class RobotContainer {
         drive =
             new Drive(
                 new GyroIONavX(),
+                // new GyroIO() {},
                 new ModuleIOSparkMax(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),

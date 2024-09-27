@@ -122,7 +122,7 @@ public class DriveConstants {
         case OLD_DEV_BOT -> new ModuleConstants(
             new FeedForwardConstants(0.1, 3.12, 0.40),
             new PIDConstants(0.000006, 0.0, 0.0),
-            new PIDConstants(0.009, 0.0, 0.0002),
+            new PIDConstants(10, 0.0, 0.0002),
             Mk4Reductions.L1.reduction,
             Mk4Reductions.TURN.reduction);
         case SIM_BOT -> new ModuleConstants(

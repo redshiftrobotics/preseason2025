@@ -86,8 +86,8 @@ public class Drive extends SubsystemBase {
     this.gyroIO = gyroIO;
 
     // Create and save modules and give them position
-    double trackCenterX = DRIVE_CONFIG.bumperCornerToCorner().getX() / 2;
-    double trackCenterY = DRIVE_CONFIG.bumperCornerToCorner().getY() / 2;
+    double trackCenterX = DRIVE_CONFIG.trackCornerToCorner().getX() / 2;
+    double trackCenterY = DRIVE_CONFIG.trackCornerToCorner().getY() / 2;
     modules =
         new Module[] {
           new Module(flModuleIO, new Translation2d(trackCenterX, trackCenterY)),
