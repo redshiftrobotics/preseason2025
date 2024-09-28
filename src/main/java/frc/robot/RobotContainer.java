@@ -36,11 +36,11 @@ import frc.robot.subsystems.examples.flywheel.FlywheelIOSparkMax;
 import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.CameraIOSim;
 import frc.robot.subsystems.vision.VisionConstants;
-import frc.robot.utility.Alert;
-import frc.robot.utility.Alert.AlertType;
 import frc.robot.utility.OverrideSwitch;
 import frc.robot.utility.SpeedController;
 import frc.robot.utility.SpeedController.SpeedLevel;
+import frc.robot.utility.logging.Alert;
+import frc.robot.utility.logging.Alert.AlertType;
 import java.util.Optional;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -69,24 +69,11 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     switch (Constants.getRobot()) {
-      case COMP_BOT:
+      case COMP_BOT, DEV_BOT:
         // Real robot, instantiate hardware IO implementations
         drive =
             new Drive(
                 new GyroIOPigeon2(true),
-                new ModuleIOSparkMax(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
-                new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
-                new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
-                new ModuleIOSparkMax(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
-        flywheelExample = new Flywheel(new FlywheelIOSparkMax());
-        vision = new AprilTagVision();
-        break;
-
-      case DEV_BOT:
-        // Real robot, instantiate hardware IO implementations
-        drive =
-            new Drive(
-                new GyroIOPigeon2(false),
                 new ModuleIOSparkMax(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
@@ -207,12 +194,18 @@ public class RobotContainer {
       final Trigger useFieldRelative =
           new Trigger(
               new OverrideSwitch(
-                  driverXbox.y(), "Field Relative", OverrideSwitch.Mode.TOGGLE, true));
+                  driverXbox.y(),
+                  OverrideSwitch.Mode.TOGGLE,
+                  true,
+                  (state) -> SmartDashboard.putBoolean("Field Relative", state)));
 
       final Trigger useAngleControlMode =
           new Trigger(
               new OverrideSwitch(
-                  driverXbox.rightBumper(), "Angle Driven", OverrideSwitch.Mode.HOLD, false));
+                  driverXbox.rightBumper(),
+                  OverrideSwitch.Mode.HOLD,
+                  false,
+                  (state) -> SmartDashboard.putBoolean("Angle Driven", state)));
 
       // Controllers
       final TeleopDriveController input =
@@ -452,9 +445,10 @@ public class RobotContainer {
   }
 
   public void updateSmartDashboardOutputs() {
-    Pose2d pose = drive.getPose();
 
+    Pose2d pose = drive.getPose();
     ChassisSpeeds speeds = drive.getRobotSpeeds();
+
     SmartDashboard.putNumber("Heading Degrees", -pose.getRotation().getDegrees());
     SmartDashboard.putNumber(
         "Speed MPH", Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond) * 2.2369);

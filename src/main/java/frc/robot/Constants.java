@@ -1,7 +1,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.RobotBase;
-import frc.robot.utility.Alert;
+import frc.robot.utility.logging.Alert;
 
 /**
  * The Constants class provides a convenient place to hold robot-wide numerical or boolean

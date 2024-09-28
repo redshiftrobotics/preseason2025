@@ -1,4 +1,4 @@
-package frc.robot.utility;
+package frc.robot.utility.records;
 
 /** Store gains for simple motor feed forward controller */
 public record FeedForwardConstants(double kS, double kV, double kA) {

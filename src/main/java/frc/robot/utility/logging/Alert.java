@@ -1,4 +1,4 @@
-package frc.robot.utility;
+package frc.robot.utility.logging;
 
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -6,11 +6,9 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 
 /** Class for managing persistent alerts to be sent over NetworkTables. */
 public class Alert {
@@ -92,13 +90,10 @@ public class Alert {
     public final List<Alert> alerts = new ArrayList<>();
 
     public String[] getStrings(AlertType type) {
-      Predicate<Alert> activeFilter = (Alert x) -> x.type == type && x.active;
-      Comparator<Alert> timeSorter =
-          (Alert a1, Alert a2) -> (int) (a2.activeStartTime - a1.activeStartTime);
       return alerts.stream()
-          .filter(activeFilter)
-          .sorted(timeSorter)
-          .map((Alert a) -> a.text)
+          .filter(a -> a.type == type && a.active)
+          .sorted((a1, a2) -> Double.compare(a2.activeStartTime, a1.activeStartTime))
+          .map(a -> a.text)
           .toArray(String[]::new);
     }
 

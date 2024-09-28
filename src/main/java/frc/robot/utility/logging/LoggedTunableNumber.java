@@ -1,4 +1,4 @@
-package frc.robot.utility;
+package frc.robot.utility.logging;
 
 import frc.robot.Constants;
 import java.util.Arrays;

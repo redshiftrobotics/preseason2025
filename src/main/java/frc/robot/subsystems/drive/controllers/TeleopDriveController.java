@@ -7,8 +7,8 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.utility.LoggedTunableNumber;
-import frc.robot.utility.LoggedTunableNumberGroup;
+import frc.robot.utility.logging.LoggedTunableNumber;
+import frc.robot.utility.logging.LoggedTunableNumberGroup;
 import java.util.Optional;
 import java.util.function.DoubleSupplier;
 

@@ -10,8 +10,8 @@ import frc.robot.Constants;
 import frc.robot.RobotState;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.utility.LoggedTunableNumber;
-import frc.robot.utility.LoggedTunableNumberGroup;
+import frc.robot.utility.logging.LoggedTunableNumber;
+import frc.robot.utility.logging.LoggedTunableNumberGroup;
 import frc.robot.utility.swerve254util.ModuleLimits;
 import org.littletonrobotics.junction.Logger;
 

@@ -8,8 +8,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.robot.utility.LoggedTunableNumber;
-import frc.robot.utility.LoggedTunableNumberGroup;
+import frc.robot.utility.logging.LoggedTunableNumber;
+import frc.robot.utility.logging.LoggedTunableNumberGroup;
 import org.littletonrobotics.junction.Logger;
 
 /**
