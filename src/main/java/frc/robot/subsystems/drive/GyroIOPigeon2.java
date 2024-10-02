@@ -16,8 +16,6 @@ import java.util.Queue;
  * <p>https://store.ctr-electronics.com/pigeon-2/
  */
 public class GyroIOPigeon2 implements GyroIO {
-  private static final int ID = 0;
-
   private final Pigeon2 pigeon;
 
   private final StatusSignal<Double> yaw;
@@ -31,8 +29,8 @@ public class GyroIOPigeon2 implements GyroIO {
    *
    * @param phoenixDrive true if drivetrain is using Phoenix, false for SparkMax
    */
-  public GyroIOPigeon2(boolean phoenixDrive) {
-    pigeon = new Pigeon2(ID);
+  public GyroIOPigeon2(int deviceID, boolean phoenixDrive) {
+    pigeon = new Pigeon2(deviceID);
     yaw = pigeon.getYaw();
     yawVelocity = pigeon.getAngularVelocityZWorld();
 

@@ -108,6 +108,14 @@ public class DriveConstants {
     }
   }
 
+  // --- Gyro Config ---
+
+  public static final int GYRO_CAN_ID =
+      switch (Constants.getRobot()) {
+        case OLD_DEV_BOT -> 40;
+        default -> 0;
+      };
+
   // --- Module Constants ---
 
   public record ModuleConstants(

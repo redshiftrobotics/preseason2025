@@ -23,7 +23,6 @@ import frc.robot.Constants.RobotType;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
-import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
@@ -73,7 +72,7 @@ public class RobotContainer {
         // Real robot, instantiate hardware IO implementations
         drive =
             new Drive(
-                new GyroIOPigeon2(true),
+                new GyroIOPigeon2(DriveConstants.GYRO_CAN_ID, false),
                 new ModuleIOSparkMax(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
@@ -86,8 +85,7 @@ public class RobotContainer {
         // Real robot, instantiate hardware IO implementations
         drive =
             new Drive(
-                new GyroIONavX(),
-                // new GyroIO() {},
+                new GyroIOPigeon2(DriveConstants.GYRO_CAN_ID, false),
                 new ModuleIOSparkMax(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
