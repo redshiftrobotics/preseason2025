@@ -5,32 +5,13 @@
       "type": 6,
       "fields": [],
       "listFields": [
-        [
-          {
-            "type": "Green Ghost",
-            "key": "NT:/AdvantageKit/RealOutputs/Vision/frontCam/positionEstimate",
-            "sourceTypeIndex": 1,
-            "sourceType": "Pose3d"
-          },
-          {
-            "type": "Vision Target",
-            "key": "NT:/AdvantageKit/RealOutputs/Vision/frontCam/tagsUsedPositions",
-            "sourceTypeIndex": 2,
-            "sourceType": "Pose3d[]"
-          }
-        ],
+        [],
         [
           {
             "type": "Robot",
-            "key": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
+            "key": "/RealOutputs/Odometry/Robot",
             "sourceTypeIndex": 1,
             "sourceType": "Pose2d"
-          },
-          {
-            "type": "Trajectory",
-            "key": "NT:/AdvantageKit/RealOutputs/Odometry/Trajectory",
-            "sourceTypeIndex": 2,
-            "sourceType": "Pose2d[]"
           }
         ]
       ],
@@ -50,17 +31,17 @@
       "type": 9,
       "fields": [
         {
-          "key": "NT:/AdvantageKit/RealOutputs/SwerveStates/MeasuredWheelSpeeds",
+          "key": "/RealOutputs/SwerveStates/MeasuredWheelSpeeds",
           "sourceTypeIndex": 1,
           "sourceType": "SwerveModuleState[]"
         },
         {
-          "key": "NT:/AdvantageKit/RealOutputs/SwerveStates/DesiredWheelSpeeds",
+          "key": "/RealOutputs/SwerveStates/DesiredWheelSpeeds",
           "sourceTypeIndex": 1,
           "sourceType": "SwerveModuleState[]"
         },
         {
-          "key": "NT:/AdvantageKit/RealOutputs/Odometry/Robot/rotation",
+          "key": "/RealOutputs/Odometry/Robot/rotation",
           "sourceTypeIndex": 1,
           "sourceType": "Rotation2d"
         }
@@ -84,7 +65,7 @@
         [
           {
             "type": "Robot",
-            "key": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
+            "key": "/RealOutputs/Odometry/Robot",
             "sourceTypeIndex": 1,
             "sourceType": "Pose2d"
           }
