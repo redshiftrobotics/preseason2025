@@ -174,3 +174,6 @@ simgui*.json
 
 # Version file
 src/main/java/frc/robot/BuildConstants.java
+
+# ctre_sim
+ctre_sim
