@@ -2,7 +2,6 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -19,7 +18,13 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.Mode;
 import frc.robot.Constants.RobotType;
+import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmConstants;
+import frc.robot.subsystems.arm.ArmHardware;
+import frc.robot.subsystems.arm.ArmIO;
+import frc.robot.subsystems.dashboard.DriverDashboard;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
@@ -28,16 +33,13 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSparkMax;
 import frc.robot.subsystems.drive.controllers.HeadingController;
+import frc.robot.subsystems.drive.controllers.SpeedController;
+import frc.robot.subsystems.drive.controllers.SpeedController.SpeedLevel;
 import frc.robot.subsystems.drive.controllers.TeleopDriveController;
-import frc.robot.subsystems.examples.flywheel.Flywheel;
-import frc.robot.subsystems.examples.flywheel.FlywheelIO;
-import frc.robot.subsystems.examples.flywheel.FlywheelIOSparkMax;
 import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.CameraIOSim;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.utility.OverrideSwitch;
-import frc.robot.utility.SpeedController;
-import frc.robot.utility.SpeedController.SpeedLevel;
 import frc.robot.utility.logging.Alert;
 import frc.robot.utility.logging.Alert.AlertType;
 import java.util.Optional;
@@ -50,23 +52,22 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
-  private final RobotState robotState = RobotState.getInstance();
 
   // Subsystems
   private final Drive drive;
+  private final Arm arm;
   private final AprilTagVision vision;
-  private final Flywheel flywheelExample;
 
   // Controller
   private final CommandGenericHID driverController = new CommandXboxController(0);
   private final CommandGenericHID operatorController = new CommandXboxController(1);
-  private final SpeedController speedController = new SpeedController(SpeedLevel.DEFAULT);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+
     switch (Constants.getRobot()) {
       case COMP_BOT, DEV_BOT:
         // Real robot, instantiate hardware IO implementations
@@ -77,7 +78,7 @@ public class RobotContainer {
                 new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
-        flywheelExample = new Flywheel(new FlywheelIOSparkMax());
+        arm = new Arm(new ArmIO() {});
         vision = new AprilTagVision();
         break;
 
@@ -90,7 +91,13 @@ public class RobotContainer {
                 new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
-        flywheelExample = new Flywheel(new FlywheelIO() {});
+        arm =
+            new Arm(
+                new ArmHardware(
+                    ArmConstants.LEFT_MOTOR_ID,
+                    ArmConstants.RIGHT_MOTOR_ID,
+                    ArmConstants.RIGHT_ENCODER_ID,
+                    ArmConstants.ARE_MOTORS_REVERSED));
         vision = new AprilTagVision();
         break;
 
@@ -103,7 +110,7 @@ public class RobotContainer {
                 new ModuleIOSim(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSim(DriveConstants.BACK_LEFT_MODULE_CONFIG),
                 new ModuleIOSim(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
-        flywheelExample = new Flywheel(new FlywheelIOSparkMax());
+        arm = new Arm(new ArmIO() {});
         vision = new AprilTagVision(new CameraIOSim(VisionConstants.FRONT_CAMERA, drive::getPose));
         break;
 
@@ -116,7 +123,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        flywheelExample = new Flywheel(new FlywheelIO() {});
+        arm = new Arm(new ArmIO() {});
         vision = new AprilTagVision();
         break;
     }
@@ -124,7 +131,7 @@ public class RobotContainer {
     vision.setRobotPoseSupplier(drive::getPose);
     vision.addVisionEstimateConsumer(
         (visionEstimate) -> {
-          if (Constants.getRobot() != RobotType.SIM_BOT && visionEstimate.isSuccess()) {
+          if (visionEstimate.isSuccess() && Constants.getRobot() != RobotType.SIM_BOT) {
             drive.addVisionMeasurement(
                 visionEstimate.robotPose2d(),
                 visionEstimate.timestampSeconds(),
@@ -132,7 +139,8 @@ public class RobotContainer {
           }
         });
 
-    // Can also use AutoBuilder.buildAutoChooser(); instead of SendableChooser to auto populate
+    // Can also use AutoBuilder.buildAutoChooser(); instead of SendableChooser to
+    // auto populate
     autoChooser = new LoggedDashboardChooser<>("Auto Chooser", new SendableChooser<Command>());
 
     // Set up SysId routines
@@ -151,11 +159,6 @@ public class RobotContainer {
     // Set up named commands for path planner auto
     // https://pathplanner.dev/pplib-named-commands.html
     NamedCommands.registerCommand("StopWithX", drive.runOnce(drive::stopUsingBrakeArrangement));
-    NamedCommands.registerCommand(
-        "Shoot",
-        flywheelExample
-            .startEnd(() -> flywheelExample.runVelocity(1000), flywheelExample::stop)
-            .raceWith(Commands.waitSeconds(0.5)));
 
     // Path planner Autos
     // https://pathplanner.dev/gui-editing-paths-and-autos.html#autos
@@ -171,8 +174,12 @@ public class RobotContainer {
     // Configure the button bindings
     configureControllerBindings();
 
-    // Start displaying smart dashboard outputs
-    initSmartDashboardOutputs();
+    // Hide controller missing warnings for sim
+    if (Constants.getMode() != Mode.REAL) {
+      DriverStation.silenceJoystickConnectionWarning(true);
+    }
+
+    DriverDashboard.getInstance().setDrive(drive);
   }
 
   /** Define button->command mappings. */
@@ -183,9 +190,6 @@ public class RobotContainer {
   }
 
   private void configureDriverControllerBindings() {
-
-    SmartDashboard.putData(Commands.runOnce(drive::zeroGyro).withName("Zero Gyro"));
-
     if (driverController instanceof CommandXboxController) {
       final CommandXboxController driverXbox = (CommandXboxController) driverController;
 
@@ -214,7 +218,11 @@ public class RobotContainer {
               () -> -driverXbox.getRightY(),
               () -> -driverXbox.getRightX());
 
+      final SpeedController speedController = new SpeedController(SpeedLevel.DEFAULT);
+
       final HeadingController headingController = new HeadingController(drive);
+
+      DriverDashboard.getInstance().setSpeedController(speedController);
 
       // Default command
       drive.setDefaultCommand(
@@ -265,8 +273,8 @@ public class RobotContainer {
         final Rotation2d angle = Rotation2d.fromDegrees(-pov);
         final String name = String.format("%d\u00B0", pov);
 
-        // While the POV is being pressed and we are not in angle control mode, set the chassis
-        // speeds to the Cos and Sin of the angle
+        // While the POV is being pressed and we are not in angle control mode, set the
+        // chassis speeds to the Cos and Sin of the angle
         driverXbox
             .pov(pov)
             .and(useAngleControlMode)
@@ -294,7 +302,8 @@ public class RobotContainer {
                         })
                     .withName(String.format("PrepareLockedHeading %s", name)));
 
-        // Then if the button is held for more than 0.2 seconds, drive forward at the angle once the
+        // Then if the button is held for more than 0.2 seconds, drive forward at the
+        // angle once the
         // chassis reaches it
         driverXbox
             .pov(pov)
@@ -368,7 +377,7 @@ public class RobotContainer {
                   () -> speedController.pushSpeedLevel(SpeedLevel.BOOST),
                   () -> speedController.removeSpeedLevel(SpeedLevel.BOOST)));
 
-      // When left (Brake) trigger is held down or right stick (crouch) is pressed, put in precise
+      // When left (Brake) trigger is held down or right stick (crouch) is pressed put in precise
       // (slow) mode
       driverXbox
           .leftTrigger(0.5)
@@ -404,62 +413,11 @@ public class RobotContainer {
   }
 
   private void configureOperatorControllerBindings() {
-    if (Constants.getMode() == Constants.Mode.SIM && !DriverStation.isJoystickConnected(1)) {
-      return;
-    }
-
     if (operatorController instanceof CommandXboxController) {
       final CommandXboxController operatorXbox = (CommandXboxController) operatorController;
 
-      // Adjust shot compensation
-      operatorXbox
-          .povUp()
-          .whileTrue(
-              Commands.runOnce(() -> robotState.adjustFlywheelShotRPM(0.1))
-                  .andThen(Commands.waitSeconds(0.05))
-                  .ignoringDisable(true)
-                  .repeatedly());
-      operatorXbox
-          .povDown()
-          .whileTrue(
-              Commands.runOnce(() -> robotState.adjustFlywheelShotRPM(-0.1))
-                  .andThen(Commands.waitSeconds(0.05))
-                  .ignoringDisable(true)
-                  .repeatedly());
-
-      // Shoot
-      operatorXbox
-          .leftTrigger()
-          .whileTrue(
-              Commands.startEnd(
-                  () -> flywheelExample.runVelocity(3000 + robotState.flywheelShootRPMCompensation),
-                  flywheelExample::stop,
-                  flywheelExample));
+      operatorXbox.b().onTrue(Commands.runOnce(() -> arm.setPosition(ArmConstants.ARM_STOW_2_DEGREES), arm));
     }
-  }
-
-  public void initSmartDashboardOutputs() {
-    SmartDashboard.putData("Drive Subsystem", this.drive);
-  }
-
-  public void updateSmartDashboardOutputs() {
-
-    Pose2d pose = drive.getPose();
-    ChassisSpeeds speeds = drive.getRobotSpeeds();
-
-    SmartDashboard.putNumber("Heading Degrees", -pose.getRotation().getDegrees());
-    SmartDashboard.putNumber(
-        "Speed MPH", Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond) * 2.2369);
-
-    SmartDashboard.putString("Speed Level", speedController.getCurrentSpeedLevel().name());
-    SmartDashboard.putString(
-        "Speed Transl",
-        String.format(
-            "%.2f%%", speedController.getCurrentSpeedLevel().getTranslationCoefficient() * 100));
-    SmartDashboard.putString(
-        "Speed Rot",
-        String.format(
-            "%.2f%%", speedController.getCurrentSpeedLevel().getRotationCoefficient() * 100));
   }
 
   /**
