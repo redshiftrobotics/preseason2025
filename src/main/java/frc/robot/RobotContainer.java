@@ -162,9 +162,7 @@ public class RobotContainer {
 
     // Path planner Autos
     // https://pathplanner.dev/gui-editing-paths-and-autos.html#autos
-    autoChooser.addOption("Four Note Center", new PathPlannerAuto("Four Note Center"));
-    autoChooser.addOption(
-        "Four Note Center Choreo", new PathPlannerAuto("Four Note Center Choreo"));
+    autoChooser.addOption("Test Auto", new PathPlannerAuto("Test Auto"));
 
     // Alerts for constants to avoid using them in competition
     if (Constants.TUNING_MODE) {
@@ -416,7 +414,9 @@ public class RobotContainer {
     if (operatorController instanceof CommandXboxController) {
       final CommandXboxController operatorXbox = (CommandXboxController) operatorController;
 
-      operatorXbox.b().onTrue(Commands.runOnce(() -> arm.setPosition(ArmConstants.ARM_STOW_2_DEGREES), arm));
+      operatorXbox
+          .b()
+          .onTrue(Commands.runOnce(() -> arm.setPosition(ArmConstants.ARM_STOW_2_DEGREES), arm));
     }
   }
 

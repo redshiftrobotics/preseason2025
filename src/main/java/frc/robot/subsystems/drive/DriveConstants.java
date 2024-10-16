@@ -14,7 +14,7 @@ import frc.robot.utility.swerve254util.ModuleLimits;
  */
 public class DriveConstants {
 
-  public static final boolean USE_SWERVE_SETPOINT_GENERATOR = true;
+  public static final boolean USE_SWERVE_SETPOINT_GENERATOR = false;
 
   // --- Drive Config ---
 

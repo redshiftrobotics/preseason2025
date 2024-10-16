@@ -224,7 +224,7 @@ public class Drive extends SubsystemBase {
         // Use the real gyro angle
         rawGyroRotation = gyroInputs.odometryYawPositions[i];
       } else {
-        // Use the delta of swerve module to create estimated amount twisted
+        // Fallback option: use the delta of swerve module to create estimated amount twisted
         Twist2d twist = kinematics.toTwist2d(moduleDeltas);
         rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
       }
@@ -339,17 +339,25 @@ public class Drive extends SubsystemBase {
               speeds, AllianceFlipUtil.apply(getPose().getRotation()));
     }
 
-    ModuleLimits currentModuleLimits = RobotState.getInstance().getModuleLimits();
-    currentSetpoint =
-        setpointGenerator.generateSetpoint(
-            currentModuleLimits, currentSetpoint, speeds, Constants.LOOP_PERIOD_SECONDS);
-    SwerveDriveWheelStates swerveGenerator =
-        new SwerveDriveWheelStates(currentSetpoint.moduleStates());
+    SwerveDriveWheelStates wheelSpeeds;
 
-    speeds = ChassisSpeeds.discretize(speeds, Constants.LOOP_PERIOD_SECONDS);
-    SwerveDriveWheelStates wheelSpeeds = kinematics.toWheelSpeeds(speeds);
+    if (DriveConstants.USE_SWERVE_SETPOINT_GENERATOR) {
+      ModuleLimits currentModuleLimits = RobotState.getInstance().getModuleLimits();
 
-    setWheelSpeeds(DriveConstants.USE_SWERVE_SETPOINT_GENERATOR ? swerveGenerator : wheelSpeeds);
+      currentSetpoint =
+          setpointGenerator.generateSetpoint(
+              currentModuleLimits, currentSetpoint, speeds, Constants.LOOP_PERIOD_SECONDS);
+
+      wheelSpeeds =
+          new SwerveDriveWheelStates(currentSetpoint.moduleStates());
+    }
+    else {
+      speeds = ChassisSpeeds.discretize(speeds, Constants.LOOP_PERIOD_SECONDS);
+      
+      wheelSpeeds = kinematics.toWheelSpeeds(speeds);
+    }
+
+    setWheelSpeeds(wheelSpeeds);
   }
 
   // --- Wheel States ---

@@ -5,7 +5,7 @@
       "x": 1.36317777633667,
       "y": 5.626431941986084
     },
-    "rotation": 9.14458247629878e-18
+    "rotation": 1.293052611790053e-17
   },
   "command": {
     "type": "sequential",
@@ -18,15 +18,21 @@
           }
         },
         {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Four Note Center Choreo 2"
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "Shoot"
+            "waitTime": 0.5
           }
         },
         {
@@ -36,9 +42,9 @@
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "Shoot"
+            "waitTime": 0.5
           }
         },
         {
@@ -48,9 +54,9 @@
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "Shoot"
+            "waitTime": 0.5
           }
         }
       ]
