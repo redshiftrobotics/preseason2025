@@ -2,6 +2,7 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -42,7 +43,6 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.utility.OverrideSwitch;
 import frc.robot.utility.logging.Alert;
 import frc.robot.utility.logging.Alert.AlertType;
-import java.util.Optional;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -159,6 +159,8 @@ public class RobotContainer {
     // Set up named commands for path planner auto
     // https://pathplanner.dev/pplib-named-commands.html
     NamedCommands.registerCommand("StopWithX", drive.runOnce(drive::stopUsingBrakeArrangement));
+    NamedCommands.registerCommand(
+        "ArmStow", Commands.runOnce(() -> arm.setPosition(ArmConstants.ARM_STOW_2_DEGREES), arm));
 
     // Path planner Autos
     // https://pathplanner.dev/gui-editing-paths-and-autos.html#autos
@@ -222,6 +224,10 @@ public class RobotContainer {
 
       DriverDashboard.getInstance().setSpeedController(speedController);
 
+      SmartDashboard.putData(
+          "Reset Pose",
+          Commands.runOnce(() -> drive.resetPose(new Pose2d())).withName("Reset Pose"));
+
       // Default command
       drive.setDefaultCommand(
           drive
@@ -238,31 +244,31 @@ public class RobotContainer {
                   drive::stop)
               .withName("DefaultDrive"));
 
-      useAngleControlMode
-          .onTrue(
-              Commands.runOnce(
-                      () -> {
-                        headingController.reset();
-                        headingController.setGoal(drive.getPose().getRotation());
-                      })
-                  .withName("PrepareAngleDrive"))
-          .whileTrue(
-              drive
-                  .runEnd(
-                      () -> {
-                        Translation2d translation = input.getTranslationMetersPerSecond();
-                        Optional<Rotation2d> rotation = input.getHeadingDirection();
-                        rotation.ifPresent(headingController::setGoal);
-                        drive.setRobotSpeeds(
-                            speedController.applyTo(
-                                new ChassisSpeeds(
-                                    translation.getX(),
-                                    translation.getY(),
-                                    headingController.calculate())),
-                            useFieldRelative.getAsBoolean());
-                      },
-                      drive::stop)
-                  .withName("RotationAngleDrive"));
+      //   useAngleControlMode
+      //       .onTrue(
+      //           Commands.runOnce(
+      //                   () -> {
+      //                     headingController.reset();
+      //                     headingController.setGoal(drive.getPose().getRotation());
+      //                   })
+      //               .withName("PrepareAngleDrive"))
+      //       .whileTrue(
+      //           drive
+      //               .runEnd(
+      //                   () -> {
+      //                     Translation2d translation = input.getTranslationMetersPerSecond();
+      //                     Optional<Rotation2d> rotation = input.getHeadingDirection();
+      //                     rotation.ifPresent(headingController::setGoal);
+      //                     drive.setRobotSpeeds(
+      //                         speedController.applyTo(
+      //                             new ChassisSpeeds(
+      //                                 translation.getX(),
+      //                                 translation.getY(),
+      //                                 headingController.calculate())),
+      //                         useFieldRelative.getAsBoolean());
+      //                   },
+      //                   drive::stop)
+      //               .withName("RotationAngleDrive"));
 
       boolean includeDiagonalPOV = true;
       for (int pov = 0; pov < 360; pov += includeDiagonalPOV ? 45 : 90) {
