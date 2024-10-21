@@ -225,10 +225,14 @@ public class RobotContainer {
 
       SmartDashboard.putData(
           "Reset Pose",
-          Commands.runOnce(() -> drive.resetPose(new Pose2d())).withName("Reset Pose"));
+          Commands.runOnce(() -> drive.resetPose(new Pose2d())).withName("Reset Pose Now"));
 
-      SmartDashboard.putData("Arm Stow", arm.runOnce(() -> arm.setGoal(Arm.Goal.STOW)));
-      SmartDashboard.putData("Arm Up", arm.runOnce(() -> arm.setGoal(Arm.Goal.UP)));
+      SmartDashboard.putData(
+          "Zero Gyro",
+          Commands.runOnce(() -> drive.resetPose(new Pose2d())).withName("Zero Gyro Now"));
+
+      SmartDashboard.putData("Arm Stow", arm.runOnce(() -> arm.setGoal(Arm.Goal.STOW)).withName("Stow Now"));
+      SmartDashboard.putData("Arm Up", arm.runOnce(() -> arm.setGoal(Arm.Goal.UP)).withName("Up Now"));
 
       // Default command
       drive.setDefaultCommand(
