@@ -22,9 +22,9 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.Mode;
 import frc.robot.Constants.RobotType;
 import frc.robot.subsystems.arm.Arm;
-import frc.robot.subsystems.arm.ArmConstants;
-import frc.robot.subsystems.arm.ArmHardware;
+import frc.robot.subsystems.arm.ArmHardwareIO;
 import frc.robot.subsystems.arm.ArmIO;
+import frc.robot.subsystems.arm.ArmSimIO;
 import frc.robot.subsystems.dashboard.DriverDashboard;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
@@ -43,6 +43,7 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.utility.OverrideSwitch;
 import frc.robot.utility.logging.Alert;
 import frc.robot.utility.logging.Alert.AlertType;
+import java.util.Optional;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -91,13 +92,7 @@ public class RobotContainer {
                 new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
-        arm =
-            new Arm(
-                new ArmHardware(
-                    ArmConstants.LEFT_MOTOR_ID,
-                    ArmConstants.RIGHT_MOTOR_ID,
-                    ArmConstants.RIGHT_ENCODER_ID,
-                    ArmConstants.ARE_MOTORS_REVERSED));
+        arm = new Arm(new ArmHardwareIO() {});
         vision = new AprilTagVision();
         break;
 
@@ -110,7 +105,7 @@ public class RobotContainer {
                 new ModuleIOSim(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSim(DriveConstants.BACK_LEFT_MODULE_CONFIG),
                 new ModuleIOSim(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
-        arm = new Arm(new ArmIO() {});
+        arm = new Arm(new ArmSimIO() {});
         vision = new AprilTagVision(new CameraIOSim(VisionConstants.FRONT_CAMERA, drive::getPose));
         break;
 
@@ -159,27 +154,38 @@ public class RobotContainer {
     // Set up named commands for path planner auto
     // https://pathplanner.dev/pplib-named-commands.html
     NamedCommands.registerCommand("StopWithX", drive.runOnce(drive::stopUsingBrakeArrangement));
-    NamedCommands.registerCommand(
-        "ArmStow", Commands.runOnce(() -> arm.setPosition(ArmConstants.ARM_STOW_2_DEGREES), arm));
+    NamedCommands.registerCommand("ArmStow", arm.runOnce(() -> arm.setGoal(Arm.Goal.STOW)));
 
     // Path planner Autos
     // https://pathplanner.dev/gui-editing-paths-and-autos.html#autos
-    autoChooser.addOption("Test Auto", new PathPlannerAuto("Test Auto"));
+    autoChooser.addOption("Triangle Auto", new PathPlannerAuto("Triangle Auto"));
+    autoChooser.addOption("Rotate Auto", new PathPlannerAuto("Rotate Auto"));
 
     // Alerts for constants to avoid using them in competition
     if (Constants.TUNING_MODE) {
       new Alert("Tuning mode active, do not use in competition.", AlertType.INFO).set(true);
     }
 
-    // Configure the button bindings
-    configureControllerBindings();
-
     // Hide controller missing warnings for sim
     if (Constants.getMode() != Mode.REAL) {
       DriverStation.silenceJoystickConnectionWarning(true);
     }
 
-    DriverDashboard.getInstance().setDrive(drive);
+    initDashboard();
+
+    // Configure the button bindings
+    configureControllerBindings();
+  }
+
+  /** Configure drive dashboard object */
+  private void initDashboard() {
+    DriverDashboard dashboard = DriverDashboard.getInstance();
+    dashboard.addSubsystem(drive);
+    dashboard.setPoseSupplier(drive::getPose);
+    dashboard.setRobotSupplier(drive::getRobotSpeeds);
+    dashboard.setSpeedLevelSupplier(() -> SpeedController.SpeedLevel.NO_LEVEL);
+    dashboard.setFieldRelativeSupplier(() -> false);
+    dashboard.setAngleDrivenSupplier(() -> false);
   }
 
   /** Define button->command mappings. */
@@ -194,20 +200,11 @@ public class RobotContainer {
       final CommandXboxController driverXbox = (CommandXboxController) driverController;
 
       final Trigger useFieldRelative =
-          new Trigger(
-              new OverrideSwitch(
-                  driverXbox.y(),
-                  OverrideSwitch.Mode.TOGGLE,
-                  true,
-                  (state) -> SmartDashboard.putBoolean("Field Relative", state)));
+          new Trigger(new OverrideSwitch(driverXbox.y(), OverrideSwitch.Mode.TOGGLE, true));
 
       final Trigger useAngleControlMode =
           new Trigger(
-              new OverrideSwitch(
-                  driverXbox.rightBumper(),
-                  OverrideSwitch.Mode.HOLD,
-                  false,
-                  (state) -> SmartDashboard.putBoolean("Angle Driven", state)));
+              new OverrideSwitch(driverXbox.rightBumper(), OverrideSwitch.Mode.HOLD, false));
 
       // Controllers
       final TeleopDriveController input =
@@ -222,11 +219,16 @@ public class RobotContainer {
 
       final HeadingController headingController = new HeadingController(drive);
 
-      DriverDashboard.getInstance().setSpeedController(speedController);
+      DriverDashboard.getInstance().setSpeedLevelSupplier(speedController::getCurrentSpeedLevel);
+      DriverDashboard.getInstance().setAngleDrivenSupplier(useAngleControlMode);
+      DriverDashboard.getInstance().setFieldRelativeSupplier(useFieldRelative);
 
       SmartDashboard.putData(
           "Reset Pose",
           Commands.runOnce(() -> drive.resetPose(new Pose2d())).withName("Reset Pose"));
+
+      SmartDashboard.putData("Arm Stow", arm.runOnce(() -> arm.setGoal(Arm.Goal.STOW)));
+      SmartDashboard.putData("Arm UP", arm.runOnce(() -> arm.setGoal(Arm.Goal.UP)));
 
       // Default command
       drive.setDefaultCommand(
@@ -234,41 +236,42 @@ public class RobotContainer {
               .runEnd(
                   () -> {
                     Translation2d translation = input.getTranslationMetersPerSecond();
-                    Rotation2d rotation = input.getOmegaRadiansPerSecond();
+                    double rotation = input.getOmegaRadiansPerSecond();
                     drive.setRobotSpeeds(
                         speedController.applyTo(
-                            new ChassisSpeeds(
-                                translation.getX(), translation.getY(), rotation.getRadians())),
+                            new ChassisSpeeds(translation.getX(), translation.getY(), rotation)),
                         useFieldRelative.getAsBoolean());
                   },
                   drive::stop)
               .withName("DefaultDrive"));
 
-      //   useAngleControlMode
-      //       .onTrue(
-      //           Commands.runOnce(
-      //                   () -> {
-      //                     headingController.reset();
-      //                     headingController.setGoal(drive.getPose().getRotation());
-      //                   })
-      //               .withName("PrepareAngleDrive"))
-      //       .whileTrue(
-      //           drive
-      //               .runEnd(
-      //                   () -> {
-      //                     Translation2d translation = input.getTranslationMetersPerSecond();
-      //                     Optional<Rotation2d> rotation = input.getHeadingDirection();
-      //                     rotation.ifPresent(headingController::setGoal);
-      //                     drive.setRobotSpeeds(
-      //                         speedController.applyTo(
-      //                             new ChassisSpeeds(
-      //                                 translation.getX(),
-      //                                 translation.getY(),
-      //                                 headingController.calculate())),
-      //                         useFieldRelative.getAsBoolean());
-      //                   },
-      //                   drive::stop)
-      //               .withName("RotationAngleDrive"));
+      useAngleControlMode
+          .debounce(0.1)
+          .onTrue(
+              Commands.runOnce(
+                      () -> {
+                        headingController.reset();
+                        headingController.setGoal(drive.getPose().getRotation());
+                      })
+                  .withName("PrepareAngleDrive"))
+          .whileTrue(
+              drive
+                  .runEnd(
+                      () -> {
+                        Translation2d translation = input.getTranslationMetersPerSecond();
+                        Optional<Rotation2d> rotation = input.getHeadingDirection();
+                        rotation.ifPresent(headingController::setGoal);
+                        double omegaRadiansPerSecond = headingController.calculate();
+                        drive.setRobotSpeeds(
+                            speedController.applyTo(
+                                new ChassisSpeeds(
+                                    translation.getX(),
+                                    translation.getY(),
+                                    headingController.atGoal() ? 0 : omegaRadiansPerSecond)),
+                            useFieldRelative.getAsBoolean());
+                      },
+                      drive::stop)
+                  .withName("RotationAngleDrive"));
 
       boolean includeDiagonalPOV = true;
       for (int pov = 0; pov < 360; pov += includeDiagonalPOV ? 45 : 90) {
@@ -307,8 +310,7 @@ public class RobotContainer {
                     .withName(String.format("PrepareLockedHeading %s", name)));
 
         // Then if the button is held for more than 0.2 seconds, drive forward at the
-        // angle once the
-        // chassis reaches it
+        // angle once the chassis reaches it
         driverXbox
             .pov(pov)
             .debounce(0.2)
@@ -328,7 +330,7 @@ public class RobotContainer {
                     .withName(String.format("ForwardLockedHeading %s", name)));
 
         // Then once the pov is let go, if we are not at the angle continue turn to it,
-        // while also accepting x and y input to drive
+        // while also accepting x and y input to drive. Cancel once we get turn request
         driverXbox
             .pov(pov)
             .and(useAngleControlMode.negate())
@@ -346,7 +348,7 @@ public class RobotContainer {
                                       headingController.atGoal() ? 0 : rotationRadians)),
                               useFieldRelative.getAsBoolean());
                         })
-                    .until(() -> input.getOmegaRadiansPerSecond().getRadians() != 0)
+                    .until(() -> input.getOmegaRadiansPerSecond() != 0)
                     .withName(String.format("DriveLockedHeading %s", name)));
       }
 
@@ -406,11 +408,9 @@ public class RobotContainer {
           drive.startEnd(
               () -> {
                 Translation2d translation = input.getTranslationMetersPerSecond();
-                Rotation2d rotation = input.getOmegaRadiansPerSecond();
+                double rotation = input.getOmegaRadiansPerSecond();
                 drive.setRobotSpeeds(
-                    new ChassisSpeeds(
-                        translation.getX(), translation.getY(), rotation.getRadians()),
-                    true);
+                    new ChassisSpeeds(translation.getX(), translation.getY(), rotation), false);
               },
               drive::stop));
     }
@@ -420,9 +420,7 @@ public class RobotContainer {
     if (operatorController instanceof CommandXboxController) {
       final CommandXboxController operatorXbox = (CommandXboxController) operatorController;
 
-      operatorXbox
-          .b()
-          .onTrue(Commands.runOnce(() -> arm.setPosition(ArmConstants.ARM_STOW_2_DEGREES), arm));
+      operatorXbox.b().onTrue(arm.runOnce(() -> arm.setGoal(Arm.Goal.STOW)));
     }
   }
 

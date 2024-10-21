@@ -138,38 +138,6 @@
               "_glyph": 148,
               "_showGlyph": false
             }
-          },
-          "4,1": {
-            "size": [
-              4,
-              2
-            ],
-            "content": {
-              "_type": "Field",
-              "_source0": "network_table:///SmartDashboard/VisionSystemSim-frontCam/Sim Field",
-              "_title": "VisionSystemSim-frontCam/Sim Field",
-              "_glyph": 148,
-              "_showGlyph": false,
-              "Game/Game": "k2024Crescendo",
-              "Visuals/Robot Icon Size": 50.0,
-              "Visuals/Show Outside Circles": false,
-              "Colors/cameras": "#FFFFFFFF",
-              "Colors/visibleTargetPoses": "#FFFFFFFF",
-              "Colors/apriltag": "#FFFFFFFF"
-            }
-          },
-          "4,0": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Command",
-              "_source0": "network_table:///SmartDashboard/Zero Gyro",
-              "_title": "Zero Gyro",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
           }
         }
       }
@@ -189,9 +157,9 @@
     }
   ],
   "windowGeometry": {
-    "x": 1040.0,
-    "y": 382.0,
-    "width": 1230.0,
-    "height": 565.0
+    "x": 56.79999923706055,
+    "y": 98.4000015258789,
+    "width": 1386.4000244140625,
+    "height": 565.5999755859375
   }
 }

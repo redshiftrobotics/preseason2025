@@ -11,6 +11,7 @@ import frc.robot.utility.logging.LoggedTunableNumber;
 import frc.robot.utility.logging.LoggedTunableNumberGroup;
 import java.util.Optional;
 import java.util.function.DoubleSupplier;
+import org.littletonrobotics.junction.AutoLogOutput;
 
 /** Controller for converting joystick values to drive components */
 public class TeleopDriveController {
@@ -54,6 +55,7 @@ public class TeleopDriveController {
    *
    * @return translation x and y in meters per second
    */
+  @AutoLogOutput(key = "Drive/TeleopDriveController/translationMetersPerSecond")
   public Translation2d getTranslationMetersPerSecond() {
     if (DriverStation.isAutonomous()) return new Translation2d();
 
@@ -66,8 +68,9 @@ public class TeleopDriveController {
    *
    * @return rotation in unit per second
    */
-  public Rotation2d getOmegaRadiansPerSecond() {
-    if (DriverStation.isAutonomous()) return new Rotation2d();
+  @AutoLogOutput(key = "Drive/TeleopDriveController/omegaRadiansPerSecond")
+  public double getOmegaRadiansPerSecond() {
+    if (DriverStation.isAutonomous()) return 0;
 
     return TeleopDriveController.getOmegaRadiansPerSecond(
         yAngleSupplier.getAsDouble(), drive.getMaxAngularSpeedRadPerSec());
@@ -78,6 +81,7 @@ public class TeleopDriveController {
    *
    * @return heading angle
    */
+  @AutoLogOutput(key = "Drive/TeleopDriveController/headingDirection")
   public Optional<Rotation2d> getHeadingDirection() {
     if (DriverStation.isAutonomous()) return Optional.empty();
 
@@ -108,7 +112,7 @@ public class TeleopDriveController {
     return squaredLinearVelocity.times(maxTranslationSpeedMetersPerSecond);
   }
 
-  private static Rotation2d getOmegaRadiansPerSecond(
+  private static double getOmegaRadiansPerSecond(
       double omegaInput, double maxAngularSpeedRadPerSec) {
 
     // get rotation speed, and apply deadband
@@ -119,7 +123,7 @@ public class TeleopDriveController {
     double omegaSquared = Math.copySign(Math.pow(omega, 2), omega);
 
     // return final value
-    return new Rotation2d(omegaSquared * maxAngularSpeedRadPerSec);
+    return omegaSquared * maxAngularSpeedRadPerSec;
   }
 
   private static Optional<Rotation2d> getHeadingDirection(double xInput, double yInput) {

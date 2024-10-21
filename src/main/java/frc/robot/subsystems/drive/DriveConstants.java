@@ -4,8 +4,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
-import frc.robot.utility.records.FeedForwardConstants;
-import frc.robot.utility.records.PIDConstants;
 import frc.robot.utility.swerve254util.ModuleLimits;
 
 /**
@@ -119,30 +117,30 @@ public class DriveConstants {
   // --- Module Constants ---
 
   public record ModuleConstants(
-      FeedForwardConstants driveFeedforward,
-      PIDConstants driveFeedback,
-      PIDConstants turnFeedback,
+      FeedForward driveFeedforward,
+      PID driveFeedback,
+      PID turnFeedback,
       double driveReduction,
       double turnReduction) {}
 
   public static final ModuleConstants MODULE_CONSTANTS =
       switch (Constants.getRobot()) {
         case OLD_DEV_BOT -> new ModuleConstants(
-            new FeedForwardConstants(0.1, 3.12, 0.40),
-            new PIDConstants(0.000006, 0.0, 0.0),
-            new PIDConstants(10, 0.0, 0.0002),
+            new FeedForward(0.1, 3.12, 0.40),
+            new PID(0.000006, 0.0, 0.0),
+            new PID(10, 0.0, 0.0002),
             Mk4Reductions.L1.reduction,
             Mk4Reductions.TURN.reduction);
         case SIM_BOT -> new ModuleConstants(
-            new FeedForwardConstants(0.1, 3.12, 0.40),
-            new PIDConstants(0.1, 0.0, 0.0),
-            new PIDConstants(10.0, 0.0, 0.0),
+            new FeedForward(0.1, 3.12, 0.40),
+            new PID(0.1, 0.0, 0.0),
+            new PID(10.0, 0.0, 0.0),
             Mk4iReductions.L3.reduction,
             Mk4iReductions.TURN.reduction);
         case COMP_BOT, DEV_BOT -> new ModuleConstants(
-            new FeedForwardConstants(0.1, 2.35, 0.53),
-            new PIDConstants(0.1, 0.0, 0.0),
-            new PIDConstants(10.0, 0.0, 0.0),
+            new FeedForward(0.1, 2.35, 0.53),
+            new PID(0.1, 0.0, 0.0),
+            new PID(10.0, 0.0, 0.0),
             Mk4iReductions.L3.reduction,
             Mk4iReductions.TURN.reduction);
       };
@@ -171,12 +169,18 @@ public class DriveConstants {
 
   // --- Heading Controller Config ---
 
-  public record HeadingControllerConstants(double Kp, double Kd) {}
+  public record HeadingControllerConstants(double Kp, double Kd, double toleranceDegrees) {}
 
   public static final HeadingControllerConstants HEADING_CONTROLLER_CONSTANTS =
       switch (Constants.getRobot()) {
-        default -> new HeadingControllerConstants(5.0, 0.0);
+        default -> new HeadingControllerConstants(5.0, 0.0, 1);
       };
+
+  // --- Control ---
+
+  public record PID(double Kp, double Ki, double Kd) {}
+
+  public record FeedForward(double Ks, double Kv, double Ka) {}
 
   // --- Module reductions ---
 

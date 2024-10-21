@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.0,
-        "y": 0.0
+        "x": 2.0,
+        "y": 5.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.0,
-        "y": 0.0
+        "x": 2.0,
+        "y": 6.0
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Triangle1 End"
     },
     {
       "anchor": {
         "x": 2.0,
-        "y": 1.0
+        "y": 7.0
       },
       "prevControl": {
-        "x": 1.0,
-        "y": 1.0
+        "x": 2.0,
+        "y": 6.0
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Triangle1 Start"
     }
   ],
   "rotationTargets": [],
@@ -43,7 +43,7 @@
     "rotateFast": false
   },
   "reversed": false,
-  "folder": "Test Paths",
+  "folder": "Triangle Test Paths",
   "previewStartingState": {
     "rotation": 0,
     "velocity": 0

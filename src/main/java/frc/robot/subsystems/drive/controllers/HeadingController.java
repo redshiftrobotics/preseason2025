@@ -27,17 +27,12 @@ public class HeadingController {
   private static final LoggedTunableNumber Kd =
       group.build("kD", HEADING_CONTROLLER_CONSTANTS.Kd());
 
-  private static final LoggedTunableNumber maxVelocityCoefficient =
-      group.build("MaxVelocityCoefficient", 1);
-  private static final LoggedTunableNumber maxAccelerationCoefficient =
-      group.build("MaxAccelerationCoefficient", 1);
-
-  private static final LoggedTunableNumber toleranceDegrees = group.build("ToleranceDegrees", 1);
+  private static final LoggedTunableNumber toleranceDegrees =
+      group.build("ToleranceDegrees", HEADING_CONTROLLER_CONSTANTS.toleranceDegrees());
 
   private final Drive drive;
 
   private final ProfiledPIDController headingControllerRadians;
-  private double output;
 
   /**
    * Creates a new HeadingController object
@@ -67,10 +62,10 @@ public class HeadingController {
   /**
    * Set goal heading. Calculate will now give values to get to this heading.
    *
-   * @param headingRadians desired heading of chassis
+   * @param heading desired heading of chassis
    */
-  public void setGoal(Rotation2d headingRadians) {
-    headingControllerRadians.setGoal(headingRadians.getRadians());
+  public void setGoal(Rotation2d heading) {
+    headingControllerRadians.setGoal(heading.getRadians());
   }
 
   /**
@@ -78,8 +73,8 @@ public class HeadingController {
    *
    * @return desired heading of chassis
    */
-  public double getGoal() {
-    return headingControllerRadians.getGoal().position;
+  public Rotation2d getGoal() {
+    return new Rotation2d(headingControllerRadians.getGoal().position);
   }
 
   /**
@@ -120,21 +115,17 @@ public class HeadingController {
 
     // Update constraints for profiled PID controller
     double maxAngularAcceleration =
-        moduleLimits.maxDriveAcceleration()
-            / DriveConstants.DRIVE_CONFIG.driveBaseRadius()
-            * maxAccelerationCoefficient.get();
+        moduleLimits.maxDriveAcceleration() / DriveConstants.DRIVE_CONFIG.driveBaseRadius();
 
     double maxAngularVelocity =
-        moduleLimits.maxDriveVelocity()
-            / DriveConstants.DRIVE_CONFIG.driveBaseRadius()
-            * maxVelocityCoefficient.get();
+        moduleLimits.maxDriveVelocity() / DriveConstants.DRIVE_CONFIG.driveBaseRadius();
 
     headingControllerRadians.setConstraints(
         new TrapezoidProfile.Constraints(maxAngularVelocity, maxAngularAcceleration));
 
     // Calculate output
     double measurement = drive.getPose().getRotation().getRadians();
-    output = headingControllerRadians.calculate(measurement);
+    double output = headingControllerRadians.calculate(measurement);
 
     Logger.recordOutput(
         "Drive/HeadingController/Goal", headingControllerRadians.getGoal().position);

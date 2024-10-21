@@ -60,8 +60,13 @@ public class FlywheelIOSparkMax implements FlywheelIO {
     inputs.positionRad = Units.rotationsToRadians(encoder.getPosition() / GEAR_RATIO);
     inputs.velocityRadPerSec =
         Units.rotationsPerMinuteToRadiansPerSecond(encoder.getVelocity() / GEAR_RATIO);
-    inputs.appliedVolts = leader.getAppliedOutput() * leader.getBusVoltage();
-    inputs.currentAmps = leader.getOutputCurrent();
+    inputs.appliedVolts =
+        new double[] {
+          leader.getAppliedOutput() * leader.getBusVoltage(),
+          follower.getAppliedOutput() * follower.getBusVoltage()
+        };
+    inputs.supplyCurrentAmps =
+        new double[] {leader.getOutputCurrent(), follower.getOutputCurrent()};
   }
 
   @Override

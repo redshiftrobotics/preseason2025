@@ -3,10 +3,10 @@ package frc.robot.subsystems.drive.controllers;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import org.littletonrobotics.junction.AutoLogOutput;
 
 /** Manages speed levels with a stack-based system, where the most recent state is active. */
 public class SpeedController {
-
   private final Deque<SpeedLevel> speedLevels;
   private final SpeedLevel defaultSpeedLevel;
 
@@ -22,6 +22,7 @@ public class SpeedController {
   }
 
   /** Returns the current speed level. */
+  @AutoLogOutput(key = "Drive/SpeedController/speedLevel")
   public SpeedLevel getCurrentSpeedLevel() {
     return speedLevels.isEmpty() ? this.defaultSpeedLevel : speedLevels.peek();
   }
@@ -49,7 +50,7 @@ public class SpeedController {
     PRECISE(0.25, 0.1),
     DEFAULT(0.75, 0.60),
     BOOST(1.0, 0.75),
-    MAX_BOOST(1.0, 1.0);
+    NO_LEVEL(1.0, 1.0);
 
     private final double translationCoefficient;
     private final double rotationCoefficient;

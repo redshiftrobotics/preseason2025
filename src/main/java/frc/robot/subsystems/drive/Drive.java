@@ -133,8 +133,7 @@ public class Drive extends SubsystemBase {
         this::getRobotSpeeds,
         this::setRobotSpeeds,
         new HolonomicPathFollowerConfig(
-            // new PIDConstants(4, 0.01),
-            new PIDConstants(0.1, 0.01),
+            new PIDConstants(5),
             new PIDConstants(5),
             DRIVE_CONFIG.maxLinearVelocity(),
             DRIVE_CONFIG.driveBaseRadius(),
@@ -251,6 +250,7 @@ public class Drive extends SubsystemBase {
    * @param pose new position robot believes it is located at
    */
   public void resetPose(Pose2d pose) {
+
     poseEstimator.resetPosition(rawGyroRotation, getWheelPositions(), pose);
   }
 
