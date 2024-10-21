@@ -12,6 +12,12 @@
             "key": "/RealOutputs/Odometry/Robot",
             "sourceTypeIndex": 1,
             "sourceType": "Pose2d"
+          },
+          {
+            "type": "Trajectory",
+            "key": "/RealOutputs/Odometry/Trajectory",
+            "sourceTypeIndex": 2,
+            "sourceType": "Pose2d[]"
           }
         ]
       ],
@@ -26,6 +32,30 @@
       },
       "configHidden": false,
       "title": "3D Field"
+    },
+    {
+      "type": 10,
+      "fields": [
+        {
+          "key": "/RealOutputs/Arm/Mechanism2d/Goal",
+          "sourceTypeIndex": 0,
+          "sourceType": "Mechanism2d"
+        },
+        {
+          "key": "/RealOutputs/Arm/Mechanism2d/Measured",
+          "sourceTypeIndex": 0,
+          "sourceType": "Mechanism2d"
+        },
+        {
+          "key": "/RealOutputs/Arm/Mechanism2d/Setpoint",
+          "sourceTypeIndex": 0,
+          "sourceType": "Mechanism2d"
+        }
+      ],
+      "listFields": [],
+      "options": {},
+      "configHidden": false,
+      "title": "Mechanism"
     },
     {
       "type": 9,
