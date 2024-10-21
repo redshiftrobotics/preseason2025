@@ -228,7 +228,7 @@ public class RobotContainer {
           Commands.runOnce(() -> drive.resetPose(new Pose2d())).withName("Reset Pose"));
 
       SmartDashboard.putData("Arm Stow", arm.runOnce(() -> arm.setGoal(Arm.Goal.STOW)));
-      SmartDashboard.putData("Arm UP", arm.runOnce(() -> arm.setGoal(Arm.Goal.UP)));
+      SmartDashboard.putData("Arm Up", arm.runOnce(() -> arm.setGoal(Arm.Goal.UP)));
 
       // Default command
       drive.setDefaultCommand(

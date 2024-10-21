@@ -37,7 +37,7 @@ public class ArmConstants {
 
   public static final PID PID_CONFIG =
       switch (Constants.getRobot()) {
-        default -> new PID(50.0, 0, 0);
+        default -> new PID(80.0, 0, 0);
       };
 
   public record ArmFeedForward(double Ks, double Kg, double Kv, double Ka) {}
