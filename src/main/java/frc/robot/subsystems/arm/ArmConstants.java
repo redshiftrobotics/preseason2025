@@ -3,6 +3,7 @@ package frc.robot.subsystems.arm;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
 
 public class ArmConstants {
@@ -28,9 +29,9 @@ public class ArmConstants {
         default -> new Rotation2d();
       };
 
-  public static final double GEAR_RATIO = (5.0 / 1.0) * (4.0 / 1.0) * (4.0 / 1.0) * (4.0 / 1.0);
+  public static final double GEAR_RATIO = (5.0 / 1.0) * (5.0 / 1.0) * (4.0 / 1.0) * (3.0 / 1.0);
 
-  public static final double ARM_LENGTH_METERS = 1;
+  public static final double ARM_LENGTH_METERS = Units.inchesToMeters(24);
   public static final Translation2d ARM_ORIGIN = new Translation2d(-0.238, 0.298);
 
   public record PID(double Kp, double Ki, double Kd) {}
