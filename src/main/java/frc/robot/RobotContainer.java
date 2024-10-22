@@ -8,7 +8,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -223,16 +222,11 @@ public class RobotContainer {
       DriverDashboard.getInstance().setAngleDrivenSupplier(useAngleControlMode);
       DriverDashboard.getInstance().setFieldRelativeSupplier(useFieldRelative);
 
-      SmartDashboard.putData(
-          "Reset Pose",
-          Commands.runOnce(() -> drive.resetPose(new Pose2d())).withName("Reset Pose Now"));
+      DriverDashboard.getInstance().addCommand("Reset Pose", () -> drive.resetPose(new Pose2d()));
+      DriverDashboard.getInstance().addCommand("Zero Gyro", drive::zeroGyro);
 
-      SmartDashboard.putData(
-          "Zero Gyro",
-          Commands.runOnce(() -> drive.resetPose(new Pose2d())).withName("Zero Gyro Now"));
-
-      SmartDashboard.putData("Arm Stow", arm.runOnce(() -> arm.setGoal(Arm.Goal.STOW)).withName("Stow Now"));
-      SmartDashboard.putData("Arm Up", arm.runOnce(() -> arm.setGoal(Arm.Goal.UP)).withName("Up Now"));
+      DriverDashboard.getInstance().addCommand("Arm Stow", () -> arm.setGoal(Arm.Goal.STOW));
+      DriverDashboard.getInstance().addCommand("Arm Up", () -> arm.setGoal(Arm.Goal.UP));
 
       // Default command
       drive.setDefaultCommand(

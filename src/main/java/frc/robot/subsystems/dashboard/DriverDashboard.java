@@ -3,6 +3,7 @@ package frc.robot.subsystems.dashboard;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.controllers.SpeedController.SpeedLevel;
@@ -38,6 +39,10 @@ public class DriverDashboard extends SubsystemBase {
     } else {
       throw new IllegalArgumentException("Unknown subsystem can not be added to driver dashboard");
     }
+  }
+
+  public void addCommand(String name, Runnable runnable) {
+    SmartDashboard.putData(name, Commands.runOnce(runnable).withName(name));
   }
 
   public void setPoseSupplier(Supplier<Pose2d> robotPoseSupplier) {
