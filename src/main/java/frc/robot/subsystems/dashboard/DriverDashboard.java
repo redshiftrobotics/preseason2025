@@ -3,6 +3,7 @@ package frc.robot.subsystems.dashboard;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.drive.Drive;
@@ -41,8 +42,12 @@ public class DriverDashboard extends SubsystemBase {
     }
   }
 
-  public void addCommand(String name, Runnable runnable) {
-    SmartDashboard.putData(name, Commands.runOnce(runnable).withName(name));
+  public void addCommand(String name, Runnable runnable, boolean runsWhenDisabled) {
+    addCommand(name, Commands.runOnce(runnable), runsWhenDisabled);
+  }
+
+  public void addCommand(String name, Command command, boolean runsWhenDisabled) {
+    SmartDashboard.putData(name, command.withName(name).ignoringDisable(runsWhenDisabled));
   }
 
   public void setPoseSupplier(Supplier<Pose2d> robotPoseSupplier) {

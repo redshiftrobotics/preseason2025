@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.Mode;
 import frc.robot.Constants.RobotType;
+import frc.robot.commands.SafeDriveMode;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmHardwareIO;
 import frc.robot.subsystems.arm.ArmIO;
@@ -222,11 +223,25 @@ public class RobotContainer {
       DriverDashboard.getInstance().setAngleDrivenSupplier(useAngleControlMode);
       DriverDashboard.getInstance().setFieldRelativeSupplier(useFieldRelative);
 
-      DriverDashboard.getInstance().addCommand("Reset Pose", () -> drive.resetPose(new Pose2d()));
-      DriverDashboard.getInstance().addCommand("Zero Gyro", drive::zeroGyro);
+      DriverDashboard.getInstance()
+          .addCommand("Reset Pose", () -> drive.resetPose(new Pose2d()), true);
+      DriverDashboard.getInstance().addCommand("Zero Gyro", drive::zeroGyro, true);
 
-      DriverDashboard.getInstance().addCommand("Arm Stow", () -> arm.setGoal(Arm.Goal.STOW));
-      DriverDashboard.getInstance().addCommand("Arm Up", () -> arm.setGoal(Arm.Goal.UP));
+      DriverDashboard.getInstance().addCommand("Arm Stow", () -> arm.setGoal(Arm.Goal.STOW), false);
+      DriverDashboard.getInstance().addCommand("Arm Up", () -> arm.setGoal(Arm.Goal.UP), false);
+
+      DriverDashboard.getInstance()
+          .addCommand(
+              "Noob Mode",
+              new SafeDriveMode(
+                      drive,
+                      input,
+                      SpeedLevel.PRECISE,
+                      true,
+                      new Translation2d(-2, -2),
+                      new Translation2d(2, 2))
+                  .withInterruptBehavior(InterruptionBehavior.kCancelIncoming),
+              true);
 
       // Default command
       drive.setDefaultCommand(
