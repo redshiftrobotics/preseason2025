@@ -56,7 +56,7 @@ public class DriveConstants {
             5.05968,
             14.5);
       };
-    
+
   // --- Module Config ---
 
   public record ModuleConfig(
@@ -109,7 +109,7 @@ public class DriveConstants {
   public static final Translation2d FRONT_LEFT_MODULE_DISTANCE_FROM_CENTER;
   public static final Translation2d FRONT_RIGHT_MODULE_DISTANCE_FROM_CENTER;
   public static final Translation2d BACK_LEFT_MODULE_DISTANCE_FROM_CENTER;
-  public static final Translation2d BACK_RIGHT_MODULE_DISTANCE_FROM_CENTER; 
+  public static final Translation2d BACK_RIGHT_MODULE_DISTANCE_FROM_CENTER;
 
   static {
     switch (Constants.getRobot()) {
@@ -118,10 +118,14 @@ public class DriveConstants {
         double backLeftToRight = Units.inchesToMeters(0);
         double leftFrontToBack = Units.inchesToMeters(0);
         double rightFrontToBack = Units.inchesToMeters(0);
-        FRONT_LEFT_MODULE_DISTANCE_FROM_CENTER = new Translation2d(leftFrontToBack / 2.0, frontLeftToRight / 2.0);
-        FRONT_RIGHT_MODULE_DISTANCE_FROM_CENTER = new Translation2d(rightFrontToBack / 2.0, -frontLeftToRight / 2.0);
-        BACK_LEFT_MODULE_DISTANCE_FROM_CENTER = new Translation2d(-leftFrontToBack / 2.0, backLeftToRight / 2.0);
-        BACK_RIGHT_MODULE_DISTANCE_FROM_CENTER = new Translation2d(-rightFrontToBack / 2.0, -backLeftToRight / 2.0);
+        FRONT_LEFT_MODULE_DISTANCE_FROM_CENTER =
+            new Translation2d(leftFrontToBack / 2.0, frontLeftToRight / 2.0);
+        FRONT_RIGHT_MODULE_DISTANCE_FROM_CENTER =
+            new Translation2d(rightFrontToBack / 2.0, -frontLeftToRight / 2.0);
+        BACK_LEFT_MODULE_DISTANCE_FROM_CENTER =
+            new Translation2d(-leftFrontToBack / 2.0, backLeftToRight / 2.0);
+        BACK_RIGHT_MODULE_DISTANCE_FROM_CENTER =
+            new Translation2d(-rightFrontToBack / 2.0, -backLeftToRight / 2.0);
         break;
       default:
         double trackCenterX = DRIVE_CONFIG.trackCornerToCorner().getX() / 2;
