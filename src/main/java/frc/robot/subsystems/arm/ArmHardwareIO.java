@@ -3,13 +3,13 @@ package frc.robot.subsystems.arm;
 import static frc.robot.subsystems.arm.ArmConstants.ARM_CONFIG;
 import static frc.robot.subsystems.examples.flywheel.FlywheelConstants.GEAR_RATIO;
 
-import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
+import com.revrobotics.CANSparkBase.SoftLimitDirection;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
@@ -17,6 +17,7 @@ import com.revrobotics.SparkPIDController;
 import com.revrobotics.SparkPIDController.ArbFFUnits;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import java.util.function.Supplier;
 
 public class ArmHardwareIO implements ArmIO {
   private final CANSparkMax leader;
@@ -26,14 +27,14 @@ public class ArmHardwareIO implements ArmIO {
   private final SparkPIDController pid;
 
   private final CANcoder cancoder;
-  private final StatusSignal<Double> absolutePosition;
-  private final StatusSignal<Double> relativePosition;
+  private final Supplier<Double> absolutePosition;
+  private final Supplier<Double> relativePosition;
 
   public ArmHardwareIO() {
 
     // --- Create Hardware ---
-    leader = new CANSparkMax(ARM_CONFIG.followerID(), MotorType.kBrushless);
-    follower = new CANSparkMax(ARM_CONFIG.leaderID(), MotorType.kBrushless);
+    leader = new CANSparkMax(ARM_CONFIG.leaderID(), MotorType.kBrushless);
+    follower = new CANSparkMax(ARM_CONFIG.followerID(), MotorType.kBrushless);
 
     cancoder = new CANcoder(ARM_CONFIG.encoderId());
 
@@ -45,8 +46,8 @@ public class ArmHardwareIO implements ArmIO {
     armEncoderConfig.MagnetSensor.MagnetOffset = ArmConstants.ARM_ENCODER_OFFSET.getRotations();
     cancoder.getConfigurator().apply(armEncoderConfig, 1.0);
 
-    absolutePosition = cancoder.getAbsolutePosition();
-    relativePosition = cancoder.getPosition();
+    absolutePosition = cancoder.getAbsolutePosition().asSupplier();
+    relativePosition = cancoder.getPosition().asSupplier();
 
     // --- Set up leader controller ---
     encoder = leader.getEncoder();
@@ -61,6 +62,13 @@ public class ArmHardwareIO implements ArmIO {
     // Conversion Factor
     encoder.setPositionConversionFactor(1 / GEAR_RATIO);
     encoder.setVelocityConversionFactor(1 / GEAR_RATIO);
+
+    pid.setPositionPIDWrappingMinInput(0);
+    pid.setPositionPIDWrappingMaxInput(1);
+    pid.setPositionPIDWrappingEnabled(true);
+
+    leader.setSoftLimit(SoftLimitDirection.kForward, 0);
+    leader.setSoftLimit(SoftLimitDirection.kForward, 1);
 
     // Set follower to copy leader
     leader.setInverted(ARM_CONFIG.leaderInverted());
@@ -79,7 +87,7 @@ public class ArmHardwareIO implements ArmIO {
     follower.burnFlash();
 
     // --- Match encoder positions ---
-    encoder.setPosition(absolutePosition.getValueAsDouble());
+    encoder.setPosition(absolutePosition.get());
   }
 
   @Override
@@ -87,18 +95,19 @@ public class ArmHardwareIO implements ArmIO {
     inputs.positionRads = Units.rotationsToRadians(encoder.getPosition());
     inputs.velocityRadsPerSec = Units.rotationsPerMinuteToRadiansPerSecond(encoder.getVelocity());
 
-    inputs.absoluteEncoderPositionRads =
-        Units.rotationsToRadians(absolutePosition.getValueAsDouble());
-    inputs.relativeEncoderPositionRads =
-        Units.rotationsToRadians(relativePosition.getValueAsDouble());
+    inputs.absoluteEncoderPositionRads = Units.rotationsToRadians(absolutePosition.get());
+    inputs.relativeEncoderPositionRads = Units.rotationsToRadians(relativePosition.get());
 
-    // TODO, remove after testing
     SmartDashboard.putNumber("Position", Units.radiansToDegrees(inputs.positionRads));
     SmartDashboard.putNumber("Velocity", Units.radiansToDegrees(inputs.velocityRadsPerSec));
+
     SmartDashboard.putNumber(
         "AbsPosition", Units.radiansToDegrees(inputs.absoluteEncoderPositionRads));
     SmartDashboard.putNumber(
         "RelPosition", Units.radiansToDegrees(inputs.relativeEncoderPositionRads));
+
+    SmartDashboard.putNumber("leader out", leader.getAppliedOutput());
+    SmartDashboard.putNumber("follower out", leader.getAppliedOutput());
 
     inputs.appliedVolts =
         new double[] {
@@ -112,7 +121,7 @@ public class ArmHardwareIO implements ArmIO {
   @Override
   public void runSetpoint(double positionRad, double feedForward) {
     pid.setReference(
-        Units.radiansPerSecondToRotationsPerMinute(positionRad),
+        Units.radiansToRotations(positionRad),
         ControlType.kPosition,
         0,
         feedForward,

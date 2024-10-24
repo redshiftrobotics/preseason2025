@@ -17,16 +17,16 @@ public class ArmConstants {
 
   public static final ArmConfig ARM_CONFIG =
       switch (Constants.getRobot()) {
-        case OLD_DEV_BOT -> new ArmConfig(19, 5, 6, true, false);
+        case OLD_DEV_BOT -> new ArmConfig(19, 5, 6, true, true);
         default -> new ArmConfig(0, 0, 0, false, false);
       };
 
-  public static final Rotation2d ARM_MIN_ANGLE = Rotation2d.fromDegrees(-5);
+  public static final Rotation2d ARM_MIN_ANGLE = Rotation2d.fromDegrees(5);
   public static final Rotation2d ARM_MAX_ANGLE = Rotation2d.fromDegrees(180);
 
   public static final Rotation2d ARM_ENCODER_OFFSET =
       switch (Constants.getRobot()) {
-        default -> new Rotation2d();
+        default -> Rotation2d.fromDegrees(-50.44921875);
       };
 
   public static final double GEAR_RATIO = (5.0 / 1.0) * (5.0 / 1.0) * (4.0 / 1.0) * (3.0 / 1.0);
@@ -38,7 +38,7 @@ public class ArmConstants {
 
   public static final PID PID_CONFIG =
       switch (Constants.getRobot()) {
-        default -> new PID(80.0, 0, 0);
+        default -> new PID(50, 0, 0);
       };
 
   public record ArmFeedForward(double Ks, double Kg, double Kv, double Ka) {}

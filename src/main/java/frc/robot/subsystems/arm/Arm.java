@@ -65,7 +65,7 @@ public class Arm extends SubsystemBase {
   public Arm(ArmIO io) {
     this.io = io;
 
-    io.setBrakeMode(true);
+    io.setBrakeMode(false);
 
     ffModel =
         new ArmFeedforward(
