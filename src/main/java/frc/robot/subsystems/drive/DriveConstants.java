@@ -56,7 +56,7 @@ public class DriveConstants {
             5.05968,
             14.5);
       };
-
+    
   // --- Module Config ---
 
   public record ModuleConfig(
@@ -102,6 +102,34 @@ public class DriveConstants {
             new ModuleConfig(8, 9, 2, Rotation2d.fromRotations(-0.641357421875), false);
         BACK_RIGHT_MODULE_CONFIG =
             new ModuleConfig(10, 11, 1, Rotation2d.fromRotations(0.453857421), false);
+        break;
+    }
+  }
+
+  public static final Translation2d FRONT_LEFT_MODULE_DISTANCE_FROM_CENTER;
+  public static final Translation2d FRONT_RIGHT_MODULE_DISTANCE_FROM_CENTER;
+  public static final Translation2d BACK_LEFT_MODULE_DISTANCE_FROM_CENTER;
+  public static final Translation2d BACK_RIGHT_MODULE_DISTANCE_FROM_CENTER; 
+
+  static {
+    switch (Constants.getRobot()) {
+      case OLD_DEV_BOT: // Exception, old dev bot is no longer a square
+        double frontLeftToRight = Units.inchesToMeters(0);
+        double backLeftToRight = Units.inchesToMeters(0);
+        double leftFrontToBack = Units.inchesToMeters(0);
+        double rightFrontToBack = Units.inchesToMeters(0);
+        FRONT_LEFT_MODULE_DISTANCE_FROM_CENTER = new Translation2d(leftFrontToBack / 2.0, frontLeftToRight / 2.0);
+        FRONT_RIGHT_MODULE_DISTANCE_FROM_CENTER = new Translation2d(rightFrontToBack / 2.0, -frontLeftToRight / 2.0);
+        BACK_LEFT_MODULE_DISTANCE_FROM_CENTER = new Translation2d(-leftFrontToBack / 2.0, backLeftToRight / 2.0);
+        BACK_RIGHT_MODULE_DISTANCE_FROM_CENTER = new Translation2d(-rightFrontToBack / 2.0, -backLeftToRight / 2.0);
+        break;
+      default:
+        double trackCenterX = DRIVE_CONFIG.trackCornerToCorner().getX() / 2;
+        double trackCenterY = DRIVE_CONFIG.trackCornerToCorner().getY() / 2;
+        FRONT_LEFT_MODULE_DISTANCE_FROM_CENTER = new Translation2d(trackCenterX, trackCenterY);
+        FRONT_RIGHT_MODULE_DISTANCE_FROM_CENTER = new Translation2d(trackCenterX, -trackCenterY);
+        BACK_LEFT_MODULE_DISTANCE_FROM_CENTER = new Translation2d(-trackCenterX, trackCenterY);
+        BACK_RIGHT_MODULE_DISTANCE_FROM_CENTER = new Translation2d(-trackCenterX, -trackCenterY);
         break;
     }
   }
