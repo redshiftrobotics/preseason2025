@@ -51,6 +51,9 @@ public class Drive extends SubsystemBase {
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
   private final Module[] modules; // FL, FR, BL, BR
 
+  @AutoLogOutput(key = "Drive/BrakeModeEnabled")
+  private boolean brakeModeEnabled = true;
+
   private final SysIdRoutine sysId;
 
   private SwerveDriveKinematics kinematics;
@@ -164,6 +167,9 @@ public class Drive extends SubsystemBase {
                 state -> Logger.recordOutput("Drive/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 (voltage) -> runCharacterization(voltage.in(Units.Volts)), null, this));
+
+    // --- Break mode ---
+    setMotorBrakeOnCoastModeEnabled(true);
   }
 
   // --- Robot Pose ---
@@ -447,6 +453,24 @@ public class Drive extends SubsystemBase {
     Rotation2d[] headings = modules().map(module -> new Rotation2d()).toArray(Rotation2d[]::new);
     kinematics.resetHeadings(headings);
     setRobotSpeeds(new ChassisSpeeds());
+  }
+
+  // --- Break Mode ---
+
+  /**
+   * Sets whether swerve motors will brake to prevent coasting. IMPORTANT: Only do this after robot
+   * has been stopped for a bit
+   */
+  public void setMotorBrakeOnCoastModeEnabled(boolean enabled) {
+    if (brakeModeEnabled != enabled) {
+      modules().forEach(module -> module.setBrakeMode(enabled));
+    }
+    brakeModeEnabled = enabled;
+  }
+
+  /** Get whether swerve motors will brake to prevent coasting, and robot is safe to drive */
+  public boolean getMotorBrakeOnCoastModeEnabled() {
+    return brakeModeEnabled;
   }
 
   // --- Chassis Max Speeds---
