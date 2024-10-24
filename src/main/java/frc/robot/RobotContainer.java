@@ -236,7 +236,7 @@ public class RobotContainer {
                     Translation2d translation = input.getTranslationMetersPerSecond();
                     double rotation = input.getOmegaRadiansPerSecond();
                     drive.setRobotSpeeds(
-                        speedController.applyTo(
+                        speedController.updateSpeed(
                             new ChassisSpeeds(translation.getX(), translation.getY(), rotation)),
                         useFieldRelative.getAsBoolean());
                   },
@@ -261,7 +261,7 @@ public class RobotContainer {
                         rotation.ifPresent(headingController::setGoal);
                         double omegaRadiansPerSecond = headingController.calculate();
                         drive.setRobotSpeeds(
-                            speedController.applyTo(
+                            speedController.updateSpeed(
                                 new ChassisSpeeds(
                                     translation.getX(),
                                     translation.getY(),
@@ -288,7 +288,7 @@ public class RobotContainer {
                     .runEnd(
                         () ->
                             drive.setRobotSpeeds(
-                                speedController.applyTo(
+                                speedController.updateSpeed(
                                     new ChassisSpeeds(angle.getCos(), angle.getSin(), 0))),
                         drive::stop)
                     .withName(String.format("DriveRobotRelative %s", name)));
@@ -319,7 +319,7 @@ public class RobotContainer {
                         () -> {
                           double rotationRadians = headingController.calculate();
                           drive.setRobotSpeeds(
-                              speedController.applyTo(
+                              speedController.updateSpeed(
                                   new ChassisSpeeds(
                                       (headingController.atGoal() ? 1 : 0),
                                       0,
@@ -339,7 +339,7 @@ public class RobotContainer {
                           Translation2d translation = input.getTranslationMetersPerSecond();
                           double rotationRadians = headingController.calculate();
                           drive.setRobotSpeeds(
-                              speedController.applyTo(
+                              speedController.updateSpeed(
                                   new ChassisSpeeds(
                                       translation.getX(),
                                       translation.getY(),

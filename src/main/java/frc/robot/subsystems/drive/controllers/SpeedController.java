@@ -38,11 +38,15 @@ public class SpeedController {
   }
 
   /** Applies this speed level to the given chassis speeds. */
-  public ChassisSpeeds applyTo(ChassisSpeeds speeds) {
+  public ChassisSpeeds updateSpeed(ChassisSpeeds speeds) {
+    return applySpeedLevel(speeds, getCurrentSpeedLevel());
+  }
+
+  public static ChassisSpeeds applySpeedLevel(ChassisSpeeds speeds, SpeedLevel speedLevel) {
     return new ChassisSpeeds(
-        speeds.vxMetersPerSecond * getCurrentSpeedLevel().translationCoefficient,
-        speeds.vyMetersPerSecond * getCurrentSpeedLevel().translationCoefficient,
-        speeds.omegaRadiansPerSecond * getCurrentSpeedLevel().rotationCoefficient);
+        speeds.vxMetersPerSecond * speedLevel.translationCoefficient,
+        speeds.vyMetersPerSecond * speedLevel.translationCoefficient,
+        speeds.omegaRadiansPerSecond * speedLevel.rotationCoefficient);
   }
 
   /** Enum representing different speed levels with translational and rotational coefficients. */
