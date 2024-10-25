@@ -1,8 +1,6 @@
 package frc.robot.subsystems.drive;
 
 import static frc.robot.subsystems.drive.DriveConstants.MODULE_CONSTANTS;
-import static frc.robot.subsystems.drive.DriveConstants.MODULE_LIMITS_FREE;
-
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
@@ -110,8 +108,6 @@ public class ModuleIOSparkMax implements ModuleIO {
     turnFeedback.setPositionPIDWrappingEnabled(true);
     turnFeedback.setPositionPIDWrappingMaxInput(1);
     turnFeedback.setPositionPIDWrappingMinInput(0);
-
-    turnFeedback.setSmartMotionMaxAccel(MODULE_LIMITS_FREE.maxSteeringVelocity(), 0);
 
     // Current
     driveSparkMax.setSmartCurrentLimit(40);

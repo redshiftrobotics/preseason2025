@@ -4,15 +4,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
-import frc.robot.utility.swerve254util.ModuleLimits;
 
 /**
  * Constants for drivetrain/chassis. All constants should be in meters and radians (m/s, m/s^2,
  * rad/s, rad/s^2). Switch expressions must cover all cases.
  */
 public class DriveConstants {
-
-  public static final boolean USE_SWERVE_SETPOINT_GENERATOR = false;
 
   // --- Drive Config ---
 
@@ -176,20 +173,6 @@ public class DriveConstants {
             Mk4iReductions.L3.reduction,
             Mk4iReductions.TURN.reduction);
       };
-
-  // --- Module Limit Config ---
-
-  public static final ModuleLimits MODULE_LIMITS_FREE =
-      new ModuleLimits(
-          DRIVE_CONFIG.maxLinearVelocity(),
-          DRIVE_CONFIG.maxLinearAcceleration(),
-          Units.degreesToRadians(1080.0));
-
-  public static final ModuleLimits MODULE_LIMITS_FLYWHEEL_SPIN_UP =
-      new ModuleLimits(
-          DRIVE_CONFIG.maxLinearVelocity(),
-          DRIVE_CONFIG.maxLinearAcceleration() / 2.0,
-          Units.degreesToRadians(1080.0));
 
   // --- Odometry Frequency ---
 

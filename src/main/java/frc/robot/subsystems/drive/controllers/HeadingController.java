@@ -1,5 +1,6 @@
 package frc.robot.subsystems.drive.controllers;
 
+import static frc.robot.subsystems.drive.DriveConstants.DRIVE_CONFIG;
 import static frc.robot.subsystems.drive.DriveConstants.HEADING_CONTROLLER_CONSTANTS;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -7,12 +8,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
-import frc.robot.RobotState;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.utility.logging.LoggedTunableNumber;
 import frc.robot.utility.logging.LoggedTunableNumberGroup;
-import frc.robot.utility.swerve254util.ModuleLimits;
 import org.littletonrobotics.junction.Logger;
 
 /** Controller for rotating robot to goal heading using ProfiledPIDController */
@@ -51,6 +49,10 @@ public class HeadingController {
             Constants.LOOP_PERIOD_SECONDS);
     headingControllerRadians.enableContinuousInput(-Math.PI, Math.PI);
     headingControllerRadians.setTolerance(Units.degreesToRadians(toleranceDegrees.get()));
+
+    headingControllerRadians.setConstraints(
+        new TrapezoidProfile.Constraints(DRIVE_CONFIG.maxAngularVelocity(), DRIVE_CONFIG.maxAngularAcceleration()));
+
   }
 
   /** Reset last position and rotation to prepare for new use */
@@ -110,18 +112,6 @@ public class HeadingController {
           headingControllerRadians.setTolerance(Units.degreesToRadians(toleranceDegrees.get()));
         },
         toleranceDegrees);
-
-    ModuleLimits moduleLimits = RobotState.getInstance().getModuleLimits();
-
-    // Update constraints for profiled PID controller
-    double maxAngularAcceleration =
-        moduleLimits.maxDriveAcceleration() / DriveConstants.DRIVE_CONFIG.driveBaseRadius();
-
-    double maxAngularVelocity =
-        moduleLimits.maxDriveVelocity() / DriveConstants.DRIVE_CONFIG.driveBaseRadius();
-
-    headingControllerRadians.setConstraints(
-        new TrapezoidProfile.Constraints(maxAngularVelocity, maxAngularAcceleration));
 
     // Calculate output
     double measurement = drive.getPose().getRotation().getRadians();

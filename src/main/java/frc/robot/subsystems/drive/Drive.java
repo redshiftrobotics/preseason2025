@@ -28,12 +28,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
-import frc.robot.RobotState;
 import frc.robot.utility.AllianceFlipUtil;
 import frc.robot.utility.LocalADStarAK;
-import frc.robot.utility.swerve254util.ModuleLimits;
-import frc.robot.utility.swerve254util.SwerveSetpoint;
-import frc.robot.utility.swerve254util.SwerveSetpointGenerator;
 import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -59,9 +55,6 @@ public class Drive extends SubsystemBase {
   private SwerveDriveKinematics kinematics;
   private Rotation2d rawGyroRotation = new Rotation2d();
   private SwerveModulePosition[] lastModulePositions;
-
-  private SwerveSetpoint currentSetpoint;
-  private final SwerveSetpointGenerator setpointGenerator;
 
   private Pose2d pose = new Pose2d();
 
@@ -109,15 +102,6 @@ public class Drive extends SubsystemBase {
     lastModulePositions = modules().map(Module::getPosition).toArray(SwerveModulePosition[]::new);
     poseEstimator =
         new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, pose);
-
-    // --- Swerve Setpoint Generator ---
-
-    currentSetpoint =
-        new SwerveSetpoint(
-            new ChassisSpeeds(),
-            modules().map(Module::getSpeeds).toArray(SwerveModuleState[]::new));
-
-    setpointGenerator = new SwerveSetpointGenerator(kinematics, moduleTranslations);
 
     // --- Start odometry threads ---
 
@@ -344,21 +328,9 @@ public class Drive extends SubsystemBase {
               speeds, AllianceFlipUtil.apply(getPose().getRotation()));
     }
 
-    SwerveDriveWheelStates wheelSpeeds;
+    speeds = ChassisSpeeds.discretize(speeds, Constants.LOOP_PERIOD_SECONDS);
 
-    if (DriveConstants.USE_SWERVE_SETPOINT_GENERATOR) {
-      ModuleLimits currentModuleLimits = RobotState.getInstance().getModuleLimits();
-
-      currentSetpoint =
-          setpointGenerator.generateSetpoint(
-              currentModuleLimits, currentSetpoint, speeds, Constants.LOOP_PERIOD_SECONDS);
-
-      wheelSpeeds = new SwerveDriveWheelStates(currentSetpoint.moduleStates());
-    } else {
-      speeds = ChassisSpeeds.discretize(speeds, Constants.LOOP_PERIOD_SECONDS);
-
-      wheelSpeeds = kinematics.toWheelSpeeds(speeds);
-    }
+    SwerveDriveWheelStates wheelSpeeds = kinematics.toWheelSpeeds(speeds);
 
     setWheelSpeeds(wheelSpeeds);
   }
