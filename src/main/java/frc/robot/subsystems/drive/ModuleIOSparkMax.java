@@ -1,8 +1,8 @@
 package frc.robot.subsystems.drive;
 
 import static frc.robot.subsystems.drive.DriveConstants.MODULE_CONSTANTS;
+
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
@@ -70,15 +70,11 @@ public class ModuleIOSparkMax implements ModuleIO {
     turnFeedback = turnSparkMax.getPIDController();
 
     // Cancoder config
-    cancoder
-        .getConfigurator()
-        .apply(
-            new CANcoderConfiguration()
-                .withMagnetSensor(
-                    new MagnetSensorConfigs()
-                        .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
-                        .withAbsoluteSensorRange(AbsoluteSensorRangeValue.Unsigned_0To1)
-                        .withMagnetOffset(config.absoluteEncoderOffset().getRotations())));
+    MagnetSensorConfigs magnetSensorConfig = new MagnetSensorConfigs();
+    magnetSensorConfig.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
+    magnetSensorConfig.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
+    magnetSensorConfig.MagnetOffset = config.absoluteEncoderOffset().getRotations();
+    cancoder.getConfigurator().apply(magnetSensorConfig);
 
     turnAbsolutePosition = cancoder.getAbsolutePosition();
     turnAbsolutePosition.setUpdateFrequency(50);

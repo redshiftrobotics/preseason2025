@@ -51,8 +51,8 @@ public class HeadingController {
     headingControllerRadians.setTolerance(Units.degreesToRadians(toleranceDegrees.get()));
 
     headingControllerRadians.setConstraints(
-        new TrapezoidProfile.Constraints(DRIVE_CONFIG.maxAngularVelocity(), DRIVE_CONFIG.maxAngularAcceleration()));
-
+        new TrapezoidProfile.Constraints(
+            DRIVE_CONFIG.maxAngularVelocity(), DRIVE_CONFIG.maxAngularAcceleration()));
   }
 
   /** Reset last position and rotation to prepare for new use */
