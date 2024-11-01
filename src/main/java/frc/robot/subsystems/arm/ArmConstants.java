@@ -9,15 +9,11 @@ import frc.robot.Constants;
 public class ArmConstants {
 
   public record ArmConfig(
-      int leaderID,
-      int followerID,
-      int encoderId,
-      boolean leaderInverted,
-      Boolean followerInverted) {}
+      int leftID, int rightID, int encoderId, boolean leftInverted, Boolean rightInverted) {}
 
   public static final ArmConfig ARM_CONFIG =
       switch (Constants.getRobot()) {
-        case OLD_DEV_BOT -> new ArmConfig(19, 5, 6, true, true);
+        case OLD_DEV_BOT -> new ArmConfig(5, 19, 6, false, true);
         default -> new ArmConfig(0, 0, 0, false, false);
       };
 
@@ -26,7 +22,8 @@ public class ArmConstants {
 
   public static final Rotation2d ARM_ENCODER_OFFSET =
       switch (Constants.getRobot()) {
-        default -> Rotation2d.fromDegrees(-50.44921875);
+          // default -> Rotation2d.fromDegrees(-50.44921875);
+        default -> new Rotation2d();
       };
 
   public static final double GEAR_RATIO = (5.0 / 1.0) * (5.0 / 1.0) * (4.0 / 1.0) * (3.0 / 1.0);

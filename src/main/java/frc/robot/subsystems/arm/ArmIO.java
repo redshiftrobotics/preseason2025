@@ -13,6 +13,9 @@ public interface ArmIO {
     public double[] supplyCurrentAmps = new double[] {};
   }
 
+  /** Periodic method. Must be called every 20ms */
+  public default void periodic() {}
+
   /** Updates the set of loggable inputs. */
   public default void updateInputs(ArmIOInputs inputs) {}
 

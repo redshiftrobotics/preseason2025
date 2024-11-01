@@ -47,8 +47,8 @@ public class Arm extends SubsystemBase {
   private final ArmVisualizer goalVisualizer;
 
   public enum Goal {
-    STOW(() -> Rotation2d.fromDegrees(5)),
-    UP(() -> Rotation2d.fromDegrees(90));
+    STOW(() -> Rotation2d.fromDegrees(-100.0)),
+    UP(() -> Rotation2d.fromDegrees(-105.822));
 
     private final Supplier<Rotation2d> armSetpointSupplier;
 
@@ -95,6 +95,8 @@ public class Arm extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Arm", inputs);
+
+    io.periodic();
 
     setpointState =
         profile.calculate(
