@@ -1,5 +1,6 @@
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -186,6 +187,19 @@ public class RobotContainer {
     dashboard.setSpeedLevelSupplier(() -> SpeedController.SpeedLevel.NO_LEVEL);
     dashboard.setFieldRelativeSupplier(() -> false);
     dashboard.setAngleDrivenSupplier(() -> false);
+
+    dashboard.addCommand("Reset Pose", () -> drive.resetPose(new Pose2d()), true);
+    dashboard.addCommand("Zero Gyro", drive::zeroGyro, true);
+
+    dashboard.addCommand("Arm Stow", () -> arm.setGoal(Arm.Goal.STOW), false);
+    dashboard.addCommand("Arm Up", () -> arm.setGoal(Arm.Goal.UP), false);
+
+    dashboard.addCommand(
+        "Pathfind To Speaker",
+        AutoBuilder.pathfindToPose(
+            new Pose2d(new Translation2d(1.377, 5.567), Rotation2d.fromDegrees(180)),
+            DriveConstants.PATH_CONSTRAINS),
+        false);
   }
 
   /** Define button->command mappings. */
@@ -222,13 +236,6 @@ public class RobotContainer {
       DriverDashboard.getInstance().setSpeedLevelSupplier(speedController::getCurrentSpeedLevel);
       DriverDashboard.getInstance().setAngleDrivenSupplier(useAngleControlMode);
       DriverDashboard.getInstance().setFieldRelativeSupplier(useFieldRelative);
-
-      DriverDashboard.getInstance()
-          .addCommand("Reset Pose", () -> drive.resetPose(new Pose2d()), true);
-      DriverDashboard.getInstance().addCommand("Zero Gyro", drive::zeroGyro, true);
-
-      DriverDashboard.getInstance().addCommand("Arm Stow", () -> arm.setGoal(Arm.Goal.STOW), false);
-      DriverDashboard.getInstance().addCommand("Arm Up", () -> arm.setGoal(Arm.Goal.UP), false);
 
       DriverDashboard.getInstance()
           .addCommand(
