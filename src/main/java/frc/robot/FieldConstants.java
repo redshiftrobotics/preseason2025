@@ -14,8 +14,12 @@ import edu.wpi.first.math.util.Units;
  *
  * <p>Length refers to the <i>x</i> direction (as described by wpilib) Width refers to the <i>y</i>
  * direction (as described by wpilib)
+ *
+ * @see
+ *     https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html#always-blue-origin
  */
 public class FieldConstants {
+  private FieldConstants() {}
 
   public static final double FIELD_LENGTH = Units.inchesToMeters(651.25);
   public static final double FIELD_WIDTH = Units.inchesToMeters(315.5);

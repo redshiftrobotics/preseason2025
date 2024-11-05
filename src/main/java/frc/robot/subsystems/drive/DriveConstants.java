@@ -10,6 +10,7 @@ import frc.robot.Constants;
  * rad/s, rad/s^2). Switch expressions must cover all cases.
  */
 public class DriveConstants {
+  private DriveConstants() {}
 
   // --- Drive Config ---
 
@@ -34,17 +35,11 @@ public class DriveConstants {
 
   public static final DriveConfig DRIVE_CONFIG =
       switch (Constants.getRobot()) {
-        case COMP_BOT, DEV_BOT -> new DriveConfig(
+        case CANNON_BOT -> new DriveConfig(
             Units.inchesToMeters(2),
             new Translation2d(0.885, 0.885),
             new Translation2d(0.9612, 0.9612),
             5.05968,
-            14.5);
-        case OLD_DEV_BOT -> new DriveConfig(
-            Units.inchesToMeters(2),
-            new Translation2d(0.885, 0.885),
-            new Translation2d(0.9612, 0.9612),
-            3.81,
             14.5);
         case SIM_BOT -> new DriveConfig(
             Units.inchesToMeters(2),
@@ -77,19 +72,7 @@ public class DriveConstants {
         BACK_RIGHT_MODULE_CONFIG = new ModuleConfig(0, 0, 0, new Rotation2d(), false);
         break;
 
-      case OLD_DEV_BOT:
-        FRONT_LEFT_MODULE_CONFIG =
-            new ModuleConfig(2, 3, 3, Rotation2d.fromRotations(0.631591796875), false);
-        FRONT_RIGHT_MODULE_CONFIG =
-            new ModuleConfig(14, 17, 4, Rotation2d.fromRotations(-0.77758789062), false);
-        BACK_LEFT_MODULE_CONFIG =
-            new ModuleConfig(8, 9, 2, Rotation2d.fromRotations(-0.641357421875), false);
-        BACK_RIGHT_MODULE_CONFIG =
-            new ModuleConfig(10, 11, 1, Rotation2d.fromRotations(0.453857421875), false);
-        break;
-
-      case DEV_BOT:
-      case COMP_BOT:
+      case CANNON_BOT:
       default:
         FRONT_LEFT_MODULE_CONFIG =
             new ModuleConfig(2, 3, 3, Rotation2d.fromRotations(0.631591796875), false);
@@ -139,7 +122,7 @@ public class DriveConstants {
 
   public static final int GYRO_CAN_ID =
       switch (Constants.getRobot()) {
-        case OLD_DEV_BOT -> 40;
+        case CANNON_BOT -> 40;
         default -> 0;
       };
 
@@ -154,21 +137,15 @@ public class DriveConstants {
 
   public static final ModuleConstants MODULE_CONSTANTS =
       switch (Constants.getRobot()) {
-        case OLD_DEV_BOT -> new ModuleConstants(
-            new FeedForward(0.1, 3.12, 0.40),
-            new PID(0.000006, 0.0, 0.0),
-            new PID(10, 0.0, 0.0002),
-            Mk4Reductions.L1.reduction,
-            Mk4Reductions.TURN.reduction);
         case SIM_BOT -> new ModuleConstants(
             new FeedForward(0.1, 3.12, 0.40),
             new PID(0.1, 0.0, 0.0),
             new PID(10.0, 0.0, 0.0),
             Mk4iReductions.L3.reduction,
             Mk4iReductions.TURN.reduction);
-        case COMP_BOT, DEV_BOT -> new ModuleConstants(
+        case CANNON_BOT -> new ModuleConstants(
             new FeedForward(0.1, 2.35, 0.53),
-            new PID(0.1, 0.0, 0.0),
+            new PID(0.000006, 0.0, 0.0),
             new PID(10.0, 0.0, 0.0),
             Mk4iReductions.L3.reduction,
             Mk4iReductions.TURN.reduction);
@@ -213,6 +190,7 @@ public class DriveConstants {
     }
   }
 
+  @SuppressWarnings("unused")
   // https://www.swervedrivespecialties.com/products/mk4-swerve-module
   private enum Mk4Reductions {
     L1((50.0 / 14.0) * (19.0 / 25.0) * (45.0 / 15.0)),

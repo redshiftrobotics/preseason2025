@@ -1,7 +1,5 @@
 package frc.robot;
 
-import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -20,11 +18,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.Mode;
 import frc.robot.Constants.RobotType;
-import frc.robot.commands.SafeDriveMode;
-import frc.robot.subsystems.arm.Arm;
-import frc.robot.subsystems.arm.ArmHardwareIO;
-import frc.robot.subsystems.arm.ArmIO;
-import frc.robot.subsystems.arm.ArmSimIO;
 import frc.robot.subsystems.dashboard.DriverDashboard;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
@@ -56,7 +49,6 @@ public class RobotContainer {
 
   // Subsystems
   private final Drive drive;
-  private final Arm arm;
   private final AprilTagVision vision;
 
   // Controller
@@ -70,7 +62,7 @@ public class RobotContainer {
   public RobotContainer() {
 
     switch (Constants.getRobot()) {
-      case COMP_BOT, DEV_BOT:
+      case CANNON_BOT:
         // Real robot, instantiate hardware IO implementations
         drive =
             new Drive(
@@ -79,20 +71,6 @@ public class RobotContainer {
                 new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
-        arm = new Arm(new ArmIO() {});
-        vision = new AprilTagVision();
-        break;
-
-      case OLD_DEV_BOT:
-        // Real robot, instantiate hardware IO implementations
-        drive =
-            new Drive(
-                new GyroIOPigeon2(DriveConstants.GYRO_CAN_ID, false),
-                new ModuleIOSparkMax(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
-                new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
-                new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
-                new ModuleIOSparkMax(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
-        arm = new Arm(new ArmHardwareIO() {});
         vision = new AprilTagVision();
         break;
 
@@ -105,7 +83,6 @@ public class RobotContainer {
                 new ModuleIOSim(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSim(DriveConstants.BACK_LEFT_MODULE_CONFIG),
                 new ModuleIOSim(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
-        arm = new Arm(new ArmSimIO() {});
         vision = new AprilTagVision(new CameraIOSim(VisionConstants.FRONT_CAMERA, drive::getPose));
         break;
 
@@ -118,7 +95,6 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        arm = new Arm(new ArmIO() {});
         vision = new AprilTagVision();
         break;
     }
@@ -151,16 +127,6 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
-    // Set up named commands for path planner auto
-    // https://pathplanner.dev/pplib-named-commands.html
-    NamedCommands.registerCommand("StopWithX", drive.runOnce(drive::stopUsingBrakeArrangement));
-    NamedCommands.registerCommand("ArmStow", arm.runOnce(() -> arm.setGoal(Arm.Goal.STOW)));
-
-    // Path planner Autos
-    // https://pathplanner.dev/gui-editing-paths-and-autos.html#autos
-    autoChooser.addOption("Triangle Auto", new PathPlannerAuto("Triangle Auto"));
-    autoChooser.addOption("Rotate Auto", new PathPlannerAuto("Rotate Auto"));
-
     // Alerts for constants to avoid using them in competition
     if (Constants.TUNING_MODE) {
       new Alert("Tuning mode active, do not use in competition.", AlertType.INFO).set(true);
@@ -171,6 +137,7 @@ public class RobotContainer {
       DriverStation.silenceJoystickConnectionWarning(true);
     }
 
+    // Put dashboard defaults
     initDashboard();
 
     // Configure the button bindings
@@ -226,22 +193,6 @@ public class RobotContainer {
       DriverDashboard.getInstance()
           .addCommand("Reset Pose", () -> drive.resetPose(new Pose2d()), true);
       DriverDashboard.getInstance().addCommand("Zero Gyro", drive::zeroGyro, true);
-
-      DriverDashboard.getInstance().addCommand("Arm Stow", () -> arm.setGoal(Arm.Goal.STOW), false);
-      DriverDashboard.getInstance().addCommand("Arm Up", () -> arm.setGoal(Arm.Goal.UP), false);
-
-      DriverDashboard.getInstance()
-          .addCommand(
-              "Noob Mode",
-              new SafeDriveMode(
-                      drive,
-                      input,
-                      SpeedLevel.PRECISE,
-                      true,
-                      new Translation2d(-2, -2),
-                      new Translation2d(2, 2))
-                  .withInterruptBehavior(InterruptionBehavior.kCancelIncoming),
-              true);
 
       // Default command
       drive.setDefaultCommand(
@@ -433,7 +384,7 @@ public class RobotContainer {
     if (operatorController instanceof CommandXboxController) {
       final CommandXboxController operatorXbox = (CommandXboxController) operatorController;
 
-      operatorXbox.b().onTrue(arm.runOnce(() -> arm.setGoal(Arm.Goal.STOW)));
+      operatorXbox.b().onTrue(Commands.idle(drive));
     }
   }
 

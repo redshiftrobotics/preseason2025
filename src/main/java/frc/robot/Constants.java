@@ -12,6 +12,7 @@ import frc.robot.utility.logging.Alert;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+  private Constants() {}
 
   public static final double LOOP_PERIOD_SECONDS = Robot.defaultPeriodSecs; // 0.02
 
@@ -24,14 +25,14 @@ public final class Constants {
       new Alert(
               "Invalid robot selected, using competition robot as default.", Alert.AlertType.ERROR)
           .set(true);
-      robotType = RobotType.COMP_BOT;
+      robotType = RobotType.CANNON_BOT;
     }
     return robotType;
   }
 
   public static Mode getMode() {
     return switch (getRobot()) {
-      case DEV_BOT, COMP_BOT, OLD_DEV_BOT -> RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;
+      case CANNON_BOT -> RobotBase.isReal() ? Mode.REAL : Mode.REPLAY;
       case SIM_BOT -> Mode.SIM;
     };
   }
@@ -49,9 +50,7 @@ public final class Constants {
 
   public enum RobotType {
     SIM_BOT,
-    DEV_BOT,
-    OLD_DEV_BOT,
-    COMP_BOT
+    CANNON_BOT
   }
 
   /** Checks whether the correct robot is selected when deploying. */
