@@ -1,50 +1,25 @@
 package frc.robot.subsystems.arm;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.util.Units;
-import frc.robot.Constants;
-
 public class ArmConstants {
+  public static final boolean ARE_MOTORS_REVERSED = false;
+  public static final int LEFT_MOTOR_ID = 5;
+  public static final int RIGHT_MOTOR_ID = 19;
+  public static final int RIGHT_ENCODER_ID = 6;
 
-  public record ArmConfig(
-      int leftID, int rightID, int encoderId, boolean leftInverted, Boolean rightInverted) {}
+  public static final double ARM_TOLERANCE_DEGREES = 2.0;
 
-  public static final ArmConfig ARM_CONFIG =
-      switch (Constants.getRobot()) {
-        case OLD_DEV_BOT -> new ArmConfig(5, 19, 6, false, true);
-        default -> new ArmConfig(0, 0, 0, false, false);
-      };
+  public static final double ELEVATION_PID_P = 13.6;
+  public static final double ELEVATION_PID_I = 0.0;
+  public static final double ELEVATION_PID_D = 0.0;
 
-  public static final Rotation2d ARM_MIN_ANGLE = Rotation2d.fromDegrees(5);
-  public static final Rotation2d ARM_MAX_ANGLE = Rotation2d.fromDegrees(180);
+  public static final double MAXIMUM_ARM_DEGREES = 350;
+  public static final double MINIMUM_ARM_DEGREES = 250;
 
-  public static final Rotation2d ARM_ENCODER_OFFSET =
-      switch (Constants.getRobot()) {
-          // default -> Rotation2d.fromDegrees(-50.44921875);
-        default -> new Rotation2d();
-      };
-
-  public static final double GEAR_RATIO = (5.0 / 1.0) * (5.0 / 1.0) * (4.0 / 1.0) * (3.0 / 1.0);
-
-  public static final double ARM_LENGTH_METERS = Units.inchesToMeters(24);
-  public static final Translation2d ARM_ORIGIN = new Translation2d(-0.238, 0.298);
-
-  public record PID(double Kp, double Ki, double Kd) {}
-
-  public static final PID PID_CONFIG =
-      switch (Constants.getRobot()) {
-        default -> new PID(50, 0, 0);
-      };
-
-  public record ArmFeedForward(double Ks, double Kg, double Kv, double Ka) {}
-
-  public static final ArmFeedForward FEED_FORWARD_CONFIG =
-      switch (Constants.getRobot()) {
-        default -> new ArmFeedForward(0, 0, 0, 0);
-      };
-
-  public static TrapezoidProfile.Constraints PROFILED_CONSTRAINTS =
-      new TrapezoidProfile.Constraints(2 * Math.PI, 15);
+  public static final double ARM_START_DEGREES = 253.1;
+  public static final double ARM_STOW_DEGREES = 253.0;
+  public static final double ARM_STOW_2_DEGREES = 253.0;
+  public static final double ARM_AMP_SHOOTING_DEGREES = 338;
+  public static final double ARM_SPEAKER_SHOOTING_DEGREES = 270;
+  public static final double ARM_SPEAKER_SHOOTING_DEGREES_FAR = 270;
+  public static final double ARM_INTAKE_DEGREES = 249;
 }

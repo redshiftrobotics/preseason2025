@@ -22,13 +22,14 @@ import frc.robot.Constants.Mode;
 import frc.robot.Constants.RobotType;
 import frc.robot.commands.SafeDriveMode;
 import frc.robot.subsystems.arm.Arm;
-import frc.robot.subsystems.arm.ArmHardwareIO;
+import frc.robot.subsystems.arm.ArmConstants;
+import frc.robot.subsystems.arm.ArmHardware;
 import frc.robot.subsystems.arm.ArmIO;
-import frc.robot.subsystems.arm.ArmSimIO;
 import frc.robot.subsystems.dashboard.DriverDashboard;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
+import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
@@ -87,12 +88,18 @@ public class RobotContainer {
         // Real robot, instantiate hardware IO implementations
         drive =
             new Drive(
-                new GyroIOPigeon2(DriveConstants.GYRO_CAN_ID, false),
+                new GyroIONavX(),
                 new ModuleIOSparkMax(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
-        arm = new Arm(new ArmHardwareIO() {});
+        arm =
+            new Arm(
+                new ArmHardware(
+                    ArmConstants.LEFT_MOTOR_ID,
+                    ArmConstants.RIGHT_MOTOR_ID,
+                    ArmConstants.RIGHT_ENCODER_ID,
+                    ArmConstants.ARE_MOTORS_REVERSED));
         vision = new AprilTagVision();
         break;
 
@@ -105,7 +112,7 @@ public class RobotContainer {
                 new ModuleIOSim(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSim(DriveConstants.BACK_LEFT_MODULE_CONFIG),
                 new ModuleIOSim(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
-        arm = new Arm(new ArmSimIO() {});
+        arm = new Arm(new ArmIO() {});
         vision = new AprilTagVision(new CameraIOSim(VisionConstants.FRONT_CAMERA, drive::getPose));
         break;
 
@@ -154,7 +161,8 @@ public class RobotContainer {
     // Set up named commands for path planner auto
     // https://pathplanner.dev/pplib-named-commands.html
     NamedCommands.registerCommand("StopWithX", drive.runOnce(drive::stopUsingBrakeArrangement));
-    NamedCommands.registerCommand("ArmStow", arm.runOnce(() -> arm.setGoal(Arm.Goal.STOW)));
+    NamedCommands.registerCommand(
+        "ArmStow", arm.runOnce(() -> arm.setPosition(ArmConstants.ARM_STOW_2_DEGREES)));
 
     // Path planner Autos
     // https://pathplanner.dev/gui-editing-paths-and-autos.html#autos
@@ -227,8 +235,11 @@ public class RobotContainer {
           .addCommand("Reset Pose", () -> drive.resetPose(new Pose2d()), true);
       DriverDashboard.getInstance().addCommand("Zero Gyro", drive::zeroGyro, true);
 
-      DriverDashboard.getInstance().addCommand("Arm Stow", () -> arm.setGoal(Arm.Goal.STOW), false);
-      DriverDashboard.getInstance().addCommand("Arm Up", () -> arm.setGoal(Arm.Goal.UP), false);
+      DriverDashboard.getInstance()
+          .addCommand("Arm Stow", () -> arm.setPosition(ArmConstants.ARM_STOW_DEGREES), false);
+      DriverDashboard.getInstance()
+          .addCommand(
+              "Arm Up", () -> arm.setPosition(ArmConstants.ARM_AMP_SHOOTING_DEGREES), false);
 
       DriverDashboard.getInstance()
           .addCommand(
@@ -433,7 +444,7 @@ public class RobotContainer {
     if (operatorController instanceof CommandXboxController) {
       final CommandXboxController operatorXbox = (CommandXboxController) operatorController;
 
-      operatorXbox.b().onTrue(arm.runOnce(() -> arm.setGoal(Arm.Goal.STOW)));
+      operatorXbox.b().onTrue(arm.runOnce(() -> arm.setPosition(ArmConstants.ARM_STOW_DEGREES)));
     }
   }
 

@@ -188,7 +188,7 @@ public class DriveConstants {
 
   public static final HeadingControllerConstants HEADING_CONTROLLER_CONSTANTS =
       switch (Constants.getRobot()) {
-        default -> new HeadingControllerConstants(5.0, 0.0, 1);
+        default -> new HeadingControllerConstants(1.0, 0.0, 1);
       };
 
   // --- Control ---
