@@ -1,9 +1,8 @@
 package frc.robot.subsystems.reservoir;
 
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.controller.BangBangController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.littletonrobotics.junction.Logger;
 
 /**
  * Subsystem of t-shirt cannon robot representing the reservoir tank and the compressor which fills
@@ -28,7 +27,7 @@ public class ReservoirTank extends SubsystemBase {
     Logger.processInputs("Compressor", inputs);
 
     controller.calculate(0);
-  }  
+  }
 
   /** Sets the setpoint pressure to full. The compressor will try and maintain this pressure. */
   public void setDesiredPressureToFull() {
