@@ -32,7 +32,9 @@
 	"spotlessGradle.format.enable": true,
 	"spotlessGradle.diagnostics.enable": false,
 	"editor.defaultFormatter": "richardwillis.vscode-spotless-gradle",
-	"editor.detectIndentation": true,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
 	"cSpell.words": [
 		"AHRS",
 		"apriltag",
