@@ -40,7 +40,7 @@ import frc.robot.subsystems.drive.controllers.SpeedController;
 import frc.robot.subsystems.drive.controllers.SpeedController.SpeedLevel;
 import frc.robot.subsystems.drive.controllers.TeleopDriveController;
 import frc.robot.subsystems.vision.AprilTagVision;
-import frc.robot.subsystems.vision.CameraIOPhotonVision;
+import frc.robot.subsystems.vision.CameraIOSim;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.utility.OverrideSwitch;
 import frc.robot.utility.logging.Alert;
@@ -199,9 +199,6 @@ public class RobotContainer {
 
     dashboard.addCommand("Reset Pose", () -> drive.resetPose(new Pose2d()), true);
     dashboard.addCommand("Zero Gyro", drive::zeroGyro, true);
-
-    dashboard.addCommand("Arm Stow", () -> arm.setGoal(Arm.Goal.STOW), false);
-    dashboard.addCommand("Arm Up", () -> arm.setGoal(Arm.Goal.UP), false);
 
     dashboard.addCommand(
         "Pathfind To Speaker",
