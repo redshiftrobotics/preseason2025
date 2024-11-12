@@ -3,6 +3,7 @@ package frc.robot.subsystems.drive;
 import static frc.robot.subsystems.drive.DriveConstants.DRIVE_CONFIG;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
@@ -129,6 +130,8 @@ public class Drive extends SubsystemBase {
 
     Pathfinding.setPathfinder(
         new LocalADStarAK()); // https://pathplanner.dev/pplib-pathfinding.html#advantagekit-compatibility
+
+    PathfindingCommand.warmupCommand();
 
     PathPlannerLogging.setLogActivePathCallback(
         activePath ->
