@@ -39,7 +39,7 @@ import frc.robot.subsystems.drive.controllers.SpeedController;
 import frc.robot.subsystems.drive.controllers.SpeedController.SpeedLevel;
 import frc.robot.subsystems.drive.controllers.TeleopDriveController;
 import frc.robot.subsystems.vision.AprilTagVision;
-import frc.robot.subsystems.vision.CameraIOSim;
+import frc.robot.subsystems.vision.CameraIOPhotonVision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.utility.OverrideSwitch;
 import frc.robot.utility.logging.Alert;
@@ -114,6 +114,7 @@ public class RobotContainer {
                 new ModuleIOSim(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
         arm = new Arm(new ArmIO() {});
         vision = new AprilTagVision(new CameraIOSim(VisionConstants.FRONT_CAMERA, drive::getPose));
+        // vision = new AprilTagVision(new CameraIOPhotonVision(VisionConstants.FRONT_CAMERA));
         break;
 
       default:
@@ -233,7 +234,11 @@ public class RobotContainer {
 
       DriverDashboard.getInstance()
           .addCommand("Reset Pose", () -> drive.resetPose(new Pose2d()), true);
-      DriverDashboard.getInstance().addCommand("Zero Gyro", drive::zeroGyro, true);
+      DriverDashboard.getInstance()
+          .addCommand(
+              "Reset Gyro",
+              () -> drive.resetPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+              true);
 
       DriverDashboard.getInstance()
           .addCommand("Arm Stow", () -> arm.setPosition(ArmConstants.ARM_STOW_DEGREES), false);

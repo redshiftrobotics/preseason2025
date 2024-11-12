@@ -52,13 +52,13 @@ public class Drive extends SubsystemBase {
 
   private final SysIdRoutine sysId;
 
-  private SwerveDriveKinematics kinematics;
-  private Rotation2d rawGyroRotation = new Rotation2d();
+  private final SwerveDriveKinematics kinematics;
+  private final SwerveDrivePoseEstimator poseEstimator;
+
   private SwerveModulePosition[] lastModulePositions;
 
+  private Rotation2d rawGyroRotation = new Rotation2d();
   private Pose2d pose = new Pose2d();
-
-  private SwerveDrivePoseEstimator poseEstimator;
 
   /**
    * Creates a new drivetrain for robot
@@ -165,8 +165,9 @@ public class Drive extends SubsystemBase {
   @Override
   public void periodic() {
 
-    odometryLock.lock(); // Prevents odometry updates while reading data, this is needed as odometry
-    // is handed on a different thread
+    // Prevents odometry updates while reading data, this is needed as odometry is handed on a
+    // different thread
+    odometryLock.lock();
     gyroIO.updateInputs(gyroInputs);
     modules().forEach(Module::updateInputs);
     odometryLock.unlock();
