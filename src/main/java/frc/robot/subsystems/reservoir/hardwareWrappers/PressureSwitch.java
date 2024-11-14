@@ -9,9 +9,12 @@ public class PressureSwitch {
   private final DigitalGlitchFilter filter;
 
   // Digital Inputs (DIO)
+
   // Software:
   // https://docs.wpilib.org/en/stable/docs/software/hardware-apis/sensors/digital-inputs-software.html
-  // Hardware: https://docs.wpilib.org/en/stable/docs/hardware/sensors/digital-inputs-hardware.html
+
+  // Hardware:
+  // https://docs.wpilib.org/en/stable/docs/hardware/sensors/digital-inputs-hardware.html
 
   /**
    * Create pressure switch

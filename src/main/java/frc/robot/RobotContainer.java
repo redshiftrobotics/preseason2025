@@ -17,7 +17,6 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.Mode;
-import frc.robot.Constants.RobotType;
 import frc.robot.subsystems.dashboard.DriverDashboard;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
@@ -30,9 +29,9 @@ import frc.robot.subsystems.drive.controllers.HeadingController;
 import frc.robot.subsystems.drive.controllers.SpeedController;
 import frc.robot.subsystems.drive.controllers.SpeedController.SpeedLevel;
 import frc.robot.subsystems.drive.controllers.TeleopDriveController;
-import frc.robot.subsystems.vision.AprilTagVision;
-import frc.robot.subsystems.vision.CameraIOSim;
-import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.subsystems.reservoir.ReservoirIO;
+import frc.robot.subsystems.reservoir.ReservoirIOHardware;
+import frc.robot.subsystems.reservoir.ReservoirTank;
 import frc.robot.utility.OverrideSwitch;
 import frc.robot.utility.logging.Alert;
 import frc.robot.utility.logging.Alert.AlertType;
@@ -49,7 +48,7 @@ public class RobotContainer {
 
   // Subsystems
   private final Drive drive;
-  private final AprilTagVision vision;
+  private final ReservoirTank reservoirTank;
 
   // Controller
   private final CommandGenericHID driverController = new CommandXboxController(0);
@@ -71,7 +70,7 @@ public class RobotContainer {
                 new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
                 new ModuleIOSparkMax(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
-        vision = new AprilTagVision();
+        reservoirTank = new ReservoirTank(new ReservoirIOHardware());
         break;
 
       case SIM_BOT:
@@ -83,7 +82,7 @@ public class RobotContainer {
                 new ModuleIOSim(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
                 new ModuleIOSim(DriveConstants.BACK_LEFT_MODULE_CONFIG),
                 new ModuleIOSim(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
-        vision = new AprilTagVision(new CameraIOSim(VisionConstants.FRONT_CAMERA, drive::getPose));
+        reservoirTank = new ReservoirTank(new ReservoirIO() {});
         break;
 
       default:
@@ -95,20 +94,9 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        vision = new AprilTagVision();
+        reservoirTank = new ReservoirTank(new ReservoirIO() {});
         break;
     }
-
-    vision.setRobotPoseSupplier(drive::getPose);
-    vision.addVisionEstimateConsumer(
-        (visionEstimate) -> {
-          if (visionEstimate.isSuccess() && Constants.getRobot() != RobotType.SIM_BOT) {
-            drive.addVisionMeasurement(
-                visionEstimate.robotPose2d(),
-                visionEstimate.timestampSeconds(),
-                visionEstimate.standardDeviations());
-          }
-        });
 
     // Can also use AutoBuilder.buildAutoChooser(); instead of SendableChooser to
     // auto populate
