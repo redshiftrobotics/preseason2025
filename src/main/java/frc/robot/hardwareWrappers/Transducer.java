@@ -1,4 +1,4 @@
-package frc.robot.subsystems.reservoir.hardwareWrappers;
+package frc.robot.hardwareWrappers;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.AnalogInput;

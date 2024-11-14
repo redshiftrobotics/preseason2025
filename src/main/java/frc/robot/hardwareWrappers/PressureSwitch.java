@@ -1,4 +1,4 @@
-package frc.robot.subsystems.reservoir.hardwareWrappers;
+package frc.robot.hardwareWrappers;
 
 import edu.wpi.first.wpilibj.DigitalGlitchFilter;
 import edu.wpi.first.wpilibj.DigitalInput;

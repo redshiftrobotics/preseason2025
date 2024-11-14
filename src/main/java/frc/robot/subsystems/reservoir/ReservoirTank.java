@@ -24,7 +24,7 @@ public class ReservoirTank extends SubsystemBase {
   @Override
   public void periodic() {
     io.updateInputs(inputs);
-    Logger.processInputs("Compressor", inputs);
+    Logger.processInputs("ReservoirTank", inputs);
 
     controller.calculate(0);
   }
