@@ -21,7 +21,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.Mode;
 import frc.robot.Constants.RobotType;
-import frc.robot.commands.SafeDriveMode;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.arm.ArmHardware;
@@ -200,6 +199,8 @@ public class RobotContainer {
     dashboard.addCommand("Reset Pose", () -> drive.resetPose(new Pose2d()), true);
     dashboard.addCommand("Zero Gyro", drive::zeroGyro, true);
 
+    // dashboard.addCommand("Swerve Offsets", new SwerveModuleOffsetReader(drive), true);
+
     dashboard.addCommand(
         "Pathfind To Speaker",
         AutoBuilder.pathfindToPose(
@@ -256,19 +257,6 @@ public class RobotContainer {
       DriverDashboard.getInstance()
           .addCommand(
               "Arm Up", () -> arm.setPosition(ArmConstants.ARM_AMP_SHOOTING_DEGREES), false);
-
-      DriverDashboard.getInstance()
-          .addCommand(
-              "Noob Mode",
-              new SafeDriveMode(
-                      drive,
-                      input,
-                      SpeedLevel.PRECISE,
-                      true,
-                      new Translation2d(-2, -2),
-                      new Translation2d(2, 2))
-                  .withInterruptBehavior(InterruptionBehavior.kCancelIncoming),
-              true);
 
       // Default command
       drive.setDefaultCommand(
