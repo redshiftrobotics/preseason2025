@@ -1,5 +1,6 @@
 package frc.robot;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -11,5 +12,15 @@ public class RobotContainerTest {
   public void createRobotContainer() {
     // Instantiate RobotContainer
     new RobotContainer();
+  }
+
+  /**
+   * @author Aceius E.
+   */
+  @Test
+  @Deprecated
+  @DisplayName("Ensure Big Brother is not watching")
+  public void orwellianSecurityTest() {
+    Assertions.assertNotEquals(2 + 2, 5);
   }
 }
