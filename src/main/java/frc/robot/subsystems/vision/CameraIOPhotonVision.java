@@ -51,6 +51,8 @@ public class CameraIOPhotonVision implements CameraIO {
     Optional<EstimatedRobotPose> estimatedRobotPoseOptional = photonPoseEstimator.update();
 
     if (estimatedRobotPoseOptional.isPresent()) {
+      inputs.hasNewData = true;
+
       EstimatedRobotPose estimateRobotPose = estimatedRobotPoseOptional.get();
 
       inputs.timestampSecondsFPGA = estimateRobotPose.timestampSeconds;

@@ -1,5 +1,8 @@
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -17,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.SafeDriveMode;
 import frc.robot.subsystems.dashboard.DriverDashboard;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
@@ -111,6 +115,15 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
+    // Set up named commands for path planner auto
+    // https://pathplanner.dev/pplib-named-commands.html
+    NamedCommands.registerCommand("StopWithX", drive.runOnce(drive::stopUsingBrakeArrangement));
+
+    // Path planner Autos
+    // https://pathplanner.dev/gui-editing-paths-and-autos.html#autos
+    autoChooser.addOption("Triangle Auto", new PathPlannerAuto("Triangle Auto"));
+    autoChooser.addOption("Rotate Auto", new PathPlannerAuto("Rotate Auto"));
+
     // Alerts for constants to avoid using them in competition
     if (Constants.TUNING_MODE) {
       new Alert("Tuning mode active, do not use in competition.", AlertType.INFO).set(true);
@@ -137,6 +150,18 @@ public class RobotContainer {
     dashboard.setSpeedLevelSupplier(() -> SpeedController.SpeedLevel.NO_LEVEL);
     dashboard.setFieldRelativeSupplier(() -> false);
     dashboard.setAngleDrivenSupplier(() -> false);
+
+    dashboard.addCommand("Reset Pose", () -> drive.resetPose(new Pose2d()), true);
+    dashboard.addCommand("Zero Gyro", drive::zeroGyro, true);
+
+    // dashboard.addCommand("Swerve Offsets", new SwerveModuleOffsetReader(drive), true);
+
+    dashboard.addCommand(
+        "Pathfind To Speaker",
+        AutoBuilder.pathfindToPose(
+            new Pose2d(new Translation2d(1.377, 5.567), Rotation2d.fromDegrees(180)),
+            DriveConstants.PATH_CONSTRAINS),
+        false);
   }
 
   /** Define button->command mappings. */
@@ -178,6 +203,19 @@ public class RobotContainer {
       DriverDashboard.getInstance()
           .addCommand("Reset Pose", () -> drive.resetPose(new Pose2d()), true);
       DriverDashboard.getInstance().addCommand("Zero Gyro", drive::zeroGyro, true);
+
+      DriverDashboard.getInstance()
+          .addCommand(
+              "Noob Mode",
+              new SafeDriveMode(
+                      drive,
+                      input,
+                      SpeedLevel.PRECISE,
+                      true,
+                      new Translation2d(-2, -2),
+                      new Translation2d(2, 2))
+                  .withInterruptBehavior(InterruptionBehavior.kCancelIncoming),
+              true);
 
       // Default command
       drive.setDefaultCommand(
@@ -369,7 +407,7 @@ public class RobotContainer {
     if (operatorController instanceof CommandXboxController) {
       final CommandXboxController operatorXbox = (CommandXboxController) operatorController;
 
-      operatorXbox.b().onTrue(Commands.idle(drive));
+      operatorXbox.b().whileTrue(Commands.idle(drive).withName("Idle Drive"));
     }
   }
 

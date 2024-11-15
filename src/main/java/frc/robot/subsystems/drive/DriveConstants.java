@@ -1,5 +1,6 @@
 package frc.robot.subsystems.drive;
 
+import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
@@ -48,6 +49,9 @@ public class DriveConstants {
             5.05968,
             14.5);
       };
+
+  public static PathConstraints PATH_CONSTRAINS =
+      new PathConstraints(3.0, 3.0, 3 * Math.PI, 4 * Math.PI); // Currently a bit arbitrary
 
   // --- Module Config ---
 

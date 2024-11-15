@@ -45,14 +45,11 @@ public class HeadingController {
             Kp.get(),
             0,
             Kd.get(),
-            new TrapezoidProfile.Constraints(0.0, 0.0),
+            new TrapezoidProfile.Constraints(
+                DRIVE_CONFIG.maxAngularVelocity(), DRIVE_CONFIG.maxAngularAcceleration()),
             Constants.LOOP_PERIOD_SECONDS);
     headingControllerRadians.enableContinuousInput(-Math.PI, Math.PI);
     headingControllerRadians.setTolerance(Units.degreesToRadians(toleranceDegrees.get()));
-
-    headingControllerRadians.setConstraints(
-        new TrapezoidProfile.Constraints(
-            DRIVE_CONFIG.maxAngularVelocity(), DRIVE_CONFIG.maxAngularAcceleration()));
   }
 
   /** Reset last position and rotation to prepare for new use */
