@@ -21,16 +21,13 @@ import frc.robot.subsystems.dashboard.DriverDashboard;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
-import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
-import frc.robot.subsystems.drive.ModuleIOSparkMax;
 import frc.robot.subsystems.drive.controllers.HeadingController;
 import frc.robot.subsystems.drive.controllers.SpeedController;
 import frc.robot.subsystems.drive.controllers.SpeedController.SpeedLevel;
 import frc.robot.subsystems.drive.controllers.TeleopDriveController;
 import frc.robot.subsystems.reservoir.ReservoirIO;
-import frc.robot.subsystems.reservoir.ReservoirIOHardware;
 import frc.robot.subsystems.reservoir.ReservoirTank;
 import frc.robot.utility.OverrideSwitch;
 import frc.robot.utility.logging.Alert;
@@ -62,15 +59,14 @@ public class RobotContainer {
 
     switch (Constants.getRobot()) {
       case CANNON_BOT:
-        // Real robot, instantiate hardware IO implementations
         drive =
             new Drive(
-                new GyroIOPigeon2(DriveConstants.GYRO_CAN_ID, false),
-                new ModuleIOSparkMax(DriveConstants.FRONT_LEFT_MODULE_CONFIG),
-                new ModuleIOSparkMax(DriveConstants.FRONT_RIGHT_MODULE_CONFIG),
-                new ModuleIOSparkMax(DriveConstants.BACK_LEFT_MODULE_CONFIG),
-                new ModuleIOSparkMax(DriveConstants.BACK_RIGHT_MODULE_CONFIG));
-        reservoirTank = new ReservoirTank(new ReservoirIOHardware());
+                new GyroIO() {},
+                new ModuleIO() {},
+                new ModuleIO() {},
+                new ModuleIO() {},
+                new ModuleIO() {});
+        reservoirTank = new ReservoirTank(new ReservoirIO() {});
         break;
 
       case SIM_BOT:
@@ -146,6 +142,7 @@ public class RobotContainer {
   /** Define button->command mappings. */
   private void configureControllerBindings() {
     CommandScheduler.getInstance().getActiveButtonLoop().clear();
+
     configureDriverControllerBindings();
     configureOperatorControllerBindings();
   }

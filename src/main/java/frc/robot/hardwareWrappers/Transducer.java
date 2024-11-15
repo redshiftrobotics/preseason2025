@@ -8,15 +8,17 @@ public class Transducer {
   private final AnalogInput input;
 
   // Analog Inputs (Analog in)
+
   // Software:
   // https://docs.wpilib.org/en/stable/docs/software/hardware-apis/sensors/analog-inputs-software.html
+
   // Hardware:
   // https://docs.wpilib.org/en/stable/docs/hardware/sensors/analog-inputs-hardware.html#analog-inputs-hardware
 
   /**
    * Create traducer
    *
-   * @param analogInChannel
+   * @param analogInChannel Analog input channel for the transducer (Analog 0-3 are on-board)
    */
   public Transducer(int analogInChannel) {
     input = new AnalogInput(analogInChannel);
