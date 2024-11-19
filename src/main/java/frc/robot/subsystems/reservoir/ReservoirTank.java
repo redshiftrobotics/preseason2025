@@ -13,8 +13,6 @@ public class ReservoirTank extends SubsystemBase {
   private final ReservoirIO io;
   private final ReservoirIOInputsAutoLogged inputs = new ReservoirIOInputsAutoLogged();
 
-  private final BangBangController controller;
-
   public ReservoirTank(ReservoirIO io) {
     this.io = io;
 

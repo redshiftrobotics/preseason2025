@@ -2,7 +2,7 @@ package frc.robot.hardwareWrappers;
 
 import edu.wpi.first.wpilibj.Relay;
 
-public class Solenoid {
+public class RelaySolenoid {
   private final Relay relay;
 
   // Relays
@@ -13,7 +13,7 @@ public class Solenoid {
    *
    * @param relayChannel Relay channel for the solenoid (Relay 0-3 are on-board)
    */
-  public Solenoid(int relayChannel) {
+  public RelaySolenoid(int relayChannel) {
     relay = new Relay(relayChannel);
   }
 
