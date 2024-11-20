@@ -28,4 +28,9 @@ public class GatewayIOHardware implements GatewayIO {
     input.filling = false;
     solenoid.close();
   }
+
+  @Override
+  public void fireCannon(byte cannonId) {
+    // TODO
+  }
 }
