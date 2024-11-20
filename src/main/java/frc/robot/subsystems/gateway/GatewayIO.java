@@ -7,6 +7,7 @@ public interface GatewayIO {
   public static class GatewayIOInput {
     boolean filling;
     float psi;
+    float targetPsi;
   }
 
   public default void updateInputs(GatewayIOInput inputs) {}
